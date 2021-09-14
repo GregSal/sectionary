@@ -106,13 +106,13 @@ RuleCallableOptions = Union[
 #   Callable[[ProcessedItems, ContextType], AggregatedItem]
 #   Callable[[ProcessedItems, ...], AggregatedItem]
 #       Where ... represents keyword arguments
-AggregateFunc = Callable[[ProcessedItems, ContextType], AggregatedItem]
+AggregateFunc = Callable[[ProcessedList, ContextType], AggregatedItem]
 AggregateCallableOptions = Union[AggregateFunc,
-                               Callable[[ProcessedItems], AggregatedItem],
-                               Callable[..., ProcessedItems]]
+                               Callable[[ProcessedList], AggregatedItem],
+                               Callable[..., ProcessedList]]
 # SectionCallables describe all possible function types: Sentinel, Process, Rule
 # and Aggregate.
-SectionCallables = Union[ProcessFunc, RuleFunc, AggregateFunc]
+SectionCallables = Union[ProcessFunc, RuleFunc]
 
 #%% Relevant Type definitions for Trigger Class and SubClasses.
 # Sentinels
@@ -1536,11 +1536,8 @@ class Section():
                 it can be a SectionProcessor instance, a Section instance, or a
                 list of Section instances.
             aggregate (AggregateCallableOptions, optional): A function used to
-                collect and format, the processor output.  It should step
-                through the iterator or generator function, passed as its first
-                argument, combining the reader output into a single object.
-                Defaults to None, which returns a list of the reader output as a
-                List.
+                collect and format, the processor output into a single object.
+                Defaults to None, which returns a list of the processor output.
             keep_partial (bool, optional): In the case where the reader is
                 composed of one or more subsections and the main section ends
                 before the subsections end. If keep_partial is true the partial
@@ -2180,5 +2177,6 @@ class Section():
             except StopIteration:
                 break
         # Apply the aggregate function
-        section_aggregate = self.aggregate(section_items) # FIXME Aggregate function expect a generator not a list
+        section_aggregate = self.aggregate(section_items)
+        # FIXME Aggregate function expect a generator not a list
         return section_aggregate

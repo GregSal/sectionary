@@ -89,7 +89,7 @@ def extract_directory(line: str, event, *args,
     '''Extract Directory path from folder header.
     '''
     full_dir = line.replace('Directory of', '').strip()
-    return [[full_dir]]
+    return [full_dir]
 
 
 dir_header_rule = Rule(
@@ -143,7 +143,7 @@ def file_parse(line: str, event, *args, **kwargs) -> List[List[str]]:
         tp.make_date_time_string(event),
         int(file_line_parts['size'])
         ])
-    return [parsed_line]
+    return parsed_line
 
 
 # Regular File Parsing Rule
@@ -258,14 +258,18 @@ def print_lines(parsed_list):
     return output
 
 
-def to_folder_dict(folder_gen):
+def to_folder_dict(folder_list):
     '''Combine folder info into dictionary.
     '''
     # TODO separate directory info from file info
     #The first line in the folder list is the directory path
-    directory = folder_gen.__next__()[0]
+    directory = ''
+    if folder_list:
+        d_list = folder_list[0]
+        if d_list:
+            directory = d_list[0]
     folder_dict = {'Directory': directory}
-    for folder_info in folder_gen:
+    for folder_info in folder_list[1:]:
         filename, date, file_size = folder_info
         full_path = '\\'.join([directory, filename])
         file_parts = filename.rsplit('.', 1)
@@ -355,15 +359,13 @@ summary_section = Section(
 def main():
     # Test File
     base_path = Path.cwd() / 'examples'
-
-    test_file_path = base_path / 'Text Files'
-    test_file = test_file_path / 'test_DIR_Data.txt'
+    test_file = base_path / 'test_DIR_Data.txt'
 
     # Call Primary routine
     context = {
         'File Name': test_file.name,
         'File Path': test_file.parent,
-        'top_dir': str(test_file_path),
+        'top_dir': str(base_path),
         'tree_name': 'Test folder Tree'
         }
 
