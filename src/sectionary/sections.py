@@ -722,6 +722,7 @@ class Trigger():
         return test_passed
 
 
+# TODO create a NamedTuple that contains the SectionBreak arguments
 class SectionBreak(Trigger):  # pylint: disable=function-redefined
     '''Defines the method of identifying the start or end of a section.
 
@@ -766,7 +767,7 @@ class SectionBreak(Trigger):  # pylint: disable=function-redefined
             See Trigger class for more information on the sentinel and event
             arguments.
 
-            offset (int, str, optional): The number of Source items
+            break_offset (int, str, optional): The number of Source items
                 before (negative) or after (positive) between the item that
                 causes a trigger event and the boundary.  offset can also be
                 one of
@@ -1310,7 +1311,9 @@ class ProcessingMethods():
         '''
         self.name = name
         if not processing_methods:
-            self.processing_methods = lambda item, context: item
+            return_item = lambda item, context: item
+            return_item.is_gen = False
+            self.processing_methods = [return_item]
         else:
             self.processing_methods = self.clean_methods(processing_methods)
 
@@ -1561,6 +1564,7 @@ class Section():
         self.source = None
 
         # Set the start and end section break properties
+        # TODO Accept a Tuple with SectionBreak arguments as valid start_section or end_section values.
         self.start_section = start_section
         self.end_section = end_section
 
@@ -1770,6 +1774,7 @@ class Section():
                     ])
                 raise TypeError(msg)
         else:
+            # TODO try to create a ProcessingMethods from the supplied processor
             # if processor is None set a default SectionProcessor.
             self._processor = ProcessingMethods()
             self._section_reader = self.sequence_processor
@@ -2178,5 +2183,5 @@ class Section():
                 break
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_items)
-        # FIXME Aggregate function expect a generator not a list
+        # TODO Aggregate function expect a generator not a list
         return section_aggregate
