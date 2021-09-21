@@ -17,7 +17,7 @@ from typing import Iterable, Any, Callable, Union, Generator
 
 import pandas as pd
 from sections import true_iterable
-from sections import Section, SectionBreak, Rule, ProcessingMethods
+#from sections import Section, SectionBreak, Rule, ProcessingMethods
 from buffered_iterator import BufferedIterator
 from buffered_iterator import BufferOverflowWarning
 
