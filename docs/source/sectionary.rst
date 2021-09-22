@@ -21,6 +21,7 @@ sectionary.sections module
    :inherited-members:
    :no-undoc-members:
 
+
 sectionary.text\_reader module
 ------------------------------
 
