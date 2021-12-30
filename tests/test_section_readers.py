@@ -3,7 +3,7 @@ from pathlib import Path
 import csv
 import text_reader as tp
 from buffered_iterator import BufferedIterator
-from sections import sig_match, RuleSet
+from sections import sig_match, RuleSet, ProcessingMethods
 import read_dvh_file
 import pandas as pd
 
@@ -193,7 +193,7 @@ class TestProcessing(unittest.TestCase):
             ]
 
     def test_trim_line_processor(self):
-        processor = tp.ProcessingMethods([tp.trim_items])
+        processor = ProcessingMethods([tp.trim_items])
         test_trimmed_output = list()
         for line in self.test_text:
             processed_lines = processor.process(line, {})
@@ -202,7 +202,7 @@ class TestProcessing(unittest.TestCase):
         self.assertListEqual(test_trimmed_output, self.trimmed_output)
 
     def test_trim_line_reader(self):
-        processor = tp.ProcessingMethods([tp.trim_items])
+        processor = ProcessingMethods([tp.trim_items])
         processed_iter = processor.reader(self.test_text)
         test_trimmed_output = list()
         for line in processed_iter:
@@ -213,20 +213,20 @@ class TestProcessing(unittest.TestCase):
         self.assertListEqual(test_trimmed_output, self.trimmed_output)
 
     def test_dropped_blank_processor(self):
-        processor = tp.ProcessingMethods([tp.drop_blanks])
+        processor = ProcessingMethods([tp.drop_blanks])
         test_dropped_blank_output = processor.read(iter(self.trimmed_output))
         self.assertListEqual(test_dropped_blank_output,
                              self.dropped_blank_output)
 
     def test_merged_line_processor(self):
-        processor = tp.ProcessingMethods([tp.merge_continued_rows])
+        processor = ProcessingMethods([tp.merge_continued_rows])
         source = iter(self.dropped_blank_output)
         test_merged_line_output = processor.read(source)
         self.assertListEqual(test_merged_line_output,
                              self.merged_line_output)
 
     def test_line_processor(self):
-        processor = tp.ProcessingMethods([
+        processor = ProcessingMethods([
             tp.trim_items,
             tp.drop_blanks,
             tp.merge_continued_rows
@@ -285,7 +285,7 @@ class TestParsers(unittest.TestCase):
             'dvh_info',
             delimiter=':',
             skipinitialspace=True))
-        self.dvh_info_reader = tp.ProcessingMethods([RuleSet(
+        self.dvh_info_reader = ProcessingMethods([RuleSet(
             [read_dvh_file.make_date_parse_rule()],
             default=tp.define_csv_parser('dvh_info', delimiter=':',
                                          skipinitialspace=True))])
@@ -444,7 +444,7 @@ class TestSections(unittest.TestCase):
                                                    skipinitialspace=True)
 
     def test_dvh_info_reader(self):
-        dvh_info_reader = tp.ProcessingMethods([
+        dvh_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
             RuleSet([read_dvh_file.make_date_parse_rule()],
                        default=self.default_parser),
@@ -459,7 +459,7 @@ class TestSections(unittest.TestCase):
         self.assertDictEqual(test_output, self.test_result['DVH Info'])
 
     def test_plan_info1_read(self):
-        plan_info_reader = tp.ProcessingMethods([
+        plan_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
             RuleSet([read_dvh_file.make_prescribed_dose_rule(),
                      read_dvh_file.make_approved_status_rule()],
@@ -476,7 +476,7 @@ class TestSections(unittest.TestCase):
 
 
     def test_plan_info2_read(self):
-        plan_info_reader = tp.ProcessingMethods([
+        plan_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
             RuleSet([read_dvh_file.make_prescribed_dose_rule(),
                      read_dvh_file.make_approved_status_rule()],
@@ -493,7 +493,7 @@ class TestSections(unittest.TestCase):
 
 
     def test_structure_reader(self):
-        structure_reader = tp.ProcessingMethods([
+        structure_reader = ProcessingMethods([
             tp.clean_ascii_text,
             self.default_parser,
             tp.trim_items,
@@ -508,7 +508,7 @@ class TestSections(unittest.TestCase):
 
 
     def test_dvh_reader(self):
-        dvh_data_reader = tp.ProcessingMethods([
+        dvh_data_reader = ProcessingMethods([
             tp.clean_ascii_text,
             tp.define_fixed_width_parser(widths=10),
             tp.trim_items,

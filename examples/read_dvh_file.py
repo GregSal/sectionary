@@ -14,7 +14,7 @@ import re
 import pandas as pd
 
 import text_reader as tp
-from sections import Rule, RuleSet, SectionBreak, Section
+from sections import Rule, RuleSet, SectionBreak, Section, ProcessingMethods
 
 
 #%% Logging
@@ -178,14 +178,14 @@ def to_structure_data_tuple(structure_data_list):
 #%% Reader definitions
 default_parser = tp.define_csv_parser('dvh_info', delimiter=':',
                                       skipinitialspace=True)
-dvh_info_reader = tp.ProcessingMethods([
+dvh_info_reader = ProcessingMethods([
     tp.clean_ascii_text,
     RuleSet([make_date_parse_rule()], default=default_parser),
     tp.trim_items,
     tp.drop_blanks,
     tp.merge_continued_rows
     ])
-plan_info_reader = tp.ProcessingMethods([
+plan_info_reader = ProcessingMethods([
     tp.clean_ascii_text,
     RuleSet([make_prescribed_dose_rule(), make_approved_status_rule()],
                default=default_parser),
@@ -193,7 +193,7 @@ plan_info_reader = tp.ProcessingMethods([
     tp.drop_blanks,
     tp.convert_numbers
     ])
-structure_info_reader = tp.ProcessingMethods([
+structure_info_reader = ProcessingMethods([
     tp.clean_ascii_text,
     default_parser,
     tp.trim_items,
@@ -201,7 +201,7 @@ structure_info_reader = tp.ProcessingMethods([
     tp.convert_numbers,
     fix_structure_names
     ])
-dvh_data_reader = tp.ProcessingMethods([
+dvh_data_reader = ProcessingMethods([
     tp.clean_ascii_text,
     tp.define_fixed_width_parser(widths=10),
     tp.trim_items,

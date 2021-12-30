@@ -1,6 +1,8 @@
 import unittest
 from pathlib import Path
 from functools import partial
+
+import sections
 import text_reader as tp
 from buffered_iterator import BufferedIterator
 import read_dvh_file
@@ -210,7 +212,7 @@ class TestSectionSequencer(unittest.TestCase):
                                                    skipinitialspace=True)
 
     def test_dvh_info_section(self):
-        section = tp.Section(
+        section = sections.Section(
             section_name='DVH Info',
             start_section=None,
             end_section=read_dvh_file.plan_info_start,
@@ -223,14 +225,14 @@ class TestSectionSequencer(unittest.TestCase):
         self.assertDictEqual(test_output, self.test_result['DVH Info'])
 
     def test_plan_info_group(self):
-        plan_info_section = tp.Section(
+        plan_info_section = sections.Section(
             section_name='Plan Info',
             start_section=read_dvh_file.plan_info_start,
             end_section=read_dvh_file.plan_info_end,
             processor=read_dvh_file.plan_info_reader,
             aggregate=tp.to_dict)
 
-        section = tp.Section(
+        section = sections.Section(
             section_name='Plan Info Group',
             start_section=read_dvh_file.plan_info_start,
             end_section=read_dvh_file.structure_info_start,
@@ -243,7 +245,7 @@ class TestSectionSequencer(unittest.TestCase):
         self.assertDictEqual(test_output, self.test_result['Plan Info'])
 
     def test_structure_section(self):
-        section = tp.Section(
+        section = sections.Section(
             section_name='Structure Group',
             start_section=read_dvh_file.structure_info_start,
             processor=read_dvh_file.structure_info_section,

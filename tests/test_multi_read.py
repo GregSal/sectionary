@@ -1,8 +1,9 @@
 #%% Imports
 import unittest
 from functools import partial
-import text_reader as tp
 
+import sections
+import text_reader as tp
 from buffered_iterator import BufferedIterator
 
 
@@ -13,7 +14,7 @@ default_parser = tp.define_csv_parser(
     skipinitialspace=True
     )
 
-test_section_reader = tp.ProcessingMethods([
+test_section_reader = sections.ProcessingMethods([
     default_parser,
     tp.trim_items,
     tp.drop_blanks,
@@ -22,24 +23,24 @@ test_section_reader = tp.ProcessingMethods([
 
 
 #%% SectionBreak definitions
-section_start = tp.SectionBreak(
+section_start = sections.SectionBreak(
     name='Single Section Start',
     sentinel='Section Name',
     break_offset='Before'
     )
 
-section_end = tp.SectionBreak(
+section_end = sections.SectionBreak(
     name='Single Section End',
     sentinel='End Section'
     )
 
-multi_section_start = tp.SectionBreak(
+multi_section_start = sections.SectionBreak(
     name='Multi Section Start',
     sentinel='Multi Section',
     break_offset='After'
     )
 
-multi_section_end = tp.SectionBreak(
+multi_section_end = sections.SectionBreak(
     name='End Multi Section',
     sentinel='Done Multi Section',
     break_offset='Before'
@@ -150,7 +151,7 @@ class TestSectionRead(unittest.TestCase):
         self.context = {}
 
     def test_section_read(self):
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section',
             start_section=section_start,
             end_section=section_end,
@@ -166,14 +167,14 @@ class TestSectionRead(unittest.TestCase):
     def test_multi_section_read(self):
 
 
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section',
             start_section=section_start,
             end_section=section_end,
             processor=test_section_reader,
             aggregate=partial(tp.to_dict, default_value=None)
             )
-        test_multi_section = tp.Section(
+        test_multi_section = sections.Section(
             section_name='Test Multi Section',
             start_section=multi_section_start,
             end_section=multi_section_end,
@@ -198,7 +199,7 @@ class TestSectionRead(unittest.TestCase):
                              self.test_result['Section E'])
 
     def test_end_section_read(self):
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section E',
             start_section=multi_section_end,
             end_section=section_end,

@@ -1,0 +1,40 @@
+########## Creation command ############
+conda create -n sectionaryDev python=3.8
+conda activate sectionaryDev
+conda install pandas openpyxl jupyterlab xlwings sphinx spyder jupyterlab nb_conda_kernels pylint black mypy
+
+python -m ipykernel install --user --name sectionaryDev --display-name "Python (sectionaryDev)"
+
+########## Export command ############
+conda env export > C:\TEMP\sectionaryDev_FULL.yml
+conda env export --from-history > C:\TEMP\sectionaryDev.yml
+conda list --explicit > C:\TEMP\sectionaryDev_specfile.txt
+
+
+########## Install command ############
+conda create --name sectionary --file sectionaryDev_specfile.txt
+
+conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev_FULL.yml
+
+########### Related Commands  ##########
+conda config --append channels conda-forge
+
+conda activate sectionary
+
+
+#### Primary Packages ####
+python >= 3.8
+pandas 
+openpyxl 
+jupyterlab 
+xlwings 
+sphinx
+spyder
+jupyterlab
+nb_conda_kernels
+pylint
+black
+mypy
+
+
+

@@ -1,9 +1,10 @@
 #%% Imports
 import unittest
 from functools import partial
-import text_reader as tp
 from pprint import pprint
 
+import sections
+import text_reader as tp
 from buffered_iterator import BufferedIterator
 
 # Aggregate definitions
@@ -207,71 +208,71 @@ class TestSectionGroupRead(unittest.TestCase):
             delimiter=':',
             skipinitialspace=True
             )
-        delimiter_section_reader = tp.ProcessingMethods([
+        delimiter_section_reader = sections.ProcessingMethods([
             delimiter_parser,
             tp.trim_items,
             tp.drop_blanks
             ])
-        fixed_width_reader = tp.ProcessingMethods([
+        fixed_width_reader = sections.ProcessingMethods([
             fixed_width_parser,
             tp.trim_items,
             tp.drop_blanks,
             tp.convert_numbers
             ])
         # SectionBreak definitions
-        delimiter_section_start = tp.SectionBreak(
+        delimiter_section_start = sections.SectionBreak(
             name='Delimiter Section',
             sentinel='Single Delimiter Section',
             break_offset='After'
             )
-        fixed_width_section_start = tp.SectionBreak(
+        fixed_width_section_start = sections.SectionBreak(
             name='Fixed Width Section',
             sentinel='Single Fixed Width Section',
             break_offset='After'
             )
-        section_end = tp.SectionBreak(
+        section_end = sections.SectionBreak(
             name='Single Section',
             sentinel='End Section'
             )
-        group_section_start = tp.SectionBreak(
+        group_section_start = sections.SectionBreak(
             name='Combined Group Section',
             sentinel='Combined Group Section',
             break_offset='After'
             )
-        multi_group_section_start = tp.SectionBreak(
+        multi_group_section_start = sections.SectionBreak(
             name='Multi Combined Group Section',
             sentinel='Multi Combined Group Section',
             break_offset='After'
             )
-        group_section_end = tp.SectionBreak(
+        group_section_end = sections.SectionBreak(
             name='End Group Section',
             sentinel='Done Combined Group Section',
             break_offset='Before'
             )
 
         # Section definitions
-        self.delimiter_section = tp.Section(
+        self.delimiter_section = sections.Section(
             section_name='Delimiter Section',
             start_section=delimiter_section_start,
             end_section=section_end,
             processor=delimiter_section_reader,
             aggregate=partial(tp.to_dict, default_value=None)
             )
-        self.fixed_width_section = tp.Section(
+        self.fixed_width_section = sections.Section(
             section_name='Fixed Width Section',
             start_section=fixed_width_section_start,
             end_section=section_end,
             processor=fixed_width_reader,
             aggregate=partial(tp.to_dict, default_value=None)
             )
-        self.group_section = tp.Section(
+        self.group_section = sections.Section(
             section_name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
             processor=[self.delimiter_section, self.fixed_width_section],
             aggregate=make_list
             )
-        self.multi_group_section = tp.Section(
+        self.multi_group_section = sections.Section(
             section_name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,

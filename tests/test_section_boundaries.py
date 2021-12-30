@@ -1,5 +1,6 @@
 import unittest
 from functools import partial
+import sections
 import text_reader as tp
 from buffered_iterator import BufferedIterator
 
@@ -187,11 +188,11 @@ GENERIC_TEST_RESULTS = {
 class Test_DVH_Info_SectionBoundaries(unittest.TestCase):
     def setUp(self):
         self.context = {}
-        dvh_info_end = tp.SectionBreak(
+        dvh_info_end = sections.SectionBreak(
             name='End of DVH Info',
             sentinel=['Plan:', 'Plan sum:']
             )
-        dvh_info_section = tp.Section(
+        dvh_info_section = sections.Section(
             start_section=None,
             end_section=dvh_info_end)
         self.test_section = dvh_info_section
@@ -221,16 +222,16 @@ class Test_DVH_Info_SectionBoundaries(unittest.TestCase):
 class Test_Plan_Info_SectionBoundaries(unittest.TestCase):
     def setUp(self):
         self.context = {}
-        dvh_info_end = tp.SectionBreak(
+        dvh_info_end = sections.SectionBreak(
             name='End of DVH Info',
             sentinel=['Plan:', 'Plan sum:']
             )
-        plan_info_end = tp.SectionBreak(
+        plan_info_end = sections.SectionBreak(
             name='End of Plan Info',
             sentinel='% for dose (%):',
             break_offset='After'
             )
-        plan_info_section = tp.Section(
+        plan_info_section = sections.Section(
             start_section=dvh_info_end,
             end_section=plan_info_end)
         self.test_section = plan_info_section
@@ -264,18 +265,19 @@ class Test_Plan_Info_SectionBoundaries(unittest.TestCase):
 
 class Test_structure_Info_SectionBoundaries(unittest.TestCase):
     def setUp(self):
-        structure_info_start = tp.SectionBreak(
+        structure_info_start = sections.SectionBreak(
             name='Start of Structure Info',
             sentinel='Structure:',
             break_offset='Before'
             )
-        structure_info_end = tp.SectionBreak(
+        structure_info_end = sections.SectionBreak(
             name='End of Structure Info',
             sentinel='Gradient Measure',
             break_offset='After'
             )
-        structure_info_section = tp.Section(start_section=structure_info_start,
-                                            end_section=structure_info_end)
+        structure_info_section = sections.Section(
+            start_section=structure_info_start,
+            end_section=structure_info_end)
         self.test_section = structure_info_section
 
     def test_structure_info_break_start_sentinal(self):
@@ -307,17 +309,17 @@ class Test_structure_Info_SectionBoundaries(unittest.TestCase):
 
 class Test_dvh_data_SectionBoundaries(unittest.TestCase):
     def setUp(self):
-        structure_info_start = tp.SectionBreak(
+        structure_info_start = sections.SectionBreak(
             name='Start of Structure Info',
             sentinel='Structure:',
             break_offset='Before'
             )
-        structure_info_end = tp.SectionBreak(
+        structure_info_end = sections.SectionBreak(
             name='End of Structure Info',
             sentinel='Gradient Measure',
             break_offset='After'
             )
-        dvh_data_section = tp.Section(start_section=structure_info_end,
+        dvh_data_section = sections.Section(start_section=structure_info_end,
                                       end_section=structure_info_start)
         self.test_section = dvh_data_section
 
@@ -354,27 +356,26 @@ class TestBoundaryOffsets(unittest.TestCase):
             skipinitialspace=True
             )
 
-        self.test_section_multi_line_reader = tp.ProcessingMethods([
+        self.test_section_multi_line_reader = sections.ProcessingMethods([
             default_parser,
             tp.trim_items,
             tp.drop_blanks,
             tp.merge_continued_rows
             ])
-        self.test_section_line_reader = tp.ProcessingMethods([default_parser,
-                                                              tp.trim_items,
-                                                              tp.drop_blanks])
+        self.test_section_line_reader = sections.ProcessingMethods(
+            [default_parser, tp.trim_items, tp.drop_blanks])
     def test_section_break_after_before(self):
-        section_start_after = tp.SectionBreak(
+        section_start_after = sections.SectionBreak(
             name='Single Section After',
             sentinel='Single Section',
             break_offset='After'
             )
-        section_end_before = tp.SectionBreak(
+        section_end_before = sections.SectionBreak(
             name='Single Section Before',
             sentinel='End',
             break_offset='Before'
             )
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section',
             start_section=section_start_after,
             end_section=section_end_before,
@@ -388,17 +389,17 @@ class TestBoundaryOffsets(unittest.TestCase):
         self.assertEqual(next_item, 'End Section')
 
     def test_section_break_gap(self):
-        section_start_gap = tp.SectionBreak(
+        section_start_gap = sections.SectionBreak(
             name='Section With Gap',
             sentinel='Section With Gap',
             break_offset=1
             )
-        section_end_skip_line = tp.SectionBreak(
+        section_end_skip_line = sections.SectionBreak(
             name='Section End Skip Line',
             sentinel='End',
             break_offset=2
             )
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section',
             start_section=section_start_gap,
             end_section=section_end_skip_line,
@@ -412,17 +413,17 @@ class TestBoundaryOffsets(unittest.TestCase):
         self.assertEqual(next_item, 'Section Reuse')
 
     def test_section_break_reuse(self):
-        section_start_reuse = tp.SectionBreak(
+        section_start_reuse = sections.SectionBreak(
             name='Section Start Before',
             sentinel='C Content1:d',
             break_offset=-2
             )
-        section_end_skip_line = tp.SectionBreak(
+        section_end_skip_line = sections.SectionBreak(
             name='Section End Reuse',
             sentinel='Section D',
             break_offset=-3
             )
-        test_section = tp.Section(
+        test_section = sections.Section(
             section_name='Test Section',
             start_section=section_start_reuse,
             end_section=section_end_skip_line,

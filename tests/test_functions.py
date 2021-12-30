@@ -4,7 +4,7 @@ from itertools import chain
 import pandas as pd
 import read_dvh_file
 import text_reader as tp
-from sections import RuleSet
+from sections import RuleSet, ProcessingMethods
 
 #%% Start of Tests
 class TestProcessingMethods(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestProcessingMethods(unittest.TestCase):
                     yield i
 
         source = range(5)
-        method_set = tp.ProcessingMethods([skip_odd, ml, dv])
+        method_set = ProcessingMethods([skip_odd, ml, dv])
         test_output = method_set.read(source, {})
         self.assertListEqual(test_output, [0.0, 4.0, 8.0])
 

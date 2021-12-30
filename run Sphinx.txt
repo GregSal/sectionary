@@ -1,0 +1,6 @@
+>>> import sys
+>>> sys.path
+>>> import sections
+
+
+sphinx-apidoc -f -o source ../src/sectionary
