@@ -276,14 +276,21 @@ def sig_match(given_method: RuleCallableOptions,
         (2, False): lambda func, item, context: func(item, context),
         (1, True): lambda func, item, context: func(item, **context)
         }
+
     arg_spec = inspect.getfullargspec(given_method)
+    # Determine arg_count
     if not arg_spec.args:
         arg_count = 0
     elif not arg_spec.defaults:
         arg_count = len(arg_spec.args)
     else:
         arg_count = len(arg_spec.args) - len(arg_spec.defaults)
+        if arg_count == 0:
+            arg_count = 1
+
+    # Determine presence of keyword argument catcher
     has_varkw = arg_spec.varkw is not None
+
     if sig_type == 'Process':
         sig_function = process_sig.get((arg_count, has_varkw))
     else:
@@ -291,7 +298,7 @@ def sig_match(given_method: RuleCallableOptions,
     if not sig_function:
         raise ValueError('Invalid function type.')
     use_function = partial(sig_function, given_method)
-    func_name = getattr(given_method, '__name__')
+    func_name = getattr(given_method, '__name__', None)
     if not func_name:
         if isinstance(given_method, partial):
             func_name = getattr(given_method.func, '__name__',
@@ -326,6 +333,11 @@ def set_method(given_method: RuleMethodOptions,
          rule_method(test_object: SourceItem, event: TriggerEvent, context)
          process_method(test_object: SourceItem, context)
     '''
+    # TODO convert set_method, sig_match, standard_action into a helper class
+    # The class can be initialized with signature and action definitions to
+    # create different objects for different function groups.  When the object
+    # is applied to a function or string, it returns a corresponding function
+    # with the expected argument signature.
     if isinstance(given_method, str):
         use_function = standard_action(given_method, method_type)
         use_function.is_gen = False
@@ -1595,10 +1607,11 @@ class Section():
         self._section_reader = None
         self.processor = processor
         # Set the Aggregate method
+        # FIXME Aggregate needs to be processed by the set_method function
         if aggregate:
-            self.aggregate = aggregate
+            self.aggregate = set_method(aggregate, 'Process')
         else:
-            self.aggregate = list
+            self.aggregate = set_method(list, 'Process')
 
     @property
     def source(self)->BufferedIterator:
@@ -1804,13 +1817,15 @@ class Section():
                             'all be of type Section.'])
                         raise ValueError(msg) from err
             else:
-                msg = ' '.join([
-                    'processor must be one of SectionParser, a ',
-                    'Section instance, a list of Section  instances, or None.'
-                    ])
-                raise TypeError(msg)
+                try:
+                    self._processor = ProcessingMethods(processing_def)
+                except ValueError as err:
+                    msg = ' '.join([
+                        'processor must be one of SectionParser, a ',
+                        'Section instance, a list of Section  instances, or None.'
+                        ])
+                    raise ValueError(msg) from err
         else:
-            # TODO try to create a ProcessingMethods from the supplied processor
             # if processor is None set a default SectionProcessor.
             self._processor = ProcessingMethods()
             self._section_reader = self.sequence_processor
@@ -2217,13 +2232,7 @@ class Section():
         section_iter = self.gen(source)
         section_reader = self._section_reader(section_iter, self.processor,
                                               context)
-        section_items = list()
-        while True:
-            try:
-                section_items.append(next(section_reader))
-            except StopIteration:
-                break
         # Apply the aggregate function
-        section_aggregate = self.aggregate(section_items)
+        section_aggregate = self.aggregate(section_reader, self.context)
         # TODO Aggregate function expect a generator not a list
         return section_aggregate
