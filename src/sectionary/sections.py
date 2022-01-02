@@ -280,7 +280,10 @@ def sig_match(given_method: RuleCallableOptions,
     arg_spec = inspect.getfullargspec(given_method)
     # Determine arg_count
     if not arg_spec.args:
-        arg_count = 0
+        if arg_spec.varargs:
+            arg_count = 1
+        else:
+            arg_count = 0
     elif not arg_spec.defaults:
         arg_count = len(arg_spec.args)
     else:
@@ -1607,7 +1610,6 @@ class Section():
         self._section_reader = None
         self.processor = processor
         # Set the Aggregate method
-        # FIXME Aggregate needs to be processed by the set_method function
         if aggregate:
             self.aggregate = set_method(aggregate, 'Process')
         else:
