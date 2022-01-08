@@ -1,0 +1,542 @@
+MIME-Version: 1.0
+Content-Location: file:///C:/4F5C3D13/TriggersandRules.htm
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office"
+xmlns:dt=3D"uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; charset=3Dutf-8">
+<meta name=3DProgId content=3DOneNote.File>
+<meta name=3DGenerator content=3D"Microsoft OneNote 15">
+<link id=3DMain-File rel=3DMain-File href=3DTriggersandRules.htm>
+<link rel=3DFile-List href=3D"TriggersandRules_files/filelist.xml">
+</head>
+
+<body lang=3Den-CA style=3D'font-family:Calibri;font-size:11.0pt;color:blac=
+k'>
+
+<div style=3D'direction:ltr;border-width:100%'>
+
+<div style=3D'direction:ltr;margin-top:0in;margin-left:0in;width:6.4847in'>
+
+<div style=3D'direction:ltr;margin-top:0in;margin-left:0in;width:2.5875in'>
+
+<p style=3D'margin:0in;font-family:"Calibri Light";font-size:20.0pt' lang=
+=3Den-US>Triggers
+and Rules</p>
+
+</div>
+
+<div style=3D'direction:ltr;margin-top:.0388in;margin-left:0in;width:2.2729=
+in'>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:10.0pt;color:#767676'>=
+Saturday,
+August 29, 2020</p>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:10.0pt;color:#767676'>=
+11:13</p>
+
+</div>
+
+<div style=3D'direction:ltr;margin-top:.4305in;margin-left:0in;width:6.4847=
+in'>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:16.0pt;color:#1E4E79'
+lang=3Den-US>Test</p>
+
+<p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:11.=
+0pt'
+lang=3Den-US>A dynamically defined conditional statement which takes a sing=
+le
+argument and returns a Boolean.</p>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:16.0pt;color:#1E4E79'
+lang=3Den-US>Trigger</p>
+
+<p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:11.=
+0pt'
+lang=3Den-US>One or more Tests which cause an action to be performed or
+stopped.<span style=3D'mso-spacerun:yes'>  </span>Triggers have access to =
+the
+Context in addition to whatever arguments are explicitly passed to them.</p>
+
+<p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:11.=
+0pt'
+lang=3Den-US>&nbsp;</p>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:14.0pt;color:#2E75B5'
+lang=3Den-US>Simple Trigger</p>
+
+<p style=3D'margin:0in;margin-left:.75in;font-family:Calibri;font-size:11.0=
+pt'
+lang=3Den-US>A single Test and method that takes a single argument and retu=
+rns a
+Boolean.</p>
+
+<p style=3D'margin:0in;margin-left:1.125in;font-family:Calibri;font-size:11=
+.0pt'
+lang=3Den-US>Used by Rules to cause an action to be performed or stopped.</=
+p>
+
+<p style=3D'margin:0in;margin-left:1.125in;font-family:Calibri;font-size:11=
+.0pt'
+lang=3Den-US>A Simple Trigger-method pair,<span style=3D'mso-spacerun:yes'>=
+ 
+</span>where the method is applied if the Trigger returns True.<span
+style=3D'mso-spacerun:yes'>  </span>The output type of the Rule will be th=
+e same
+as the input argument type.<span style=3D'mso-spacerun:yes'>  </span>if the
+Trigger returns False,<span style=3D'mso-spacerun:yes'>  </span>The output=
+ of the
+Rule will be the input argument.</p>
+
+<p style=3D'margin:0in;margin-left:1.125in;font-family:Calibri;font-size:11=
+.0pt'
+lang=3Den-US>Simple Rules can be chained, since the output matched the inpu=
+t.</p>
+
+<p style=3D'margin:0in;margin-left:1.125in;font-family:Calibri;font-size:11=
+.0pt'
+lang=3Den-US>&nbsp;</p>
+
+<p style=3D'margin:0in;margin-left:1.125in;font-family:Calibri;font-size:11=
+.0pt'
+lang=3Den-US>&nbsp;</p>
+
+<div style=3D'direction:ltr'>
+
+<table border=3D1 cellpadding=3D0 cellspacing=3D0 valign=3Dtop style=3D'dir=
+ection:ltr;
+ border-collapse:collapse;border-style:solid;border-color:#A3A3A3;border-wi=
+dth:
+ 1pt;margin-left:.7083in'>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Trigger</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>&nbsp;</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair,<span style=3D'mso-spacerun:yes'>  </span>where the =
+method
+  is applied if the Trigger returns True.<span style=3D'mso-spacerun:yes'> 
+  </span>The output of the method will depend on the type of Rule.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>&nbsp;</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>&nbsp;</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Complex
+  Trigger</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Multiple
+  conditional statements which are compounded e.g. A and (B or C). </p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Returns
+  a Boolean.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Contextual
+  Trigger </p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Complex Trigger that sets or updates Context attributes when one of it's
+  conditional statements is evaluated. Examples are:</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A re.Match object from a Regex application</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A Counter being initialized, incremented or reset.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Break
+  Trigger</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger used to identify a Section Break. </p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Conditions
+  include:</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>Testing the Line for the presence of any of the strings in a=
+ list
+  of strings.</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A compiled Regex, which is true if the Regex achieves a matc=
+h in
+  the Line.</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A specified number of lines after another condition passes.<=
+/p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A custom counter reaches a certain value e.g. number of line=
+s or
+  number of repetitions of some other condition passing.</p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Break
+  Triggers can also be instructed to add or update a value in the Context.<=
+/p>
+  </td>
+ </tr>
+</table>
+
+</div>
+
+<p style=3D'margin:0in;margin-left:.75in;font-family:Calibri;font-size:11.0=
+pt'
+lang=3Den-US>&nbsp;</p>
+
+<p style=3D'margin:0in;margin-left:.75in;font-family:Calibri;font-size:11.0=
+pt'
+lang=3Den-US>&nbsp;</p>
+
+<p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:14.=
+0pt;
+color:#2E75B5' lang=3Den-US>Rule Types</p>
+
+<div style=3D'direction:ltr'>
+
+<table border=3D1 cellpadding=3D0 cellspacing=3D0 valign=3Dtop style=3D'dir=
+ection:ltr;
+ border-collapse:collapse;border-style:solid;border-color:#A3A3A3;border-wi=
+dth:
+ 1pt;margin-left:.7083in'>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Simple
+  Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Simple Trigger-method pair,<span style=3D'mso-spacerun:yes'>  </span>whe=
+re the
+  method is applied if the Trigger returns True.<span
+  style=3D'mso-spacerun:yes'>  </span>The output type of the Rule will be =
+the
+  same as the input argument type.<span style=3D'mso-spacerun:yes'>  </spa=
+n>if
+  the Trigger returns False,<span style=3D'mso-spacerun:yes'>  </span>The =
+output
+  of the Rule will be the input argument.</p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Simple
+  Rules can be chained, since the output matched the input.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Complex
+  Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, where the method is applied if the Trigger returns
+  True.<span style=3D'mso-spacerun:yes'>  </span>The output of the method =
+will
+  depend on the type of Rule.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Cleaning
+  Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Simple Rule taking a string argument.<span style=3D'mso-spacerun:yes'> 
+  </span>The output of the method will be a Cleaned Line.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Parsing
+  Line Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Complex Rule taking a string argument.<span style=3D'mso-spacerun:yes'> 
+  </span>The output of the method will be will be <span style=3D'font-weigh=
+t:
+  bold;text-decoration:underline'>zero or more Parsed Lines.</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Line
+  Processing Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.1625in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, both taking a single Parsed Line argument, where the
+  method is applied if the conditional returns True.<span
+  style=3D'mso-spacerun:yes'>  </span>The output of the method </p>
+  </td>
+ </tr>
+</table>
+
+</div>
+
+<p style=3D'margin:0in;font-family:Calibri;font-size:16.0pt;color:#1E4E79'
+lang=3Den-US>Object</p>
+
+<div style=3D'direction:ltr'>
+
+<table border=3D1 cellpadding=3D0 cellspacing=3D0 valign=3Dtop style=3D'dir=
+ection:ltr;
+ border-collapse:collapse;border-style:solid;border-color:#A3A3A3;border-wi=
+dth:
+ 1pt;margin-left:.3333in'>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, both taking a single argument,<span
+  style=3D'mso-spacerun:yes'>  </span>where the method is applied if the T=
+rigger
+  returns True.<span style=3D'mso-spacerun:yes'>  </span>The output of the=
+ method
+  will depend on the type of Rule.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Cleaning
+  Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, both taking a single string argument, where the meth=
+od
+  is applied if the conditional returns True.<span style=3D'mso-spacerun:ye=
+s'> 
+  </span>The output of the method will be a Cleaned Line.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Special
+  Line Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, both taking a single string argument, where the meth=
+od
+  is applied if the conditional returns True.<span style=3D'mso-spacerun:ye=
+s'> 
+  </span>The output of the method will be a Parsed Line.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Line
+  Processing Rule</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger-method pair, both taking a single Parsed Line argument, where the
+  method is applied if the conditional returns True.<span
+  style=3D'mso-spacerun:yes'>  </span>The output of the method will be one=
+ or
+  more Parsed Lines.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Break
+  Trigger</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Trigger used to identify a Section Break. </p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Conditions
+  include:</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>Testing the Line for the presence of any of the strings in a=
+ list
+  of strings.</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A compiled Regex, which is true if the Regex achieves a matc=
+h in
+  the Line.</p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A specified number of lines after another condition passes.<=
+/p>
+  <p style=3D'margin:0in;margin-left:.375in;font-family:Calibri;font-size:1=
+1.0pt'
+  lang=3Den-US>A custom counter reaches a certain value e.g. number of line=
+s or
+  number of repetitions of some other condition passing.</p>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Break
+  Triggers can also be instructed to add or update a value in the Context.<=
+/p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Section
+  Break</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>The
+  point in the Source at which a Section begins or ends. A Section Break al=
+ways
+  refers to the <span style=3D'text-decoration:underline'>beginning</span> =
+of a
+  particular line.</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Section
+  Start </p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Section Break indication the beginning of a Section</p>
+  </td>
+ </tr>
+ <tr>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:1.6458in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>Section
+  End</p>
+  </td>
+  <td style=3D'border-style:solid;border-color:#A3A3A3;border-width:1pt;
+  vertical-align:top;width:4.5375in;padding:2.0pt 3.0pt 2.0pt 3.0pt'>
+  <p style=3D'margin:0in;font-family:Calibri;font-size:11.0pt' lang=3Den-US=
+>A
+  Section Break indication the end of a Section</p>
+  </td>
+ </tr>
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div>
+
+<p style=3D'margin:0in'>&nbsp;</p>
+
+<p style=3D'text-align:left;margin:0in;font-family:Arial;font-size:9pt;
+color:#969696;direction:ltr'>Created with Microsoft OneNote 2013.</p>
+
+</div>
+
+</body>
+
+</html>

@@ -5,7 +5,7 @@ import re
 from sections import Section, SectionBreak
 
 
-#TODO convert every sage in Example MS Dir Output.ipynb to a test
+#TODO convert every stage in Example MS Dir Output.ipynb to a test
 #%% Test data
 test_text = '''
 Volume in drive C has no label.

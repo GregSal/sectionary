@@ -502,7 +502,6 @@ class Trigger():
                 A conditional that will pass if the sentinel function (or one
                 of the functions in the list) returns a non-blank
                 (None, '', []) value when applied to the item being tested.
-                -- Not Yet Implemented.
 
     The location argument is a sentinel modifier that applies to str or
         re.Pattern types of sentinels. location can be one of:
@@ -1549,6 +1548,11 @@ class Section():
     # the end of the source.
     default_end = SectionBreak(False, name='NeverBreak')
 
+    # TODO Split processor into processor and subsection arguments
+    # processor will simply call ProcessingMethods()
+    # subsection is handled locally
+    # processor is applied before subsection
+
     def __init__(self,
                  section_name: str = 'Section',
                  start_section: BreakOptions = None,
@@ -1606,6 +1610,7 @@ class Section():
         self.end_section = end_section
 
         # Initialize the processor properties
+        # processor should simply call ProcessingMethods()
         # _section_reader is set when the processor.setter method is called.
         self._section_reader = None
         self.processor = processor
@@ -1790,6 +1795,8 @@ class Section():
             TypeError: If processor is not one of a SectionParser instance, a
                 Section instance, a list of Section instances, or None.
         '''
+        # processor should simply call ProcessingMethods()
+        # subsection is handled with separate property
         if processing_def:
             if isinstance(processing_def, ProcessingMethods):
                 self._processor = processing_def
@@ -2236,5 +2243,4 @@ class Section():
                                               context)
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_reader, self.context)
-        # TODO Aggregate function expect a generator not a list
         return section_aggregate
