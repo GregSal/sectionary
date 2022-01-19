@@ -236,7 +236,7 @@ class TestSectionSequencer(unittest.TestCase):
             section_name='Plan Info Group',
             start_section=read_dvh_file.plan_info_start,
             end_section=read_dvh_file.structure_info_start,
-            processor=plan_info_section,
+            subsections=plan_info_section,
             aggregate=read_dvh_file.to_plan_info_dict)
         # scan_section
         source = BufferedIterator(self.test_source)
@@ -248,7 +248,7 @@ class TestSectionSequencer(unittest.TestCase):
         section = sections.Section(
             section_name='Structure Group',
             start_section=read_dvh_file.structure_info_start,
-            processor=read_dvh_file.structure_info_section,
+            subsections=read_dvh_file.structure_info_section,
             aggregate=partial(tp.to_dataframe, header=False)
             )
 

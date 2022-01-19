@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 import re
 
-from sections import Section, SectionBreak
+from sections import Section, SectionBreak, RuleSet
 
 
 #TODO convert every stage in Example MS Dir Output.ipynb to a test

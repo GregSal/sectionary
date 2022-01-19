@@ -178,7 +178,7 @@ class TestSectionRead(unittest.TestCase):
             section_name='Test Multi Section',
             start_section=multi_section_start,
             end_section=multi_section_end,
-            processor=test_section,
+            subsections=test_section,
             aggregate=combine_sections
             )
 

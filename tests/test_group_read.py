@@ -22,7 +22,7 @@ def make_list(parsed_lines):
     '''
     output = list()
     for line_item in parsed_lines:
-        if len(line_item) > 0:
+        if line_item:
             output.append(line_item)
     return output
 
@@ -269,14 +269,14 @@ class TestSectionGroupRead(unittest.TestCase):
             section_name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
-            processor=[self.delimiter_section, self.fixed_width_section],
+            subsections=[self.delimiter_section, self.fixed_width_section],
             aggregate=make_list
             )
         self.multi_group_section = sections.Section(
             section_name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
-            processor=[self.delimiter_section, self.fixed_width_section],
+            subsections=[self.delimiter_section, self.fixed_width_section],
             aggregate=make_list
             )
 

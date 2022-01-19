@@ -150,7 +150,7 @@ ProcessorOptions = Union[ProcessGroup, "ProcessingMethods",
                          "Section", List["Section"]]
 # A sub-iterable of Source that only iterates over the Section content of Source.
 SectionGen = Generator[SourceItem, None, None]
-
+SectionOptions = Union["Section", List["Section"], None]
 
 #%% Functions used to clean supplied functions
 
@@ -1554,18 +1554,17 @@ class Section():
     # processor is applied before subsection
 
     def __init__(self,
-                 section_name: str = 'Section',
                  start_section: BreakOptions = None,
                  end_section: BreakOptions = None,
                  processor: ProcessorOptions = None,
+                 subsections: SectionOptions = None,
                  aggregate: AggregateCallableOptions = None,
+                 section_name: str = 'Section',
                  keep_partial: bool = False):
         '''Creates an Section instance that defines a continuous portion of a
         text stream to be processed in a specific way.
 
         Arguments:
-            section_name (str, optional): A label to be applied to the section.
-                Defaults to 'Section'.
             start_section (BreakOptions, optional): The SectionBreak(s) used
                 to identify the location of the start of the section. Defaults
                 to None, indicating the section begins with the first text
@@ -1579,9 +1578,14 @@ class Section():
                 which case the section will use the default SectionProcessor,
                 it can be a SectionProcessor instance, a Section instance, or a
                 list of Section instances.
+            subsections (SectionOptions, optional): a Section instance,
+                or a list of Section instances contained within the section
+                being defined.
             aggregate (AggregateCallableOptions, optional): A function used to
                 collect and format, the processor output into a single object.
                 Defaults to None, which returns a list of the processor output.
+            section_name (str, optional): A label to be applied to the section.
+                Defaults to 'Section'.
             keep_partial (bool, optional): In the case where the reader is
                 composed of one or more subsections and the main section ends
                 before the subsections end. If keep_partial is true the partial
@@ -1609,11 +1613,9 @@ class Section():
         self.start_section = start_section
         self.end_section = end_section
 
-        # Initialize the processor properties
-        # processor should simply call ProcessingMethods()
-        # _section_reader is set when the processor.setter method is called.
-        self._section_reader = None
+        # Initialize the processor and subsections
         self.processor = processor
+        self.subsections = subsections
         # Set the Aggregate method
         if aggregate:
             self.aggregate = set_method(aggregate, 'Process')
@@ -1800,87 +1802,99 @@ class Section():
         if processing_def:
             if isinstance(processing_def, ProcessingMethods):
                 self._processor = processing_def
-                self._section_reader = self.sequence_processor
-            elif isinstance(processing_def, Section):
-                processing_def.reset()
-                self._processor = [processing_def]
-                self._section_reader = self.subsection_processor
-            elif isinstance(processing_def, list):
-                # Check if all item is the list are type Section
-                sec_check = all(
-                    isinstance(sub_rdr, Section)
-                    for sub_rdr in processing_def
-                    )
-                if sec_check:
-                    for sub_rdr in processing_def:
-                        sub_rdr.reset()
-                    self._processor = processing_def
-                    self._section_reader = self.subsection_processor
-                else:
-                    try:
-                        self._processor = ProcessingMethods(processing_def)
-                    except ValueError as err:
-                        msg = ' '.join([
-                            'If processor is a list, the items must be a ',
-                            'valid input for ProcessingMethods or must ',
-                            'all be of type Section.'])
-                        raise ValueError(msg) from err
+#                self._section_reader = self.sequence_processor
+#            elif isinstance(processing_def, Section):
+#                processing_def.reset()
+#                self._processor = [processing_def]
+#                self._section_reader = self.subsection_processor
+#            elif isinstance(processing_def, list):
+#                # Check if all item is the list are type Section
+#                sec_check = all(
+#                    isinstance(sub_rdr, Section)
+#                    for sub_rdr in processing_def
+#                    )
+#                if sec_check:
+#                    for sub_rdr in processing_def:
+#                        sub_rdr.reset()
+#                    self._processor = processing_def
+#                    self._section_reader = self.subsection_processor
+#                else:
+#                    try:
+#                        self._processor = ProcessingMethods(processing_def)
+#                    except ValueError as err:
+#                        msg = ' '.join([
+#                            'If processor is a list, the items must be a ',
+#                            'valid input for ProcessingMethods or must ',
+#                            'all be of type Section.'])
+#                        raise ValueError(msg) from err
             else:
                 try:
                     self._processor = ProcessingMethods(processing_def)
                 except ValueError as err:
-                    msg = ' '.join([
-                        'processor must be one of SectionParser, a ',
-                        'Section instance, a list of Section  instances, or None.'
-                        ])
+                    msg = ' '.join(['processor must be a valid input for',
+                                    'ProcessingMethods'])
+#                    msg = ' '.join([
+#                        'processor must be one of SectionParser, a ',
+#                        'Section instance, a list of Section  instances, or None.'
+#                        ])
                     raise ValueError(msg) from err
         else:
             # if processor is None set a default SectionProcessor.
             self._processor = ProcessingMethods()
-            self._section_reader = self.sequence_processor
+#            self._section_reader = self.sequence_processor
 
-    def sequence_processor(self, section_iter: SectionGen,
-                           reader: ProcessingMethods,
-                           context) -> ProcessedItemGen:
-        '''Apply the processor to each item in the section.
-
-        Arguments:
-            section_iter (SectionGen): The section's source iterator after
-                checking for boundaries.
-            reader (SectionProcessor): The item processing Rules as a
-                SectionProcessor instance.
-            context (Dict[str, Any]): Break point information and any
-                additional information to be passed to and from the
-                SectionProcessor instance.
-        Yields:
-            ProcessGenerator: The results of applying the processor to each
-                item in the section.
+    @property
+    def subsections(self)->SectionOptions:
+        '''(List["Section"], None):  A list of subsections, contained within the
+            current section.  Subsection aggregate results as an item for this
+            section.
         '''
-        read_iter = reader.reader(section_iter, context)
-        done = False
-        while not done:
-            try:
-                item_read = next(read_iter)
-            except StopIteration:
-                done = True
-            else:
-                yield item_read
-            finally:
-                if context:
-                    self.context.update(context)
+        return self._subsections
 
-    def read_subsections(self, section_iter: SectionGen,
-                         subreaders: List[Section], context)->ProcessedList:
+    @subsections.setter
+    def subsections(self, subsections_def: SectionOptions = None):
+        '''Validates the subsections supplied.
+        Arguments:
+            subsections_def (SectionOptions): A Section instance or list of
+            Section instances, contained within the current section.
+            Subsection aggregate results as an item for this section.
+        Raises:
+            ValueError: 'If subsections_def is a list where not all of the list
+                items is of type Section.
+            TypeError: If subsections_def is not None, nor a list and not a
+                Section.
+        '''
+        if subsections_def:
+            if isinstance(subsections_def, self.__class__):
+                subsections_def.reset()
+                self._subsections = [subsections_def]
+            elif isinstance(subsections_def, list):
+                # Check if all item is the list are type Section
+                sec_check = all(
+                    isinstance(sub_rdr, self.__class__)
+                    for sub_rdr in subsections_def
+                    )
+                if sec_check:
+                    for sub_rdr in subsections_def:
+                        sub_rdr.reset()
+                    self._subsections = subsections_def
+                else:
+                    msg = ' '.join(['If subsections is a list, the items must',
+                                     'all be of type Section.'])
+                    raise ValueError(msg)
+            else:
+                msg = ' '.join(['subsectionsmust be None, a Section or list of',
+                                'Sections'])
+                raise TypeError(msg)
+        else:
+            self._subsections = None
+
+    def read_subsections(self, section_iter: SectionGen)->ProcessedList:
         '''Read each of the subsections as if they were a single item.
 
         Arguments:
             section_iter (SectionGen): The section's source iterator after
                 checking for boundaries.
-            sub-readers (List[Section]): The subsections that together define
-                the processing of the main section.
-            context (Dict[str, Any]): Break point information and any
-                additional information to be passed to and from the
-                subsections instance.
         Returns:
             List[Any]: A list of the aggregate results for all of the
                 subsections.
@@ -1888,23 +1902,19 @@ class Section():
         if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
             # If the source has closed don't try reading subsections
             return None
-        if context is None:
-            context = {}
         subsection = list()
-        for sub_rdr in subreaders:
+        for sub_rdr in self.subsections:
             if not self.keep_partial:
                 if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
                     # If the source ends part way through, drop the partial subsection
                     return None
             sub_rdr.source = self.source
             subsection.append(sub_rdr.read(section_iter, do_reset=False,
-                                           context=context))
+                                           context=self.context))
             self.context.update(sub_rdr.context)
         return subsection
 
-    def subsection_processor(self, section_iter: SectionGen,
-                             subreaders: List[Section],
-                             context)->ProcessedItemGen:
+    def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
         '''Yield processed subsections until the main section is complete.
 
         Step through section_iter yielding a list of the aggregate results for
@@ -1913,29 +1923,20 @@ class Section():
         Arguments:
             section_iter (Iterator): The section's source iterator after
                 checking for boundaries.
-            sub-readers (List[Section]): The subsections that together define
-                the processing of the main section.
-            context (Dict[str, Any]): Break point information and any
-                additional information to be passed to and from the
-                SectionProcessor instance.
         Yields:
             ProcessGenerator: The results of reading each subsection.
         '''
         while 'GEN_CLOSED' not in inspect.getgeneratorstate(section_iter):
             # Testing the generator state is required because StopIteration
             # is being trapped before it reached the except statement here.
-            try:
-                subsection = self.read_subsections(section_iter, subreaders,
-                                                   context)
-                if subsection:
-                    if len(subsection) == 1:
-                        # If the subsection group contains only one section
-                        # get rid of the redundant list level.
-                        yield subsection[0]
-                    else:
-                        yield subsection
-            except StopIteration:
-                break
+            if not self.subsections:
+                yield from section_iter
+            elif len(self.subsections) == 1:
+                sub_rdr = self.subsections[0]
+                yield sub_rdr.read(section_iter, do_reset=False,
+                                   context=self.context)
+            else:
+                yield self.read_subsections(section_iter)
 
     def reset(self):
         ''' Reset the section attributes back to their initial values.
@@ -2176,7 +2177,12 @@ class Section():
     def process(self, source: Source, start_search: bool = True,
              do_reset: bool = True,
              context: Dict[str, Any] = None)->ProcessedItemGen:
-        '''
+        '''The primary outward facing section processor function.
+
+        Initialize the source and then provide the generator that will step
+        through all items from source that are in section, applying the section
+        processing methods to each item.
+
         Arguments:
             source (Source): An iterable where some of the content meets the
                 section boundary conditions.
@@ -2200,20 +2206,28 @@ class Section():
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
-        # Initialize the section
-        source = self.initialize(source, start_search, do_reset, context)
-        section_iter = self.gen(source)
-        section_reader = self._section_reader(section_iter, self.processor,
-                                              context)
-        try:
-            yield from section_reader
-        except StopIteration:
-            pass
+        section_iter = self.scan(source, start_search, do_reset, context)
+        read_iter = self.processor.reader(section_iter, self.context)
+        done = False
+        while not done:
+            try:
+                item_read = next(read_iter)
+            except StopIteration:
+                done = True
+            else:
+                yield item_read
+            finally:
+                if context:
+                    self.context.update(context)
 
     def read(self, source: Source, start_search: bool = True,
              do_reset: bool = True,
              context: ContextType = None)->AggregatedItem:
-        '''
+        '''The primary outward facing section reader function.
+
+        Initialize the source and then provide the generator that will step
+        through all items from source that are in section, applying the section
+        processing methods and subsection readers to each item.
         Arguments:
             source (Source): An iterable where some of the content meets the
                 section boundary conditions.
@@ -2228,7 +2242,7 @@ class Section():
                 used as a subsection, then it should inherit properties from
                 the parent section and not be reset. Defaults to True, meaning
                 reset the properties.
-            context (ContextType): Break point information and any
+            context (ContextType, optional): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
         Returns:
@@ -2236,11 +2250,10 @@ class Section():
                 all processed items from source that are within the section
                 boundaries.
         '''
-        # Initialize the section
-        source = self.initialize(source, start_search, do_reset, context)
-        section_iter = self.gen(source)
-        section_reader = self._section_reader(section_iter, self.processor,
-                                              context)
+        section_processor = self.process(source, start_search, do_reset,
+            context)
+        section_reader = self.subsection_processor(section_processor)
+
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_reader, self.context)
         return section_aggregate
