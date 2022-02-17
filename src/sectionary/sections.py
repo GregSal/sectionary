@@ -1825,6 +1825,8 @@ class Section():
                             'valid input for ProcessingMethods or must ',
                             'all be of type Section.'])
                         raise ValueError(msg) from err
+                    else:
+                        self._section_reader = self.sequence_processor
             else:
                 try:
                     self._processor = ProcessingMethods(processing_def)
@@ -1834,6 +1836,8 @@ class Section():
                         'Section instance, a list of Section  instances, or None.'
                         ])
                     raise ValueError(msg) from err
+                else:
+                    self._section_reader = self.sequence_processor
         else:
             # if processor is None set a default SectionProcessor.
             self._processor = ProcessingMethods()
