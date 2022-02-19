@@ -9,7 +9,7 @@ from buffered_iterator import BufferedIterator
 import read_dvh_file
 
 
-class TestSectionSequencer(unittest.TestCase):
+class TestSectionGroups(unittest.TestCase):
     def setUp(self):
         self.test_source = [
             'Patient Name         : ____, ____',

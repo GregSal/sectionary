@@ -211,7 +211,7 @@ class TestSectionSequencer(unittest.TestCase):
         self.default_parser = tp.define_csv_parser('dvh_info', delimiter=':',
                                                    skipinitialspace=True)
 
-    def test_dvh_info_section(self):
+    def test_dvh_info_section_sequence(self):
         section = sections.Section(
             section_name='DVH Info',
             start_section=None,
@@ -224,7 +224,7 @@ class TestSectionSequencer(unittest.TestCase):
 
         self.assertDictEqual(test_output, self.test_result['DVH Info'])
 
-    def test_plan_info_group(self):
+    def test_plan_info_group_sequence(self):
         plan_info_section = sections.Section(
             section_name='Plan Info',
             start_section=read_dvh_file.plan_info_start,
@@ -244,7 +244,8 @@ class TestSectionSequencer(unittest.TestCase):
         self.maxDiff=None
         self.assertDictEqual(test_output, self.test_result['Plan Info'])
 
-    def test_structure_section(self):
+    def test_structure_section_sequence(self):
+        self.maxDiff = None
         section = sections.Section(
             section_name='Structure Group',
             start_section=read_dvh_file.structure_info_start,
@@ -257,7 +258,7 @@ class TestSectionSequencer(unittest.TestCase):
         self.assertDictEqual(test_output.to_dict(),  # pylint: disable=no-member
                              self.test_result['Structures'].to_dict())
 
-    def test_dvh_data_section(self):
+    def test_dvh_data_section_sequence(self):
         section = read_dvh_file.dvh_data_section
         source = BufferedIterator(self.test_source)
         test_output = section.read(source, context=self.context)

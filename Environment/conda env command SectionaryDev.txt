@@ -16,6 +16,22 @@ conda create --name sectionary --file sectionaryDev_specfile.txt
 
 conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev_FULL.yml
 
+########## Spyder Launch command ############
+### Target
+C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py %USERPROFILE%\.conda\envs\sectionaryDev %USERPROFILE%\.conda\envs\sectionaryDev\pythonw.exe %USERPROFILE%\.conda\envs\sectionaryDev\Scripts\spyder-script.py
+
+### Start in
+"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+
+### Icon
+%USERPROFILE%\.conda\envs\variandb_relations\Scripts\spyder.ico
+
+### Alternate Start in
+"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package\src\sectionary
+"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package\examples
+
+
+
 ########### Related Commands  ##########
 conda config --append channels conda-forge
 
@@ -35,6 +51,7 @@ nb_conda_kernels
 pylint
 black
 mypy
+
 
 
 

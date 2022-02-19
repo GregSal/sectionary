@@ -1,0 +1,247 @@
+PlanCheck;Test 1234567 TestPlan
+Patient Name;Patient, Test 
+Patient Id; 1234567
+Date Of Birth;Jan 1, 1990
+Sex;Yes
+Primary Oncologist;Dr Bob
+Plan Status;Planning Approved
+Plan Approved On;January 1, 2022 12:00:00 AM
+Approved By;Carey Shenfield MD
+Checking Date;January 2, 2022 12:00:00 PM
+Checked By;Bo Derric
+Is Plan Modified?;-
+Valid;All MU/Gy values are valid
+Course;C1
+Intent;1_PRIMARY
+Plan Id;PELB FB
+Plan Name;PELB FB
+Plan Intent;Curative
+Technique;
+PRESCRIPTION
+Patient Identifiers;
+Patient Name;Patient, Test 
+PatientId; 1234567
+Date Of Birth;Jan 1, 1990
+Sex;Yes
+Primary Oncologist;Dr Bob
+Prescription;
+Intent;1_PRIMARY
+Prescribed Dose;4500.0 cGy
+Fractions;25
+Start Delay;-
+Fractions Per Week;-
+Fractions Per Day;-
+Dose Per Fraction;180.0 cGy
+Normalization;
+Normalization;101.1 %
+Normalization Method;100.00% covers 97.00% of Target Volume
+Warning;
+Reference Point;
+Primary Ref Point;PELB
+Primary Ref Point Dose;4500.0 cGy
+Primary Ref Point Relative Dose;100.0 %
+Primary Ref Point Dose Per Fraction;180.0 cGy
+TargetVolume;PTV 45
+IMAGE
+ImageId;PELB FB
+Image Modality;CT
+ImageSeriesId;PELB FB 35687
+ImageSeriesComment;PROSTATE
+Contrast Exists;-
+Imaging Device;Philips Big Bore
+User Origin;User origin DICOM offset = (-1.26cm, 9.95cm, -4.70cm)
+Imaging Orientation;Head First-Supine
+Treatment Orientation;Head First-Supine
+Coordinate System;Standard
+StructureSetId;PELB FB
+CALCULATIONS
+1. WARNING: Plan target volume is different than plan primary reference point volume.
+PhotonAlg; AAA_15606_Golden_Beam
+CalculationGridSizeInCM;0.25
+CalculationGridSizeInCMForSRSAndHyperArc;0.125
+FieldNormalizationType;100% to isocenter
+HeterogeneityCorrection;ON
+Optimizer;PO_13623
+AirCavityCorrection;On
+InhomogeneityCorrection;On
+SmoothX;40
+SmoothY;30
+Calculation Medium;Inhomogeneity corrected
+Calculation Method;
+WARNINGS
+1. WARNING: Plan target volume is different than plan primary reference point volume.
+FIELDS DATA
+FieldId;  CBCT  
+FieldName;  CBCT  
+Technique;STATIC
+Linac;  TR1  
+Gantry;0.0 deg to - deg
+Collimator;0.0 deg
+Couch;0.0 deg
+Field Size
+X;20.0 cm
+Y;20.0 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;86.4 cm
+Stop SSD;-
+Average SSD;-
+Actual SSD;86.4 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+END FIELD
+FieldId;  KV AP PELB  
+FieldName;  KV AP PELB  
+Technique;STATIC
+Linac;  TR1  
+Gantry;0.0 deg to - deg
+Collimator;0.0 deg
+Couch;0.0 deg
+Field Size
+X;20.0 cm
+Y;20.0 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;86.4 cm
+Stop SSD;-
+Average SSD;-
+Actual SSD;86.4 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+END FIELD
+FieldId;  KV RL PELB  
+FieldName;    
+Technique;STATIC
+Linac;  TR1  
+Gantry;270.0 deg to - deg
+Collimator;0.0 deg
+Couch;0.0 deg
+Field Size
+X;20.0 cm
+Y;20.0 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;77.3 cm
+Stop SSD;-
+Average SSD;-
+Actual SSD;77.3 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+END FIELD
+FieldId;  KV LL PELB  
+FieldName;  KV LL PELB  
+Technique;STATIC
+Linac;  TR1  
+Gantry;90.0 deg to - deg
+Collimator;0.0 deg
+Couch;0.0 deg
+Field Size
+X;20.0 cm
+Y;20.0 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;77.0 cm
+Stop SSD;-
+Average SSD;-
+Actual SSD;77.0 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+END FIELD
+FieldId;  CW  
+FieldName;  CW  
+Technique;ARC
+Linac;  TR1  
+Energy;6X
+Plan Type;VMAT
+Gantry;181.0 degCW to 179.0 deg
+Collimator;30.0 deg
+Couch;0.0 deg
+Field Size
+X1: +10.5 cm
+X2: +9.5 cm
+Y1: +9.8 cm
+Y2: +10.6 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;85.5 cm
+Stop SSD;85.5 cm
+Average SSD;81.5 cm
+Actual SSD;85.5 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+Field Norm Factor;100.0 %
+Norm Method;NO_ISQLAW_NORM
+Field Weight;1.637
+Dose Rate;600 MU/min
+MU;291 MU
+MU/Gy;327.30 MU/Gy
+Ref Dose;-
+Gating On;-
+Gating Off;-
+MLC Segments;178
+END FIELD
+FieldId;  CCW  
+FieldName;  CCW  
+Technique;ARC
+Linac;  TR1  
+Energy;6X
+Plan Type;VMAT
+Gantry;179.0 degCCW to 181.0 deg
+Collimator;330.0 deg
+Couch;0.0 deg
+Field Size
+X1: +9.5 cm
+X2: +10.5 cm
+Y1: +9.8 cm
+Y2: +10.6 cm
+Isocenter
+Iso X;1.00 cm
+Iso Y;-0.50 cm
+Iso Z;2.00 cm
+SAD;100.0 cm
+Start SSD;85.5 cm
+Stop SSD;85.5 cm
+Average SSD;81.5 cm
+Actual SSD;85.5 cm
+SFED ;-
+Virtual SAD X;-
+Virtual SAD Y;-
+Field Norm Factor;100.0 %
+Norm Method;NO_ISQLAW_NORM
+Field Weight;1.673
+Dose Rate;600 MU/min
+MU;298 MU
+MU/Gy;327.30 MU/Gy
+Ref Dose;-
+Gating On;-
+Gating Off;-
+MLC Segments;178
+END FIELD
+POINTS LOCATIONS
+Point;X;Y;Z
+PELB;-;-;-
+FIELD POINTS
+Field;Point;Dose;SSD;Depth;Effective Depth
+Plan;PELB;4500.0 cGy;;;
+  CW  ;PELB;89.0 cGy;-;-;-
+  CCW  ;PELB;91.0 cGy;-;-;-
