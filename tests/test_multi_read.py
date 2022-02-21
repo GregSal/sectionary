@@ -160,8 +160,7 @@ class TestSectionRead(unittest.TestCase):
             )
         source = BufferedIterator(self.test_source)
 
-        test_output = test_section.read(source, start_search=True,
-                                        **self.context)
+        test_output = test_section.read(source, start_search=True)
         self.assertDictEqual(test_output, self.test_result['Section A'])
 
     def test_multi_section_read(self):
@@ -184,17 +183,14 @@ class TestSectionRead(unittest.TestCase):
 
         source = BufferedIterator(self.test_source)
 
-        section_one = test_section.read(source, start_search=True,
-                                        **self.context)
+        section_one = test_section.read(source, start_search=True)
         self.assertDictEqual(section_one, self.test_result['Section A'])
 
-        multi_section = test_multi_section.read(source, start_search=False,
-                                                **self.context)
+        multi_section = test_multi_section.read(source, start_search=False)
         self.assertDictEqual(multi_section,
                              self.test_result['Test Multi Section'])
 
-        section_dict2 = test_section.read(source, start_search=False,
-                                          **self.context)
+        section_dict2 = test_section.read(source, start_search=False)
         self.assertDictEqual(section_dict2,
                              self.test_result['Section E'])
 
@@ -208,8 +204,7 @@ class TestSectionRead(unittest.TestCase):
             )
 
         source = BufferedIterator(self.test_source)
-        section_dict2 = test_section.read(source, start_search=True,
-                                          **self.context)
+        section_dict2 = test_section.read(source, start_search=True)
         self.assertDictEqual(section_dict2,
                              self.test_result['Section E'])
 

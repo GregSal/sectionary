@@ -303,9 +303,9 @@ def main():
 
     source = tp.file_reader(test_file)
 
-    dvh_info = dvh_info_section.read(source, context)
-    plan_info = plan_info_group.read(source, context)
-    structures_df, dvh_df = dvh_group_section.read(source, context)
+    dvh_info = dvh_info_section.read(source, context=context)
+    plan_info = plan_info_group.read(source, context=context)
+    structures_df, dvh_df = dvh_group_section.read(source, context=context)
 
     # Output DVH Data
     dvh_info_df = pd.Series(dvh_info)

@@ -49,9 +49,11 @@ from buffered_iterator import BufferedIteratorEOF
 
 #%% Logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Text Processing')
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+
 
 #%% Input and output Type Definitions
 SourceItem = TypeVar('SourceItem')
@@ -2089,13 +2091,13 @@ class Section():
         logger.debug(f'Skipped {len(skipped_lines)} lines.')
         return skipped_lines
 
-    def initialize(self, source: Source, start_search: bool = True,
+    def initialize(self, supplied_source: Source, start_search: bool = True,
                    do_reset: bool = True,
                    context: ContextType = None)->BufferedIterator:
         '''
         Arguments:
-            source (Source): An iterable where some of the content meets the
-                section boundary conditions.
+            active_source (Source): An iterable where some of the content meets
+                the section boundary conditions.
             start_search (bool, optional): Indicates whether to advance through
                 the source until the beginning of the section is found or
                 assume that the section begins at the start of the source.
@@ -2114,27 +2116,32 @@ class Section():
             BufferedIterator: The iterable object (with a BufferedIterator
             wrapper) that the section instance is actively iterating through.
         '''
-        # Reset variables and Update context
+        # if it exists, self.source is the pre-existing root BufferedIterator.
+        # active_source iterates self.source, but adds boundary checking.  This
+        # distinction is needed when using sub-sections.
+
+        # Initialize and reset source if required.
         if do_reset:
             logger.debug(f'Resetting source for: {self.section_name}.')
-            self.reset()  # This clears source, context and scan_status
-            self.source = source
-            active_source = self.source  # Get cleaned and buffered source
-        elif self.source:
-            logger.debug(f'{self.section_name} already contains source.')
-            # self.source is pre-existing root BufferedIterator, active_source
-            # iterates self.source, but adds boundary checking.  This is needed
-            # when using sub-sections.
-            active_source = source
-        else:
+            self.reset()  # This clears source, context and scan_status.
+            self.source = supplied_source  # This initializes the source.
+            active_source = self.source  # Gets the initialized source.
+        elif not self.source:
             logger.debug(f'Setting new source for: {self.section_name}.')
-            self.source = source
-            active_source = self.source  # Get cleaned and buffered source
+            self.source = supplied_source  # This initializes the source.
+            active_source = self.source  # Gets the initialized source.
+        else:
+            logger.debug(f'{self.section_name} already contains source.')
+            active_source = supplied_source  # Assumes source is initialized.
+
+        # Update context
         if context:
             self.context.update(context)
+
         # If requested, advance through the source to the section start.
         if start_search:
             self.advance_to_start(active_source)
+
         # Update Section Status
         logger.debug(f'Starting New Section: {self.section_name}.')
         self.context['Current Section'] = self.section_name
@@ -2174,7 +2181,7 @@ class Section():
             yield next_item
 
     def scan(self, source: Source, start_search: bool = True,
-             do_reset: bool = True,
+             do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->SectionGen:
         '''The primary outward facing section generator function.
 
@@ -2204,13 +2211,15 @@ class Section():
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
-        # Initialize the section
-        source = self.initialize(source, start_search, do_reset, context)
+
+        if initialize:
+            # Initialize the section
+            source = self.initialize(source, start_search, do_reset, context)
         section_iter = self.gen(source)
         return section_iter
 
     def process(self, source: Source, start_search: bool = True,
-             do_reset: bool = True,
+             do_reset: bool = True, initialize: bool = True,
              context: Dict[str, Any] = None)->ProcessedItemGen:
         '''The primary outward facing section processor function.
 
@@ -2241,7 +2250,10 @@ class Section():
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
-        section_iter = self.scan(source, start_search, do_reset, context)
+        if initialize:
+            # Initialize the section
+            source = self.initialize(source, start_search, do_reset, context)
+        section_iter = self.gen(source)
         read_iter = self.processor.reader(section_iter, self.context)
         done = False
         while not done:
@@ -2256,7 +2268,7 @@ class Section():
                     self.context.update(context)
 
     def read(self, source: Source, start_search: bool = True,
-             do_reset: bool = True,
+             do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->AggregatedItem:
         '''The primary outward facing section reader function.
 
@@ -2293,9 +2305,11 @@ class Section():
                 all processed items from source that are within the section
                 boundaries.
         '''
-        section_processor = self.process(source, start_search, do_reset,
-            context)
-        section_reader = self.subsection_processor(iter(section_processor))
+        if initialize:
+            # Initialize the section
+            source = self.initialize(source, start_search, do_reset, context)
+        section_processor = self.process(source, initialize=False)
+        section_reader = self.subsection_processor(section_processor)
 
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_reader, self.context)

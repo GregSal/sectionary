@@ -222,16 +222,15 @@ class TestSectionGroupRead(unittest.TestCase):
     def test_fixed_width_sub_section_read(self):
         test_section = self.fixed_width_section
         source = BufferedIterator(self.test_source)
-        test_output = test_section.read(source, start_search=True,
-                                        context=self.context)
+        test_output = test_section.read(source, start_search=True)
         self.assertDictEqual(test_output, self.test_result['Section F1'])
 
+    @unittest.SkipTest('Test Not Implimented')
     def test_group_section_read(self):
         test_section = self.group_section
         source = BufferedIterator(self.test_source)
-        test_output = test_section.read(source, start_search=True,
-                                        context=self.context)
-        expected_output = self.test_result['Test Group Section']
+        test_output = test_section.read(source, start_search=True)
+        expected_output = self.test_result['Group Section']
         for count, output in enumerate(zip(test_output[0], expected_output)):
             with self.subTest(section=count):
                 section_output = output[0]
@@ -242,8 +241,7 @@ class TestSectionGroupRead(unittest.TestCase):
     def test_multi_group_section_read(self):
         test_section = self.multi_group_section
         source = BufferedIterator(self.test_source)
-        test_output = test_section.read(source, start_search=True,
-                                        context=self.context)
+        test_output = test_section.read(source, start_search=True)
         expected_output = self.test_result['Test Multi Group Section']
         for section_count, section_output in enumerate(zip(test_output,
                                                            expected_output)):

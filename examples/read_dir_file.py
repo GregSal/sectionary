@@ -370,7 +370,7 @@ def main():
         }
 
     source = tp.file_reader(test_file)
-    file_info = all_folder_section.read(source, context)
+    file_info = all_folder_section.read(source, context=context)
     #summary = summary_section.read(source, **context)
 
     # Output  Data
