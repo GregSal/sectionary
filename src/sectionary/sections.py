@@ -48,10 +48,10 @@ from buffered_iterator import BufferedIteratorEOF
 
 
 #%% Logging
-#logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
+logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Text Processing')
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 #%% Input and output Type Definitions
 SourceItem = TypeVar('SourceItem')
@@ -1543,15 +1543,12 @@ class Section():
   '''
     # A SectionBreak that causes the section to start with the first item in
     # the source.
-    default_start = SectionBreak(True, name='AlwaysBreak', break_offset='Before')
+    default_start = SectionBreak(True, name='AlwaysBreak',
+                                 break_offset='Before')
+
     # A SectionBreak that never triggers, causing the section to continue to
     # the end of the source.
     default_end = SectionBreak(False, name='NeverBreak')
-
-    # TODO Split processor into processor and subsection arguments
-    # processor will simply call ProcessingMethods()
-    # subsection is handled locally
-    # processor is applied before subsection
 
     def __init__(self,
                  start_section: BreakOptions = None,
@@ -1560,7 +1557,8 @@ class Section():
                  subsections: SectionOptions = None,
                  aggregate: AggregateCallableOptions = None,
                  section_name: str = 'Section',
-                 keep_partial: bool = False):
+                 keep_partial: bool = False,
+                 end_on_first_item: bool = False):
         '''Creates an Section instance that defines a continuous portion of a
         text stream to be processed in a specific way.
 
@@ -1590,13 +1588,20 @@ class Section():
                 composed of one or more subsections and the main section ends
                 before the subsections end. If keep_partial is true the partial
                 subsection(s) will be returned, otherwise they will be dropped.
-                Defaults to False,
+                Defaults to False.
+            end_on_first_item (bool, optional): If True, the item that triggers
+                the start of a section may also trigger the end of the section.
+                If False, the first item in the section will not be tested for
+                an end breakpoint. This is useful in cases where both
+                start_section and end_section might undesirably trigger on the
+                same line, resulting in an empty section.  Defaults to False.
         Returns:
             New Section.
         '''
         # Initialize attributes
         self.section_name = section_name
         self.keep_partial = keep_partial
+        self.end_on_first_item = end_on_first_item
 
         # The context, scan_status and source attributes must be reset every
         # time the Section instance is applied to a new source iterable.  The
@@ -1607,9 +1612,11 @@ class Section():
         self.context = dict()
         self.scan_status = 'Not Started'
         self.source = None
+        self.item_count = -1  # item_count is -1 until section start
 
         # Set the start and end section break properties
-        # TODO Accept a Tuple with SectionBreak arguments as valid start_section or end_section values.
+        # TODO Accept a Tuple with SectionBreak arguments as valid
+        # start_section or end_section values.
         self.start_section = start_section
         self.end_section = end_section
 
@@ -1644,6 +1651,7 @@ class Section():
             else:
                 buffered_source = source
             self._source = buffered_source  # Begin iteration
+            self.item_count = -1  # item_count is -1 until section start
         else:
             # Reset the source
             self._source = None
@@ -1892,21 +1900,25 @@ class Section():
     def read_subsections(self, section_iter: SectionGen)->ProcessedList:
         '''Read each of the subsections as if they were a single item.
 
+        This method is used if there are multiple sub-sections in
+        self.subsections.
+
         Arguments:
             section_iter (SectionGen): The section's source iterator after
                 checking for boundaries.
         Returns:
             List[Any]: A list of the aggregate results for all of the
-                subsections.
+                subsections in self.subsections.
         '''
         if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
-            # If the source has closed don't try reading subsections
+            # If the source has closed don't try reading subsections.
             return None
         subsection = list()
         for sub_rdr in self.subsections:
             if not self.keep_partial:
                 if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
-                    # If the source ends part way through, drop the partial subsection
+                    # If the source ends part way through, drop the partial
+                    # subsection.
                     return None
             sub_rdr.source = self.source
             subsection.append(sub_rdr.read(section_iter, do_reset=False,
@@ -1917,8 +1929,11 @@ class Section():
     def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
         '''Yield processed subsections until the main section is complete.
 
-        Step through section_iter yielding a list of the aggregate results for
-        all of the subsections as a single item from the generator.
+        Step through section_iter If only one sub-section is defined in
+        self.subsections, yield the aggregate result for that subsection as a
+        single item from the generator. If multiple sub-sections are defined in
+        self.subsections, yield a list of the aggregate results for
+        all of the sub-sections as a single item from the generator.
 
         Arguments:
             section_iter (Iterator): The section's source iterator after
@@ -1926,16 +1941,23 @@ class Section():
         Yields:
             ProcessGenerator: The results of reading each subsection.
         '''
+        logger.debug(f'Entered sub-section processor for: {self.section_name}')
         while 'GEN_CLOSED' not in inspect.getgeneratorstate(section_iter):
             # Testing the generator state is required because StopIteration
-            # is being trapped before it reached the except statement here.
+            # is being trapped before it reaches here.
             if not self.subsections:
+                logger.debug(f'No sub-sections in: {self.section_name}')
                 yield from section_iter
             elif len(self.subsections) == 1:
+                logger.debug(f'Process repeated sub-section '
+                             f'{self.subsections[0].section_name} in: '
+                             f'{self.section_name}')
                 sub_rdr = self.subsections[0]
+                sub_rdr.source = self.source
                 yield sub_rdr.read(section_iter, do_reset=False,
                                    context=self.context)
             else:
+                logger.debug(f'Process multiple sub-sections in: {self.section_name}')
                 yield self.read_subsections(section_iter)
 
     def reset(self):
@@ -2055,6 +2077,7 @@ class Section():
         '''
         skipped_lines = list()
         self.scan_status = 'Not Started'
+        logger.debug(f'Advancing to start of {self.section_name}.')
         while True:
             next_item = self.step_source(source)
             if 'Scan Complete' in self.scan_status:
@@ -2063,6 +2086,7 @@ class Section():
                 break
             skipped_lines.append(next_item)
         self.context['Skipped Lines'] = skipped_lines
+        logger.debug(f'Skipped {len(skipped_lines)} lines.')
         return skipped_lines
 
     def initialize(self, source: Source, start_search: bool = True,
@@ -2092,15 +2116,18 @@ class Section():
         '''
         # Reset variables and Update context
         if do_reset:
+            logger.debug(f'Resetting source for: {self.section_name}.')
             self.reset()  # This clears source, context and scan_status
             self.source = source
             active_source = self.source  # Get cleaned and buffered source
         elif self.source:
+            logger.debug(f'{self.section_name} already contains source.')
             # self.source is pre-existing root BufferedIterator, active_source
             # iterates self.source, but adds boundary checking.  This is needed
             # when using sub-sections.
             active_source = source
         else:
+            logger.debug(f'Setting new source for: {self.section_name}.')
             self.source = source
             active_source = self.source  # Get cleaned and buffered source
         if context:
@@ -2111,6 +2138,7 @@ class Section():
         # Update Section Status
         logger.debug(f'Starting New Section: {self.section_name}.')
         self.context['Current Section'] = self.section_name
+        self.item_count = 0  # Indicates start of section
         self.scan_status = f'At the start of section {self.section_name}'
         return active_source
 
@@ -2133,9 +2161,16 @@ class Section():
             if 'Scan Complete' in self.scan_status:
                 # self.scan_status stays local self.context gets updated
                 # by sub-sections.
-                break
-            if self.is_boundary(next_item, self.end_section):
-                break
+                break  # Break if end of source reached
+            self.item_count += 1
+            logger.debug(f'This is item number: {self.item_count} of '
+                         f'{self.section_name}')
+            if self.item_count == 1:
+                logger.debug(f'This is the first item in {self.section_name}')
+                if not self.end_on_first_item:  # Don't check for end break
+                    yield next_item
+            elif self.is_boundary(next_item, self.end_section):
+                break  # Break if section boundary reached
             yield next_item
 
     def scan(self, source: Source, start_search: bool = True,
@@ -2228,6 +2263,14 @@ class Section():
         Initialize the source and then provide the generator that will step
         through all items from source that are in section, applying the section
         processing methods and subsection readers to each item.
+
+                Step through section_iter If only one sub-section is defined in
+        self.subsections, yield the aggregate result for that subsection as a
+        single item from the generator. If multiple sub-sections are defined in
+        self.subsections, yield a list of the aggregate results for
+        all of the sub-sections as a single item from the generator.
+
+
         Arguments:
             source (Source): An iterable where some of the content meets the
                 section boundary conditions.
@@ -2252,7 +2295,7 @@ class Section():
         '''
         section_processor = self.process(source, start_search, do_reset,
             context)
-        section_reader = self.subsection_processor(section_processor)
+        section_reader = self.subsection_processor(iter(section_processor))
 
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_reader, self.context)
