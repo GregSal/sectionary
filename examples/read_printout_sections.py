@@ -5,6 +5,7 @@ Created on Wed Feb 16 2022
 @author: Greg Salomons
 """
 # %% imports
+from typing import Tuple
 from pathlib import Path
 from pprint import pprint
 from functools import partial
@@ -100,9 +101,38 @@ def clean_norm(text_line):
     return norm_line
 
 
-parse_gantry = sec.Rule('G', pass_method=get_gantry, fail_method='Original')
-no_norm = sec.Rule('NO_ISQLAW_NORM', pass_method=clean_norm)
-field_parse = sec.RuleSet([parse_gantry, no_norm], default=dict_parse)
+def drop_units(text: str) -> float:
+    number_value_pattern = re.compile(
+        r'^'                # beginning of string
+        r'\s*'              # Skip leading whitespace
+        r'(?P<value>'       # beginning of value integer group
+        r'[-+]?'            # initial sign
+        r'\d+'              # float value before decimal
+        r'[.]?'             # decimal Place
+        r'\d*'              # float value after decimal
+        r')'                # end of value string group
+        r'\s*'              # skip whitespace
+        r'(?P<unit>'        # beginning of value integer group
+        r'[^\s]*'           # units do not contain spaces
+        r')'                # end of unit string group
+        r'\s*'              # drop trailing whitespace
+        r'$'                # end of string
+        )
+
+    find_num = number_value_pattern.search(text)
+    if find_num:
+        value, unit = find_num.groups()
+        return value
+    return text
+
+
+def numeric_values(text_row: Tuple[str]) -> Tuple[str, float]:
+    try:
+        label, text_value = text_row
+    except ValueError:
+        return text_row
+    numeric_value = drop_units(text_value)
+    return (label, numeric_value)
 
 
 # %% Section Definitions
@@ -116,7 +146,8 @@ plan_section = sec.Section(
 prescription_section = sec.Section(
     start_section='PRESCRIPTION',
     end_section='IMAGE',
-    processor=[tr.clean_ascii_text, dict_parse, tr.trim_items],
+    processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
+               numeric_values],
     aggregate=trim_dict,
     section_name='Prescription')
 
@@ -125,7 +156,8 @@ image_parse = sec.RuleSet([parse_origin], default=dict_parse)
 image_section = sec.Section(
     start_section='IMAGE',
     end_section='CALCULATIONS',
-    processor=[tr.clean_ascii_text, image_parse, tr.trim_items],
+    processor=[tr.clean_ascii_text, image_parse, tr.trim_items,
+               numeric_values],
     aggregate=trim_dict,
     section_name='Image')
 
@@ -134,49 +166,83 @@ calculation_parse = sec.RuleSet([parse_warning], default=dict_parse)
 calculation_section = sec.Section(
     start_section='CALCULATIONS',
     end_section='WARNINGS',
-    processor=[tr.clean_ascii_text, image_parse, tr.trim_items],
+    processor=[tr.clean_ascii_text, image_parse, tr.trim_items,
+               numeric_values],
     aggregate=trim_dict,
     section_name='Calculations')
 
 warning_section = sec.Section(
     start_section='WARNINGS',
     end_section='FIELDS DATA',
-    processor=[tr.clean_ascii_text, calculation_parse, tr.trim_items],
+    processor=[tr.clean_ascii_text, calculation_parse, tr.trim_items,
+               numeric_values],
     aggregate=trim_dict,
     section_name='Warnings')
 
-
+parse_gantry = sec.Rule('G', pass_method=get_gantry, fail_method='Original')
+no_norm = sec.Rule('NO_ISQLAW_NORM', pass_method=clean_norm)
+field_parse = sec.RuleSet([parse_gantry, no_norm], default=dict_parse)
 field_section = sec.Section(
     start_section=None,
-    end_section=['END FIELD', 'POINTS LOCATIONS'],
-    processor=[tr.clean_ascii_text, field_parse, tr.trim_items],
+    end_section=['END FIELD'],
+    processor=[tr.clean_ascii_text, field_parse, tr.trim_items,
+               numeric_values],
     aggregate=trim_dict,
     section_name='Field')
 
 all_fields_section = sec.Section(
     start_section='FIELDS DATA',
     end_section='POINTS LOCATIONS',
-    processor=[field_section],
-    #aggregate=tr.to_dataframe,
+    processor=[tr.clean_ascii_text],
+    subsections=field_section,
+    aggregate=tr.to_dataframe,
     section_name='Fields')
 
 all_initial_sections = sec.Section(
-    processor=[plan_section, prescription_section, image_section, calculation_section, warning_section],
-    #aggregate=tr.to_dataframe,
-    section_name='Fields')
+    subsections=[plan_section, prescription_section, image_section,
+                 calculation_section, warning_section],
+    section_name='PlanCheck')
 
-#%% Test
-test_file = Path(r'\\dkphysicspv1\e$\Gregs_Work\Temp\Plan Checking Temp\PlanCheckText 2022-02-17 12-28-03.txt')
+point_location_section = sec.Section(
+    start_section=sec.SectionBreak('POINTS LOCATIONS', break_offset='after'),
+    end_section=sec.SectionBreak('FIELD POINTS', break_offset='before'),
+    processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
+               numeric_values],
+    aggregate=tr.to_dataframe,
+    section_name='Point Locations')
+
+point_dose_section = sec.Section(
+    start_section=sec.SectionBreak('FIELD POINTS', break_offset='after'),
+    end_section=sec.SectionBreak('PlanCheck', break_offset='before'),
+    processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
+               numeric_values],
+    aggregate=tr.to_dataframe,
+    section_name='Point Dose')
+
+
+# %% Read Test file
+#base_path = Path(r'\\dkphysicspv1\e$\Gregs_Work\Temp\Plan Checking Temp')
+#test_file = base_path / PlanCheckText 2022-02-17 12-28-03.txt'
+
+base_path = Path.cwd() / 'examples'
+test_file = base_path / 'PlanCheckText Test.txt'
+
 test_text = test_file.read_text().splitlines()
-
+# %% Test Sections
 plan_section.read(test_text)
 prescription_section.read(test_text)
 image_section.read(test_text)
 calculation_section.read(test_text)
 warning_section.read(test_text)
-all_initial_sections.read(test_text)
-all_fields_section.read(test_text)
-#%% Special Processing
+field_section.read(test_text)
+# %% Load data
+all_initial_sections.read(test_text)[0]
+all_fields_section.read(test_text).T
+
+# %%
+point_location_section.read(test_text)
+point_dose_section.read(test_text)
+# %% Special Processing
 def patient_id(name, data):
     if isinstance(data, float):
         patient_id = '{:07.0f}'.format(data)
@@ -360,10 +426,10 @@ def printout_section_def():
 
 def read_printout_file(file_path):
     # Load text
-    text_rows = rtd.load_file(file_path)
+    text_rows = tr.load_file(file_path)
 
     section_def, special_items = printout_section_def()
-    printout_dict = rtd.load_sections(text_rows, section_def, special_items)
+    printout_dict = tr.load_sections(text_rows, section_def, special_items)
     printout_dict['Locations'] = make_locations_table(printout_dict)
     return printout_dict
 
@@ -382,10 +448,10 @@ def main():
     #%% save results
     new_printout_dict['Fields'] = new_printout_dict['Fields'].reset_index()
     new_printout_dict['Locations'] = new_printout_dict['Locations'].reset_index()
-    output_book = st.open_book(output_file_path)
-    for data_set_name, data in new_printout_dict.items():
-        st.save_data_to_sheet(data, output_book, data_set_name,
-                              starting_cell='H1', replace=False)
+#    output_book = st.open_book(output_file_path)
+#    for data_set_name, data in new_printout_dict.items():
+#        st.save_data_to_sheet(data, output_book, data_set_name,
+#                              starting_cell='H1', replace=False)
 
 
 if __name__ == '__main__':
