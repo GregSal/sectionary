@@ -1,17 +1,17 @@
 name: sectionaryDev
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
   - python=3.8
-  - pylint
   - jupyterlab
   - xlwings
-  - black
-  - pandas
-  - spyder
   - openpyxl
-  - mypy
-  - nb_conda_kernels
+  - pandas
   - sphinx
-prefix: C:\Users\smoke\.conda\envs\sectionaryDev
+  - black
+  - spyder
+  - mypy
+  - pylint
+  - nb_conda_kernels
+prefix: C:\ProgramData\Anaconda3\envs\sectionaryDev

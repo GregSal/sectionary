@@ -1,7 +1,7 @@
 ########## Creation command ############
-conda create -n sectionaryDev python=3.8
+conda create -y -n sectionaryDev python=3.8
 conda activate sectionaryDev
-conda install pandas openpyxl jupyterlab xlwings sphinx spyder jupyterlab nb_conda_kernels pylint black mypy
+conda install -y pandas openpyxl jupyterlab xlwings sphinx spyder jupyterlab nb_conda_kernels pylint black mypy
 
 python -m ipykernel install --user --name sectionaryDev --display-name "Python (sectionaryDev)"
 
@@ -15,7 +15,7 @@ conda list --explicit > C:\TEMP\sectionaryDev_specfile.txt
 conda create --name sectionary --file sectionaryDev_specfile.txt
 
 conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev_FULL.yml
-
+conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev.yml
 ########## Spyder Launch command ############
 ### Target
 C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py %USERPROFILE%\.conda\envs\sectionaryDev %USERPROFILE%\.conda\envs\sectionaryDev\pythonw.exe %USERPROFILE%\.conda\envs\sectionaryDev\Scripts\spyder-script.py
@@ -53,5 +53,23 @@ black
 mypy
 
 
+
+########### Spyder Launch Shortcut  ##########
+Target
+C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py C:\ProgramData\\Anaconda3\envs\sectionaryDev C:\ProgramData\Anaconda3\envs\sectionaryDev\pythonw.exe C:\ProgramData\Anaconda3\envs\sectionaryDev\Scripts\spyder-script.py
+
+Start In
+"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+Icon
+C:\ProgramData\Anaconda3\Scripts\spyder.ico
+########### Jupyter Launch Shortcut  ##########
+C:\ProgramData\Anaconda3\pythonw.exe 'C:\ProgramData\Anaconda3\cwp.py', 'C:\ProgramData\\Anaconda3\envs\sectionaryDev', 'C:\ProgramData\Anaconda3\envs\sectionaryDev\pythonw.exe', 'C:\ProgramData\Anaconda3\envs\sectionaryDev\Scripts\jupyter-lab-script.py "%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+
+"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+
+########### Jupyter Launch Batch File  ##########
+call C:\ProgramData\Anaconda3\Scripts\activate.bat C:\ProgramData\Anaconda3
+call conda activate sectionaryDev
+call python C:\Users\gsalomon\.conda\envs\sectionaryDev\Scripts\jupyter-lab-script.py "%USERPROFILE%/"
 
 
