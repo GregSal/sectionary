@@ -1,0 +1,16 @@
+ Volume in drive C is Windows
+ Volume Serial Number is DAE7-D5BA
+
+ Directory of c:\users\...\examples
+
+2021-12-27  03:33 PM    <DIR>          Test Dir Structure
+               0 File(s)              0 bytes
+
+ Directory of c:\users\...\References\Text Files
+
+2021-12-27  05:26 PM    <DIR>          Test Dir Structure
+               0 File(s)              0 bytes
+
+     Total Files Listed:
+               0 File(s)              0 bytes
+               2 Dir(s)    309547487232 bytes free

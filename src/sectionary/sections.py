@@ -51,7 +51,7 @@ from buffered_iterator import BufferedIteratorEOF
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Text Processing')
-#logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
 
@@ -2178,7 +2178,8 @@ class Section():
                     yield next_item
             elif self.is_boundary(next_item, self.end_section):
                 break  # Break if section boundary reached
-            yield next_item
+            else:
+                yield next_item
 
     def scan(self, source: Source, start_search: bool = True,
              do_reset: bool = True, initialize: bool = True,

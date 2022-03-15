@@ -225,7 +225,7 @@ class TestSectionGroupRead(unittest.TestCase):
         test_output = test_section.read(source, start_search=True)
         self.assertDictEqual(test_output, self.test_result['Section F1'])
 
-    @unittest.SkipTest('Test Not Implimented')
+    @unittest.skip('Test Not Implimented')
     def test_group_section_read(self):
         test_section = self.group_section
         source = BufferedIterator(self.test_source)
@@ -256,3 +256,5 @@ if __name__ == '__main__':
     unittest.main()
 
 
+
+# %%
