@@ -1574,10 +1574,14 @@ class Section():
                 to None, indicating the section ends with the last text line
                 in the iterator.
             processor (ProcessMethodOptions, optional): Instructions for
-                processing and the section items.  processor can be None, in
-                which case the section will use the default SectionProcessor,
-                it can be a SectionProcessor instance, a Section instance, or a
-                list of Section instances.
+                processing and the section items.  A function or list of
+                functions to be applied to each item from the source sequence
+                that is identified as part of the section.  If processor is a
+                list of functions, the function will be applied in list order,
+                with the input of the function being the output of the previous
+                function in the list. See ProcessingMethods for more details on
+                valid processor functions.  If processor is None (the default),
+                the the section items are returned unmodified.
             subsections (SectionOptions, optional): a Section instance,
                 or a list of Section instances contained within the section
                 being defined.
@@ -1807,51 +1811,19 @@ class Section():
             TypeError: If processor is not one of a SectionParser instance, a
                 Section instance, a list of Section instances, or None.
         '''
-        # processor should simply call ProcessingMethods()
-        # subsection is handled with separate property
         if processing_def:
             if isinstance(processing_def, ProcessingMethods):
                 self._processor = processing_def
-#                self._section_reader = self.sequence_processor
-#            elif isinstance(processing_def, Section):
-#                processing_def.reset()
-#                self._processor = [processing_def]
-#                self._section_reader = self.subsection_processor
-#            elif isinstance(processing_def, list):
-#                # Check if all item is the list are type Section
-#                sec_check = all(
-#                    isinstance(sub_rdr, Section)
-#                    for sub_rdr in processing_def
-#                    )
-#                if sec_check:
-#                    for sub_rdr in processing_def:
-#                        sub_rdr.reset()
-#                    self._processor = processing_def
-#                    self._section_reader = self.subsection_processor
-#                else:
-#                    try:
-#                        self._processor = ProcessingMethods(processing_def)
-#                    except ValueError as err:
-#                        msg = ' '.join([
-#                            'If processor is a list, the items must be a ',
-#                            'valid input for ProcessingMethods or must ',
-#                            'all be of type Section.'])
-#                        raise ValueError(msg) from err
             else:
                 try:
                     self._processor = ProcessingMethods(processing_def)
                 except ValueError as err:
                     msg = ' '.join(['processor must be a valid input for',
                                     'ProcessingMethods'])
-#                    msg = ' '.join([
-#                        'processor must be one of SectionParser, a ',
-#                        'Section instance, a list of Section  instances, or None.'
-#                        ])
                     raise ValueError(msg) from err
         else:
             # if processor is None set a default SectionProcessor.
             self._processor = ProcessingMethods()
-#            self._section_reader = self.sequence_processor
 
     @property
     def subsections(self)->SectionOptions:
