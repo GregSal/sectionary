@@ -56,7 +56,7 @@ logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
-SourceItem = TypeVar('SourceItem')
+SourceItem = Any
 Source = Iterable[SourceItem]
 # SourceOptions can be single SourceItem or an iterable of SourceItems.
 SourceOptions = Union[SourceItem, Source]
@@ -65,13 +65,13 @@ SourceOptions = Union[SourceItem, Source]
 #	  • 1 SourceItem → 1 ProcessedItem
 #	  • 1 SourceItem → 2+ ProcessedItems
 #	  • 2+ SourceItems → 1 ProcessedItem;
-ProcessedItem = TypeVar('ProcessedItem')
+ProcessedItem = Any
 ProcessedList = List[ProcessedItem]
 ProcessOutput = Union[ProcessedItem, ProcessedList]
 ProcessedItemGen = Generator[ProcessedItem, None, None]
 ProcessedItems = Union[ProcessedItem, ProcessedItemGen]
 # Aggregated section converts a ProcessedItems into a single Aggregated Item.
-AggregatedItem = TypeVar('AggregatedItem')
+AggregatedItem = Any
 
 #%% Context Type
 # Context Provides a way to pass information between sections.
@@ -109,7 +109,7 @@ RuleCallableOptions = Union[
 #   Callable[[ProcessedItems, ...], AggregatedItem]
 #       Where ... represents keyword arguments
 AggregateFunc = Callable[[ProcessedList, ContextType], AggregatedItem]
-AggregateCallableOptions = Union[AggregateFunc,
+AggregateCallableOptions = Union[AggregateFunc, None,
                                Callable[[ProcessedList], AggregatedItem],
                                Callable[..., ProcessedList]]
 # SectionCallables describe all possible function types: Sentinel, Process, Rule
@@ -1128,11 +1128,11 @@ class Rule(Trigger):
 
 
 class RuleSet():
-    '''Combines related Rules to provide multiple choices for actions.
+    '''Combine related Rules to provide multiple choices for actions.
 
-    A Rule Set takes A sequence of Rules and a default method each Rule in the
+    A Rule Set takes A sequence of Rules and a default method. Each Rule in the
     sequence will be applied to the input until One of the rules triggers. At
-    that point The sequence ends.  if no Rule triggers then the default method
+    that point The sequence ends.  If no Rule triggers then the default method
     is applied.  Each of the Rules (and the default) should expect the same
     input type and should produce the same output type.
 
@@ -1574,14 +1574,13 @@ class Section():
                 to None, indicating the section ends with the last text line
                 in the iterator.
             processor (ProcessMethodOptions, optional): Instructions for
-                processing and the section items.  A function or list of
-                functions to be applied to each item from the source sequence
-                that is identified as part of the section.  If processor is a
-                list of functions, the function will be applied in list order,
-                with the input of the function being the output of the previous
-                function in the list. See ProcessingMethods for more details on
-                valid processor functions.  If processor is None (the default),
-                the the section items are returned unmodified.
+                processing and the section items.  A list of functions to be
+                applied to each item from the source sequence that is identified
+                as part of the section.  The function will be applied in list
+                order, with the input of the function being the output of the
+                previous function in the list. See ProcessingMethods for more
+                details on valid processor functions.  If processor is None
+                (the default), the the section items are returned unmodified.
             subsections (SectionOptions, optional): a Section instance,
                 or a list of Section instances contained within the section
                 being defined.
@@ -1617,7 +1616,7 @@ class Section():
 
         self.context = dict()
         self.scan_status = 'Not Started'
-        self.source = None
+        self.source = []
         self.item_count = -1  # item_count is -1 until section start
 
         # Set the start and end section break properties
