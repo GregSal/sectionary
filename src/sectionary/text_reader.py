@@ -372,12 +372,13 @@ class FixedWidthParser():
             self.item_widths = [None]
 
     def parse_iter(self, line)->Generator[str, None, None]:
-        '''Sequence of text items with predefined spacing.
+        '''Convert a single text line into a single text line into parsed
+        text items of fixed widths.
         Args:
-            line (str): the line to be parsed
+            line (str): String with predefined spacing.
 
         Yields:
-            str: sequence of text portions with predefined spacing.
+            str: Sequence of text portions based on predefined spacing.
         '''
         remainder = line
         for width in self.item_widths:
@@ -392,16 +393,13 @@ class FixedWidthParser():
             yield remainder
 
     def parser(self, source: SourceOptions) -> List[str]:
-        '''Convert a single text line into a single text line into parsed
-        text items of fixed widths.
+        '''Iterate through a sequence of strings, returning a list of
+        sub-strings based on predefined spacing.
 
         Args:
-            line: A text string for parsing.
-        Returns:
-            A list of lists of strings obtained by parsing line.
-            For example:
-                csv_parser('Part 1,"Part 2a, Part 2b"') ->
-                    [['Part 1', 'Part 2a, Part 2b']]
+            line: A sequence of strings with column-style spacing.
+        Yields:
+            A list of lists of strings obtained by partitioning each line.
         '''
         if true_iterable(source):
             for line in source:
@@ -411,16 +409,17 @@ class FixedWidthParser():
             parsed_line = [item for item in self.parse_iter(source)]
             yield parsed_line
 
+    # Question What should FixedWidthParser.parse do?
     def parse(self, line: SourceItem) -> List[SourceItem]:
-        '''Convert a single text line into a single text line into parsed
-        text items of fixed widths.
+        '''Convert a sequence of strings into a list of lists of strings based
+        on the predefined spacing.
 
         Args:
-            line: A text string for parsing.
+            line: A sequence of strings with column-style spacing.
         Returns:
-            A list of lists of strings obtained by parsing line.
+            A list of lists of strings obtained by partitioning each line.
             For example:
-                csv_parser('Part 1,"Part 2a, Part 2b"') ->
+                parser(['Part 1', 'Part 2a', 'Part 2b') ->
                     [['Part 1', 'Part 2a, Part 2b']]
         '''
         parsed_line = [item for item in self.parse_iter(line)]

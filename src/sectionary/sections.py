@@ -1761,6 +1761,7 @@ class Section():
             List[SectionBreak]: A list of section breaks to be applied to
                 either the start or end boundary of the section.
         '''
+        # TODO Instead of typechecking here try to call SectionBreak and trap resulting any error
         # If not defined use default
         if not section_break:
             validated_section_break = None
