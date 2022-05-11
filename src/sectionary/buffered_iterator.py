@@ -12,8 +12,8 @@ SourceItem = TypeVar('SourceItem')
 #%% Logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 logger = logging.getLogger('Buffered Iterator')
-logger.setLevel(logging.INFO)
-# logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 #%% Exceptions
 class BufferedIteratorWarnings(UserWarning):

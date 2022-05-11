@@ -204,11 +204,10 @@ def str2float(text: str) -> AlphaNumeric:
     Returns:
         Either the float value represented by text or the original text.
     '''
-    return_value = text
     try:
         return_value = float(text)
     except (TypeError, ValueError):
-        pass
+        return_value = text
     return return_value
 
 

@@ -1897,7 +1897,7 @@ class Section():
             sub_rdr.source = self.source
             subsection.append(sub_rdr.read(section_iter, do_reset=False,
                                            context=self.context))
-            self.context.update(sub_rdr.context)
+            #self.context.update(sub_rdr.context)
         return subsection
 
     def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
@@ -1928,8 +1928,11 @@ class Section():
                              f'{self.section_name}')
                 sub_rdr = self.subsections[0]
                 sub_rdr.source = self.source
+                logger.debug(f'In {self.section_name}, Source status is:'
+                              ' {inspect.getgeneratorstate(section_iter).')
                 yield sub_rdr.read(section_iter, do_reset=False,
                                    context=self.context)
+                #self.context.update(sub_rdr.context)
             else:
                 logger.debug(f'Process multiple sub-sections in: {self.section_name}')
                 yield self.read_subsections(section_iter)
@@ -2152,6 +2155,7 @@ class Section():
                 break  # Break if section boundary reached
             else:
                 yield next_item
+
 
     def scan(self, source: Source, start_search: bool = True,
              do_reset: bool = True, initialize: bool = True,
