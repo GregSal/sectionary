@@ -1935,7 +1935,9 @@ class Section():
                 self.context.update(sub_rdr.context)
             else:
                 logger.debug(f'Process multiple sub-sections in: {self.section_name}')
-                yield self.read_subsections(section_iter)
+                complete_subsection = self.read_subsections(section_iter)
+                if complete_subsection is not None:
+                    yield complete_subsection
 
     def reset(self):
         ''' Reset the section attributes back to their initial values.
