@@ -49,10 +49,10 @@ from buffered_iterator import BufferedIteratorEOF
 
 #%% Logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Text Processing')
-logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
@@ -1896,8 +1896,8 @@ class Section():
                     return None
             sub_rdr.source = self.source
             subsection.append(sub_rdr.read(section_iter, do_reset=False,
-                                           context=self.context))
-            #self.context.update(sub_rdr.context)
+                                           context=self.context.copy()))
+            self.context.update(sub_rdr.context)
         return subsection
 
     def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
@@ -1929,10 +1929,10 @@ class Section():
                 sub_rdr = self.subsections[0]
                 sub_rdr.source = self.source
                 logger.debug(f'In {self.section_name}, Source status is:'
-                              ' {inspect.getgeneratorstate(section_iter).')
+                             f' {inspect.getgeneratorstate(section_iter)}.')
                 yield sub_rdr.read(section_iter, do_reset=False,
-                                   context=self.context)
-                #self.context.update(sub_rdr.context)
+                                   context=self.context.copy())
+                self.context.update(sub_rdr.context)
             else:
                 logger.debug(f'Process multiple sub-sections in: {self.section_name}')
                 yield self.read_subsections(section_iter)
@@ -2147,14 +2147,12 @@ class Section():
             self.item_count += 1
             logger.debug(f'This is item number: {self.item_count} of '
                          f'{self.section_name}')
-            if self.item_count == 1:
-                logger.debug(f'This is the first item in {self.section_name}')
-                if not self.end_on_first_item:  # Don't check for end break
-                    yield next_item
-            elif self.is_boundary(next_item, self.end_section):
-                break  # Break if section boundary reached
-            else:
-                yield next_item
+            logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
+            if self.end_on_first_item | (self.item_count > 1):
+                logger.debug('Checking for boundary')
+                if self.is_boundary(next_item, self.end_section):
+                    break  # Break if section boundary reached
+            yield next_item
 
 
     def scan(self, source: Source, start_search: bool = True,
