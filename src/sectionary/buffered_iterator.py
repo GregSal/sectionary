@@ -348,3 +348,14 @@ class BufferedIterator():
         if include_items:
             self.previous_items = other.previous_items.copy()
             self.future_items = other.future_items.copy()
+
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        repr_str = ''.join([
+            f'{class_name}(source={repr(self.source_gen)}, ',
+            f'buffer_size={self.buffer_size})\n\t',
+            f'{class_name}.previous_items = {repr(self.previous_items)}\n\t',
+            f'{class_name}.future_items = {repr(self.future_items)}\n\t',
+            f'{class_name}._step_back = {self._step_back}'
+            ])
+        return repr_str
