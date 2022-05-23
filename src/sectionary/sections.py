@@ -361,6 +361,51 @@ def set_method(given_method: RuleMethodOptions,
     return use_function
 
 
+class ProtectedDict(dict):
+    '''Dictionary that will not update specified items.
+
+    Prevents the update method from modifying specified items.
+
+    Attributes:
+        protected_items (List[str]): A list of item keys that should not be
+        modified by calls to `update`.
+
+    Methods:
+        update: Overrides dictionary update method to prevent items with keys in
+        the protected_items list from being updated.
+    '''
+    def __init__(self, *args, protected_items: List[str] = None, **kwargs):
+        '''Create a dictionary with a protected_items attribute.
+
+        Args:
+            protected_items (List[str], optional): A list of item keys that
+                should not be modified by calls to `update`. Defaults to None.
+        '''
+        super().__init__(*args, **kwargs)
+        if protected_items:
+            self.protected_items = list(protected_items)
+        else:
+            self.protected_items = list()
+
+    def update(self, *args, **kwargs):
+        '''Update the dictionary with the key/value pairs from other,
+        overwriting values for existing keys except those in protected_items.
+
+        Accepts either another dictionary object or an iterable of key/value
+        pairs (as tuples or other iterables of length two). If keyword arguments
+        are specified, the dictionary is then updated with those key/value
+        pairs: d.update(red=1, blue=2).
+        '''
+        # Store update values in a temporary dictionary to allow for different
+        # input types.
+        temp_dict = dict()
+        temp_dict.update(*args, **kwargs)
+
+        updater = {key: value for key, value in temp_dict.items()
+                   if key not in self.protected_items}
+        super().update(updater)
+
+
 #%% Iteration Tools
 class TriggerEvent(): # pylint: disable=function-redefined
     '''Trigger test result information.
@@ -1558,6 +1603,9 @@ class Section():
     # the end of the source.
     default_end = SectionBreak(False, name='NeverBreak')
 
+    # The buffer size for BufferedIterator
+    buffer_size = 5
+
     def __init__(self,
                  start_section: BreakOptions = None,
                  end_section: BreakOptions = None,
@@ -1614,17 +1662,6 @@ class Section():
         self.keep_partial = keep_partial
         self.end_on_first_item = end_on_first_item
 
-        # The context, scan_status and source attributes must be reset every
-        # time the Section instance is applied to a new source iterable.  The
-        # reset() method set these attributes to the values below.
-        # In addition, if the processor contains one or more Sections these
-        # attributes in the processor sections are also be reset.
-
-        self.context = dict()
-        self.scan_status = 'Not Started'
-        self.source = []
-        self.item_count = -1  # item_count is -1 until section start
-
         # Set the start and end section break properties
         # TODO Accept a Tuple with SectionBreak arguments as valid
         # start_section or end_section values.
@@ -1639,6 +1676,63 @@ class Section():
             self.aggregate = set_method(aggregate, 'Process')
         else:
             self.aggregate = set_method(list, 'Process')
+
+        # The context, scan_status and source attributes must be reset every
+        # time the Section instance is applied to a new source iterable.  The
+        # reset() method set these attributes to the values below.
+        # In addition, subsections must alse be reset.
+
+        self.context = None
+        self.source = None
+        self.item_count = None
+        self.reset()
+
+    def reset(self):
+        ''' Reset the section attributes back to their initial values.
+
+        The attributes: context, scan_status, and source are cleared so that
+        the section instance can be re-used with a new source.  If subsections
+        are defined, the same attributes in the subsections will also be reset.
+        '''
+
+        self.context = ProtectedDict(protected_items=[
+            'Current Section',
+            'Skipped Lines',
+            'Status',
+            'Break',
+            'Event'
+            ])
+        self.context['Current Section'] = self.section_name
+        self.scan_status = 'Not Started'
+        self.source = BufferedIterator([], buffer_size=self.buffer_size)
+        self.item_count = -1  # item_count is -1 until section start
+
+        # Clear any uncompleted breaks
+        for break_itm in self.start_section:
+            break_itm.reset()
+        for break_itm in self.end_section:
+            break_itm.reset()
+
+        # Reset subsection attributes
+        if self.subsections:
+            for sub_sec in self.subsections:
+                sub_sec.reset()
+
+    @property
+    def scan_status(self)->str:
+        '''str: The status of the section's progress through its source.
+        '''
+        return self.context['Status']
+
+    @scan_status.setter
+    def scan_status(self, status: str = ''):
+        '''Set the section's status.
+
+        Arguments:
+            status (str): The status of the section's progress through its
+            source.
+        '''
+        self.context['Status'] = status
 
     @property
     def source(self)->BufferedIterator:
@@ -1658,7 +1752,10 @@ class Section():
         if source:
             # Wrap the source in a BufferedIterator if it is not one already.
             if not isinstance(source, BufferedIterator):
-                buffered_source = BufferedIterator(iter(source))
+                buffered_source = BufferedIterator(
+                    iter(source),
+                    buffer_size=self.buffer_size
+                    )
             else:
                 buffered_source = source
             self._source = buffered_source  # Begin iteration
@@ -1944,28 +2041,6 @@ class Section():
                 complete_subsection = self.read_subsections(section_iter)
                 if complete_subsection is not None:
                     yield complete_subsection
-
-    def reset(self):
-        ''' Reset the section attributes back to their initial values.
-
-        The attributes: context, scan_status, and source are cleared so that
-        the section instance can be re-used with a new source.  If the section
-        processor contains one or more Section instances, the same attributes
-        in the subsections will also be reset.
-        '''
-        self.context = dict()
-        self.scan_status = 'Not Started'
-        self.source = None
-        # Clear any uncompleted breaks
-        for break_itm in self.start_section:
-            break_itm.reset()
-        for break_itm in self.end_section:
-            break_itm.reset()
-
-        # Reset subsection attributes
-        if self.subsections:
-            for sub_sec in self.subsections:
-                sub_sec.reset()
 
     def is_boundary(self, line: str, break_triggers: List[SectionBreak])->bool:
         '''Test the current item from the source iterable to see if it triggers
