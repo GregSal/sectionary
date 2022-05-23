@@ -911,6 +911,12 @@ class SectionBreak(Trigger):  # pylint: disable=function-redefined
             is_break = False
         return is_break
 
+    def reset(self):
+        '''Reset Break.
+
+        Set _count_down = None to remove any active Count Downs.'''
+        self._count_down = None
+
 # Rule Class
 class Rule(Trigger):
     '''Defines action to take on an item depending on the result of a test.
@@ -1950,10 +1956,15 @@ class Section():
         self.context = dict()
         self.scan_status = 'Not Started'
         self.source = None
+        # Clear any uncompleted breaks
+        for break_itm in self.start_section:
+            break_itm.reset()
+        for break_itm in self.end_section:
+            break_itm.reset()
+
         # Reset subsection attributes
-        processor = self.processor
-        if isinstance(processor, list):
-            for sub_sec in processor:
+        if self.subsections:
+            for sub_sec in self.subsections:
                 sub_sec.reset()
 
     def is_boundary(self, line: str, break_triggers: List[SectionBreak])->bool:
