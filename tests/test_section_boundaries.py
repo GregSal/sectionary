@@ -198,23 +198,23 @@ class Test_DVH_Info_SectionBoundaries(unittest.TestCase):
         self.test_section = dvh_info_section
 
     def test_dvh_info_section_start_sentinel(self):
-        self.test_section.initialize(DVH_TEST_TEXT)
+        self.test_section.initialize(DVH_TEST_TEXT, start_search=True)
         event = self.test_section.context['Event']
         self.assertTrue(event)
 
     def test_dvh_info_section_start_empty_list(self):
-        self.test_section.initialize(DVH_TEST_TEXT)
+        self.test_section.initialize(DVH_TEST_TEXT, start_search=True)
         skipped_lines = self.test_section.context['Skipped Lines']
         self.assertListEqual(skipped_lines, [])
 
     def test_dvh_info_section_end_sentinel(self):
-        end_check = self.test_section.scan(DVH_TEST_TEXT)
+        end_check = self.test_section.scan(DVH_TEST_TEXT, start_search=True)
         output = [row for row in end_check]  # pylint: disable=unused-variable
         event = self.test_section.context['Event']
         self.assertEqual(event, 'Plan sum:')
 
     def test_dvh_info_section_end_lines(self):
-        end_check = self.test_section.scan(DVH_TEST_TEXT)
+        end_check = self.test_section.scan(DVH_TEST_TEXT, start_search=True)
         scanned_lines = [row for row in end_check]
         self.assertListEqual(DVH_TEST_TEXT[:10], scanned_lines)
 

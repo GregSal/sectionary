@@ -51,8 +51,8 @@ from buffered_iterator import BufferedIteratorEOF
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Text Processing')
-#logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
@@ -1567,15 +1567,20 @@ class Section():
                 composed of one or more subsections and the main section ends
                 before the subsections end. If keep_partial is true the partial
                 subsection(s) will be returned, otherwise they will be dropped.
+            start_search (bool, optional): Indicates whether to advance through
+                the source until the beginning of the section is found or
+                assume that the section begins at the start of the source.
+                Defaults to True, meaning advance until the start boundary is
+                found.
             scan_status (str): Indicates section reading progress. It is useful
                 for providing user feedback when the section reading process
                 is lengthy.  scan_status Will contain one of the following
                 text strings:
                    'Not Started'
-                   'At the start of section {section_name}'
-                   'Scan In Progress'
+                   'At section start'
                    'Break Triggered'
                    'Scan Complete'
+                   'End of Source'
             context (Dict[str, Any]): Break point information and any
                 additional information to be passed to and from break point,
                 processing and aggregation methods. This is the primary method
@@ -1595,7 +1600,10 @@ class Section():
                                 will be the resulting re.match object.
   '''
     # A SectionBreak that causes the section to start with the first item in
-    # the source.
+    # the source.  This will normally not be used, because if start_section is
+    # not given self.start_search is set to False.  This will only be used if
+    # self.read self.process, or self.scan is called with start_search
+    # explicitly set to True.
     default_start = SectionBreak(True, name='AlwaysBreak',
                                  break_offset='Before')
 
@@ -1614,7 +1622,8 @@ class Section():
                  aggregate: AggregateCallableOptions = None,
                  section_name: str = 'Section',
                  keep_partial: bool = False,
-                 end_on_first_item: bool = False):
+                 end_on_first_item: bool = False,
+                 start_search: bool = None):
         '''Creates an Section instance that defines a continuous portion of a
         text stream to be processed in a specific way.
 
@@ -1654,6 +1663,12 @@ class Section():
                 an end breakpoint. This is useful in cases where both
                 start_section and end_section might undesirably trigger on the
                 same line, resulting in an empty section.  Defaults to False.
+            start_search (bool, optional): Indicates whether to advance through
+                the source until the beginning of the section is found or assume
+                that the section begins at the start of the source. If True,
+                advance until the start boundary is found. Defaults to True, if
+                start_section is given and to False if start_section is not
+                given.
         Returns:
             New Section.
         '''
@@ -1661,6 +1676,9 @@ class Section():
         self.section_name = section_name
         self.keep_partial = keep_partial
         self.end_on_first_item = end_on_first_item
+        # If start_search is None, This will be modified based on whether .
+        # start_section is given
+        self.start_search = start_search
 
         # Set the start and end section break properties
         # TODO Accept a Tuple with SectionBreak arguments as valid
@@ -1680,7 +1698,7 @@ class Section():
         # The context, scan_status and source attributes must be reset every
         # time the Section instance is applied to a new source iterable.  The
         # reset() method set these attributes to the values below.
-        # In addition, subsections must alse be reset.
+        # In addition, subsections must also be reset.
 
         self.context = None
         self.source = None
@@ -1798,8 +1816,14 @@ class Section():
         '''
         brk = self.set_break(section_break)
         if brk:
+            # Search for beginning if start_search is None
+            if self.start_search is None:
+                self.start_search = True
             self._start_section = brk
         else:
+            # Start section immediately if start_search is None
+            if self.start_search is None:
+                self.start_search = False
             self._start_section = [self.default_start]
 
     @property
@@ -1968,7 +1992,7 @@ class Section():
                                      'all be of type Section.'])
                     raise ValueError(msg)
             else:
-                msg = ' '.join(['subsectionsmust be None, a Section or list of',
+                msg = ' '.join(['subsections must be None, a Section or list of',
                                 'Sections'])
                 raise TypeError(msg)
         else:
@@ -2001,7 +2025,9 @@ class Section():
             subsection.append(sub_rdr.read(section_iter, do_reset=False,
                                            context=self.context.copy()))
             self.context.update(sub_rdr.context)
-        return subsection
+        if subsection:
+            return subsection
+        return None
 
     def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
         '''Yield processed subsections until the main section is complete.
@@ -2033,13 +2059,15 @@ class Section():
                 sub_rdr.source = self.source
                 logger.debug(f'In {self.section_name}, Source status is:'
                              f' {inspect.getgeneratorstate(section_iter)}.')
-                yield sub_rdr.read(section_iter, do_reset=False,
-                                   context=self.context.copy())
-                self.context.update(sub_rdr.context)
+                complete_subsection = sub_rdr.read(section_iter, do_reset=False,
+                                                   context=self.context.copy())
+                if complete_subsection:
+                    yield complete_subsection
+                    self.context.update(sub_rdr.context)
             else:
                 logger.debug(f'Process multiple sub-sections in: {self.section_name}')
                 complete_subsection = self.read_subsections(section_iter)
-                if complete_subsection is not None:
+                if complete_subsection:
                     yield complete_subsection
 
     def is_boundary(self, line: str, break_triggers: List[SectionBreak])->bool:
@@ -2073,7 +2101,7 @@ class Section():
         '''
         for break_trigger in break_triggers:
             logger.debug(f'Checking Trigger: {break_trigger.name}')
-            # break_trigger needs to access the base BufferedItterator Source
+            # break_trigger needs to access the base BufferedIterator Source
             # not the top level one, otherwise it will not step back properly.
             is_break = break_trigger.check(line, self.source, self.context)
             if is_break:
@@ -2089,16 +2117,12 @@ class Section():
         Call `next` on source, trapping any standard form of generator exit.
         Update the status and context attributes based on the result of
         calling `next`:
-            If no exception is raised set scan_status and context['Status'] to:
+            If no exception is raised set scan_status to:
                     'Scan In Progress'
             If a RuntimeError exception is caught, set scan_status to:
                     'Scan Complete'
-                and context['Status'] to:
-                    'Scan In Progress'
             If BufferedIteratorEOF, IteratorEOF, or StopIteration exception is
                 caught, set scan_status to:
-                    'Scan Complete'
-                and context['Status'] to:
                     'End of Source'
         Arguments:
             source (Source): An iterable where some of the content meets the
@@ -2106,29 +2130,24 @@ class Section():
         Returns:
             SourceItem: The next item from source.
         '''
-        break_context = dict()
+        #break_context = dict()
         next_item = None
         status = 'Scan In Progress'
-        break_context['Status'] = 'Scan In Progress'
+        self.context['Status'] = 'Scan In Progress'
         try:
             # next must be called on the top level Source not the base one,
             # otherwise it will not supply the correct item here.
             next_item = next(source)
         except (RuntimeError) as err:
-            status = 'Scan Complete'
-            break_context['Status'] = 'RuntimeError'
+            self.scan_status = 'Scan Complete'
             logger.warning(f'RuntimeError Encountered: {err}')
         except (BufferedIteratorEOF, StopIteration):
-            status = 'Scan Complete'
-            break_context['Status'] = 'End of Source'
+            self.scan_status = 'End of Source'
         else:
-            status = 'Scan In Progress'
-            break_context['Status'] = 'Scan In Progress'
+            self.scan_status = 'Scan In Progress'
             logger.debug(f'In:\t{self.section_name}\tGot item:\t{next_item}')
         finally:
-            self.scan_status = status
-            self.context.update(break_context)
-            logger.debug(f'Break Status:\t{break_context["Status"]}')
+            logger.debug(f'Break Status:\t{self.scan_status}')
         return next_item
 
     def advance_to_start(self, source: Source)->List[SourceItem]:
@@ -2145,7 +2164,7 @@ class Section():
         logger.debug(f'Advancing to start of {self.section_name}.')
         while True:
             next_item = self.step_source(source)
-            if 'Scan Complete' in self.scan_status:
+            if self.scan_status in ['Scan Complete', 'End of Source']:
                 break
             if self.is_boundary(next_item, self.start_section):
                 break
@@ -2154,18 +2173,18 @@ class Section():
         logger.debug(f'Skipped {len(skipped_lines)} lines.')
         return skipped_lines
 
-    def initialize(self, supplied_source: Source, start_search: bool = True,
+    def initialize(self, supplied_source: Source, start_search: bool = None,
                    do_reset: bool = True,
                    context: ContextType = None)->BufferedIterator:
         '''
         Arguments:
-            active_source (Source): An iterable where some of the content meets
+            supplied_source (Source): An iterable where some of the content meets
                 the section boundary conditions.
             start_search (bool, optional): Indicates whether to advance through
                 the source until the beginning of the section is found or
                 assume that the section begins at the start of the source.
-                Defaults to True, meaning advance until the start boundary is
-                found.
+                Defaults to None, which defers the the section's start_search
+                attribute.
             do_reset (bool, optional): Indicate whether to reset the source-
                 related properties when initializing the source. Normally
                 the properties should be reset, but if the section is being
@@ -2201,6 +2220,10 @@ class Section():
         if context:
             self.context.update(context)
 
+        # if start_search is not given explicitly use the section's
+        # start_search attribute
+        if start_search is None:
+            start_search = self.start_search
         # If requested, advance through the source to the section start.
         if start_search:
             self.advance_to_start(active_source)
@@ -2209,7 +2232,7 @@ class Section():
         logger.debug(f'Starting New Section: {self.section_name}.')
         self.context['Current Section'] = self.section_name
         self.item_count = 0  # Indicates start of section
-        self.scan_status = f'At the start of section {self.section_name}'
+        self.scan_status = 'At section start'
         return active_source
 
     def gen(self, source: Source)->SectionGen:
@@ -2228,9 +2251,7 @@ class Section():
         # Read source until end boundary is found or source ends
         while True:
             next_item = self.step_source(source)
-            if 'Scan Complete' in self.scan_status:
-                # self.scan_status stays local self.context gets updated
-                # by sub-sections.
+            if self.scan_status in ['Scan Complete', 'End of Source']:
                 break  # Break if end of source reached
             self.item_count += 1
             logger.debug(f'This is item number: {self.item_count} of '
@@ -2243,7 +2264,7 @@ class Section():
             yield next_item
 
 
-    def scan(self, source: Source, start_search: bool = True,
+    def scan(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->SectionGen:
         '''The primary outward facing section generator function.
@@ -2258,8 +2279,8 @@ class Section():
             start_search (bool, optional): Indicates whether to advance through
                 the source until the beginning of the section is found or
                 assume that the section begins at the start of the source.
-                Defaults to True, meaning advance until the start boundary is
-                found.
+                Defaults to None, which defers the the section's start_search
+                attribute.
             do_reset (bool, optional): Indicate whether to reset the source-
                 related properties when initializing the source. Normally
                 the properties should be reset, but if the section is being
@@ -2281,7 +2302,7 @@ class Section():
         section_iter = self.gen(source)
         return section_iter
 
-    def process(self, source: Source, start_search: bool = True,
+    def process(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: Dict[str, Any] = None)->ProcessedItemGen:
         '''The primary outward facing section processor function.
@@ -2296,8 +2317,8 @@ class Section():
             start_search (bool, optional): Indicates whether to advance through
                 the source until the beginning of the section is found or
                 assume that the section begins at the start of the source.
-                Defaults to True, meaning advance until the start boundary is
-                found.
+                Defaults to None, which defers the the section's start_search
+                attribute.
             do_reset (bool, optional): Indicate whether to reset the source-
                 related properties when initializing the source. Normally
                 the properties should be reset, but if the section is being
@@ -2330,7 +2351,7 @@ class Section():
                 if context:
                     self.context.update(context)
 
-    def read(self, source: Source, start_search: bool = True,
+    def read(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->AggregatedItem:
         '''The primary outward facing section reader function.
@@ -2352,8 +2373,8 @@ class Section():
             start_search (bool, optional): Indicates whether to advance through
                 the source until the beginning of the section is found or
                 assume that the section begins at the start of the source.
-                Defaults to True, meaning advance until the start boundary is
-                found.
+                Defaults to None, which defers the the section's start_search
+                attribute.
             do_reset (bool, optional): Indicate whether to reset the source-
                 related properties when initializing the source. Normally
                 the properties should be reset, but if the section is being
