@@ -2227,6 +2227,8 @@ class Section():
         # If requested, advance through the source to the section start.
         if start_search:
             self.advance_to_start(active_source)
+        else:
+            self.context['Skipped Lines'] = []
 
         # Update Section Status
         logger.debug(f'Starting New Section: {self.section_name}.')
