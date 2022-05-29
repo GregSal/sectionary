@@ -33,22 +33,17 @@ GENERIC_TEST_TEXT = [
     'More text to be ignored',
     ]
 # %%  Define Sections
-sub_section = Section(
-    section_name='SubSection',
+sub_section = Section(section_name='SubSection')
+
+full_section = Section(section_name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before'),
-    end_section=SectionBreak('EndSection', break_offset='Before')
+    end_section=SectionBreak('StartSection', break_offset='Before'),
+    subsections=[sub_section]
     )
 
-
-full_section = Section(
-    section_name='Full',
-    end_section=SectionBreak('ignored', break_offset='Before'),
-    subsections=[sub_section],
-    keep_partial=False
+multi_section = Section(
+    section_name='Multi',
+    subsections=[full_section]
     )
 
-# %% Hysteresis Bug  First RUn
-pprint(full_section.read(GENERIC_TEST_TEXT))
-
-# %% Hysteresis Bug  Second RUn
-pprint(full_section.read(GENERIC_TEST_TEXT))
+pprint(multi_section.read(GENERIC_TEST_TEXT))
