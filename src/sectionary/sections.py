@@ -1998,6 +1998,25 @@ class Section():
         else:
             self._subsections = None
 
+    def read_subsection(self, section_iter, sub_rdr)->AggregatedItem:
+        '''Read a single subsection.
+
+        Args:
+            section_iter (SectionGen): The section's source iterator after
+                checking for boundaries.
+            sub_rdr (Section): The subsection to be read
+
+        Returns:
+            AggregatedItem: The result of reading the subsection.
+        '''
+        sub_rdr.reset()
+        sub_rdr.source = self.source
+        logger.debug(f'In {self.section_name}, Source status is:'
+                     f' {inspect.getgeneratorstate(section_iter)}.')
+        subsection_read = sub_rdr.read(section_iter, do_reset=False,
+                                       context=self.context.copy())
+        return subsection_read
+
     def read_subsections(self, section_iter: SectionGen)->ProcessedList:
         '''Read each of the subsections as if they were a single item.
 
@@ -2014,19 +2033,19 @@ class Section():
         if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
             # If the source has closed don't try reading subsections.
             return None
-        subsection = list()
+        complete_subsection = list()
         for sub_rdr in self.subsections:
             if not self.keep_partial:
                 if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
                     # If the source ends part way through, drop the partial
                     # subsection.
                     return None
+            subsection_read = self.read_subsection(section_iter, sub_rdr)
             sub_rdr.source = self.source
-            subsection.append(sub_rdr.read(section_iter, do_reset=False,
-                                           context=self.context.copy()))
+            complete_subsection.append(subsection_read)
             self.context.update(sub_rdr.context)
-        if subsection:
-            return subsection
+        if complete_subsection:
+            return complete_subsection
         return None
 
     def subsection_processor(self, section_iter: SectionGen)->ProcessedItemGen:
@@ -2056,11 +2075,7 @@ class Section():
                              f'{self.subsections[0].section_name} in: '
                              f'{self.section_name}')
                 sub_rdr = self.subsections[0]
-                sub_rdr.source = self.source
-                logger.debug(f'In {self.section_name}, Source status is:'
-                             f' {inspect.getgeneratorstate(section_iter)}.')
-                complete_subsection = sub_rdr.read(section_iter, do_reset=False,
-                                                   context=self.context.copy())
+                complete_subsection = self.read_subsection(section_iter, sub_rdr)
                 if complete_subsection:
                     yield complete_subsection
                     self.context.update(sub_rdr.context)
