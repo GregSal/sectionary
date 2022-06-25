@@ -512,9 +512,12 @@ def drop_blanks(lines: Source) -> Source:
     '''Return all non-empty strings. or non-empty lists
     '''
     for line in lines:
-        if any(len(text) for text in line) > 0:
-            yield line
-
+        if line:
+            if true_iterable(line):
+                if any(len(text) for text in line) > 0:
+                    yield line
+            else:
+                yield line
 
 #%% output converters
 # These functions take a sequence of lists and return a the desired output
