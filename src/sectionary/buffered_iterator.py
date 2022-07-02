@@ -5,7 +5,7 @@
 #%% Imports
 from __future__ import annotations
 from collections import deque
-from typing import Sequence, TypeVar
+from typing import Sequence, TypeVar, Union
 import logging
 SourceItem = TypeVar('SourceItem')
 
@@ -46,7 +46,19 @@ class BufferedIterator():
         self.previous_items = deque(maxlen=buffer_size)
         self.future_items = deque(maxlen=buffer_size)
         self._step_back = 0
+        self._item_count = -1
         return
+
+    @property
+    def item_count(self) -> Union[int, None]:
+        '''Number of items used in iterator.
+
+        Returns: Union[int, None]: None before iterator starts.
+        Counting starts with zero.
+        '''
+        if self._item_count == -1:
+            return None
+        return int(self._item_count)
 
     def get_next_item(self) -> SourceItem:
         '''
@@ -71,6 +83,7 @@ class BufferedIterator():
         if len(self.future_items) > 0:
             # Get the next item from the queued items
             next_item = self.future_items.popleft()
+            self._item_count += 1
             logger.debug(f'Getting item: {next_item}\t from future_items')
         else:
             # Get the next item from the source iterator
@@ -81,7 +94,9 @@ class BufferedIterator():
                 # Treat "StopIteration" or "RuntimeError" exceptions as
                 # End-of-File indicators.
                 raise BufferedIteratorEOF from eof
-            logger.debug(f'Getting item: {next_item}\t from source')
+            else:
+                self._item_count += 1
+                logger.debug(f'Getting item: {next_item}\t from source')
         return next_item
 
     def __next__(self) -> SourceItem:
@@ -217,6 +232,7 @@ class BufferedIterator():
         '''
         for step in range(self._step_back): # pylint: disable=unused-variable
             self._step_back -= 1
+            self._item_count -= 1
             if len(self.previous_items) > 0:
                 self.future_items.appendleft(self.previous_items.pop())
         self._step_back = 0
@@ -232,7 +248,7 @@ class BufferedIterator():
         Returns:
             None.
        '''
-        self._step_back = steps
+        self.step_back = steps
         self.rewind()
 
     def skip(self, steps: int = 1):
@@ -256,7 +272,7 @@ class BufferedIterator():
         for step in range(steps): # pylint: disable=unused-variable
             self.get_next_item()
 
-    def advance(self, steps: int = 1):
+    def advance(self, steps: int = 1, buffer_overrun=False):
         '''Move "steps" forward through the items in source.
 
         Move the iterator pointer forward the given number of steps
@@ -267,13 +283,16 @@ class BufferedIterator():
             steps (int, optional): The number of items to advance in the in
                 the source.  A value of zero will be ignored.  Float values
                 will be truncated to integers. Defaults to 1
+            buffer_overrun (bool, optional): If True do not check whether
+                items will be lost from the buffer.
+
         Raises:
             BufferedIteratorValueError: Raised if "steps" cannot be converted
                 to an integer or is less than 0.
         Returns:
             None.
         '''
-        steps = self.check_steps(steps, backwards=False, skip=False)
+        steps = self.check_steps(steps, backwards=False, skip=buffer_overrun)
         for step in range(steps):  # pylint: disable=unused-variable
             try:
                 next_item = self.get_next_item()
@@ -317,7 +336,7 @@ class BufferedIterator():
         Returns:
             SourceLine: The desired previous source item.
         '''
-        steps = self.check_steps(steps)
+        steps = self.check_steps(steps, backwards=False, skip=False)
         read_ahead = steps - len(self.future_items)
         if read_ahead > 0:
             if read_ahead > self.buffer_size:
@@ -348,6 +367,41 @@ class BufferedIterator():
         if include_items:
             self.previous_items = other.previous_items.copy()
             self.future_items = other.future_items.copy()
+
+    def goto_item(self, item_num: int, buffer_overrun=False):
+        '''Move to item number item_num in the sequence.
+
+        Adjust the iterator pointer so that the next item returned by a call to
+        self.__next__ with be n_th item in the sequence. item_num is zero-based;
+        the first item in the sequence is item "0".
+
+        Args:
+            item_num (int): The index number of the item in the sequence it be
+                called next. item_num is zero-based; the first item in the
+                sequence is item "0".
+        '''
+        current_item = self.item_count
+        if current_item is None:
+            raise BufferedIteratorValueError(
+                'Iteration has not started. Cannot move to item')
+        steps = current_item - item_num + 1
+        if steps == 0:
+            logger.debug(
+                f'Current item number is {current_item}. '
+                f'Requested item is {item_num}.'
+                'Already at requested item.')
+        elif steps < 0:
+            logger.debug(
+                f'Current item number is {current_item}. '
+                f'Requested item is {item_num}.'
+                f'Advancing {-steps} item(s).')
+            self.advance(-steps, buffer_overrun)
+        else:
+            logger.debug(
+                f'Current item number is {current_item}. '
+                f'Requested item is {item_num}. '
+                f'Moving backwards {steps} item(s).')
+            self.backup(steps)
 
     def __repr__(self):
         class_name = self.__class__.__name__
