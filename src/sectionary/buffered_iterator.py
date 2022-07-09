@@ -46,18 +46,15 @@ class BufferedIterator():
         self.previous_items = deque(maxlen=buffer_size)
         self.future_items = deque(maxlen=buffer_size)
         self._step_back = 0
-        self._item_count = -1
+        self._item_count = 0
         return
 
     @property
-    def item_count(self) -> Union[int, None]:
+    def item_count(self) -> int:
         '''Number of items used in iterator.
 
-        Returns: Union[int, None]: None before iterator starts.
-        Counting starts with zero.
+        Returns: int: Counting starts with 1.
         '''
-        if self._item_count == -1:
-            return None
         return int(self._item_count)
 
     def get_next_item(self) -> SourceItem:
@@ -384,7 +381,7 @@ class BufferedIterator():
         if current_item is None:
             raise BufferedIteratorValueError(
                 'Iteration has not started. Cannot move to item')
-        steps = current_item - item_num + 1
+        steps = current_item - item_num
         if steps == 0:
             logger.debug(
                 f'Current item number is {current_item}. '

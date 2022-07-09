@@ -40,6 +40,7 @@ import inspect
 import logging
 from inspect import isgeneratorfunction
 from functools import partial
+#from types import NoneType
 from typing import Dict, List, TypeVar
 from typing import Iterable, Any, Callable, Union, Generator
 
@@ -1702,8 +1703,9 @@ class Section():
 
         self.context = None
         self.source = None
-        self.item_count = None
+        self._source_index = None
         self.reset()
+
 
     def reset(self):
         ''' Reset the section attributes back to their initial values.
@@ -1723,7 +1725,7 @@ class Section():
         self.context['Current Section'] = self.section_name
         self.scan_status = 'Not Started'
         self.source = BufferedIterator([], buffer_size=self.buffer_size)
-        self.item_count = -1  # item_count is -1 until section start
+        self._source_index = None  # clear the indexing
 
         # Clear any uncompleted breaks
         for break_itm in self.start_section:
@@ -1735,6 +1737,22 @@ class Section():
         if self.subsections:
             for sub_sec in self.subsections:
                 sub_sec.reset()
+
+    @property
+    def source_index(self):
+        return self._source_index
+
+    @property
+    def source_item_count(self):
+        if not self._source_index:
+            return 0
+        return self._source_index[-1]
+
+    @property
+    def item_count(self):
+        if not self._source_index:
+            return 0
+        return len(self._source_index)
 
     @property
     def scan_status(self)->str:
@@ -1777,10 +1795,11 @@ class Section():
             else:
                 buffered_source = source
             self._source = buffered_source  # Begin iteration
-            self.item_count = -1  # item_count is -1 until section start
+            self._source_index = []  # initialize the indexing
         else:
             # Reset the source
             self._source = None
+            self._source_index = None  # clear the indexing
 
     @property
     def start_section(self)->List["SectionBreak"]:
@@ -2248,7 +2267,6 @@ class Section():
         # Update Section Status
         logger.debug(f'Starting New Section: {self.section_name}.')
         self.context['Current Section'] = self.section_name
-        self.item_count = 0  # Indicates start of section
         self.scan_status = 'At section start'
         return active_source
 
@@ -2270,7 +2288,6 @@ class Section():
             next_item = self.step_source(source)
             if self.scan_status in ['Scan Complete', 'End of Source']:
                 break  # Break if end of source reached
-            self.item_count += 1
             logger.debug(f'This is item number: {self.item_count} of '
                          f'{self.section_name}')
             logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
@@ -2360,9 +2377,10 @@ class Section():
         while not done:
             try:
                 item_read = next(read_iter)
-            except StopIteration:
+            except (StopIteration, RuntimeError):
                 done = True
             else:
+                self.source_index.append(self.source.item_count)
                 yield item_read
             finally:
                 if context:

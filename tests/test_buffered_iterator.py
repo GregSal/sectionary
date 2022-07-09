@@ -176,54 +176,53 @@ class TestBufferedIteratorItemCount(unittest.TestCase):
             )
 
     def test_initial_count_values(self):
-        '''Before iteration starts BufferedIterator.item_count is None
-        and BufferedIterator._item_count is -1.
+        '''Before iteration starts BufferedIterator.item_count=0.
         '''
-        self.assertEqual(self.str_source._item_count, -1)
-        self.assertIsNone(self.str_source.item_count)
+        self.assertEqual(self.str_source._item_count, 0)
+        self.assertEqual(self.str_source.item_count, 0)
 
     def test_count_value_tracking(self):
-        '''BufferedIterator.item_count should match the source item index for
-        all items.
+        '''BufferedIterator.item_count should be one greater than the source
+        item index for all items.
         '''
         for i in self.int_source:
             with self.subTest(i=i):
-                self.assertEqual(i, self.int_source.item_count)
+                self.assertEqual(i+1, self.int_source.item_count)
 
     def test_post_iteration_count_value(self):
-        '''After iteration completes BufferedIterator.item_count should be one
-        less than the total number of items in the source (zero-based indexing).
+        '''After iteration completes BufferedIterator.item_count should be the
+        total number of items in the source.
         '''
         [i for i in self.int_source]
-        self.assertEqual(self.num_items-1, self.int_source.item_count)
+        self.assertEqual(self.num_items, self.int_source.item_count)
 
     def test_backup_count(self):
         '''When backup is called on a BufferedIterator iterator,
         BufferedIterator.item_count should decrease by the corresponding amount.
         '''
-        fwd = random.randint(2, self.num_items-1)
-        back = random.randint(1, min(fwd-1, self.buffer_size-1))
+        fwd = random.randint(2, self.num_items)
+        back = random.randint(1, min(fwd-1, self.buffer_size))
         print(f'Moving forward {fwd} steps; backing up {back} steps')
         for i in range(fwd):
             next(self.str_source)
         self.str_source.backup(back)
-        self.assertEqual(fwd-back-1, self.str_source.item_count)
+        self.assertEqual(fwd-back, self.str_source.item_count)
         self.assertEqual(int(self.str_source.previous_items[-1]),
-                         self.str_source.item_count)
+                         self.str_source.item_count-1)
 
     def test_advance_count(self):
         '''When advance is called on a BufferedIterator iterator,
         BufferedIterator.item_count should increase by the corresponding amount.
         '''
-        fwd = random.randint(1, self.num_items-1)
+        fwd = random.randint(0, self.num_items-1)
         adv = random.randint(1, min(self.num_items-fwd, self.buffer_size))
         print(f'Moving forward {fwd} steps; advancing {adv} more steps')
         for i in range(fwd):
             next(self.int_source)
         self.int_source.advance(adv)
-        self.assertEqual(fwd+adv-1, self.int_source.item_count)
+        self.assertEqual(fwd+adv, self.int_source.item_count)
         self.assertEqual(self.int_source.previous_items[-1],
-                         self.int_source.item_count)
+                         self.int_source.item_count-1)
 
 class TestBufferedIterator_goto_item(unittest.TestCase):
     def setUp(self):
