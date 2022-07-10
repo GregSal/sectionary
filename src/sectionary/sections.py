@@ -51,7 +51,7 @@ from buffered_iterator import BufferedIteratorEOF
 #%% Logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('Text Processing')
+logger = logging.getLogger('Sections')
 #logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
@@ -1704,6 +1704,7 @@ class Section():
         self.context = None
         self.source = None
         self._source_index = None
+        self.is_first_item = None
         self.reset()
 
 
@@ -1726,6 +1727,7 @@ class Section():
         self.scan_status = 'Not Started'
         self.source = BufferedIterator([], buffer_size=self.buffer_size)
         self._source_index = None  # clear the indexing
+        self.is_first_item = None
 
         # Clear any uncompleted breaks
         for break_itm in self.start_section:
@@ -1781,7 +1783,7 @@ class Section():
     def source(self, source: Source):
         '''Wrap the source in a BufferedIterator if it is not one already.
 
-        Arguments:
+        Arguments:step_source
             source (Source): A sequence of items with a type matching that
                 expected by the first of the series of processing methods.
         '''
@@ -2179,6 +2181,11 @@ class Section():
             self.scan_status = 'End of Source'
         else:
             self.scan_status = 'Scan In Progress'
+            # Set First Item status
+            if self.is_first_item is None:
+                self.is_first_item = True
+            else:
+                self.is_first_item = False
             logger.debug(f'In:\t{self.section_name}\tGot item:\t{next_item}')
         finally:
             logger.debug(f'Break Status:\t{self.scan_status}')
@@ -2268,6 +2275,7 @@ class Section():
         logger.debug(f'Starting New Section: {self.section_name}.')
         self.context['Current Section'] = self.section_name
         self.scan_status = 'At section start'
+        self.is_first_item = None
         return active_source
 
     def gen(self, source: Source)->SectionGen:
@@ -2291,7 +2299,7 @@ class Section():
             logger.debug(f'This is item number: {self.item_count} of '
                          f'{self.section_name}')
             logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
-            if self.end_on_first_item | (self.item_count > 1):
+            if self.end_on_first_item | (not self.is_first_item):
                 logger.debug('Checking for boundary')
                 if self.is_boundary(next_item, self.end_section):
                     break  # Break if section boundary reached
@@ -2329,12 +2337,23 @@ class Section():
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
-
+        # TODO Move initialization to gen method
         if initialize:
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)
         section_iter = self.gen(source)
-        return section_iter
+        done = False
+        while not done:
+            try:
+                item_read = next(section_iter)
+            except (StopIteration, RuntimeError):
+                done = True
+            else:
+                self.source_index.append(self.source.item_count)
+                yield item_read
+            finally:
+                if context:
+                    self.context.update(context)
 
     def process(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
@@ -2368,6 +2387,7 @@ class Section():
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
+        # TODO Move initialization to gen method
         if initialize:
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)
@@ -2384,7 +2404,7 @@ class Section():
                 yield item_read
             finally:
                 if context:
-                    self.context.update(context)
+                    self.context.update(context)  # FIXME This appears to be undoing context changes in process
 
     def read(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
@@ -2424,6 +2444,7 @@ class Section():
                 all processed items from source that are within the section
                 boundaries.
         '''
+        # TODO Move initialization to gen method
         if initialize:
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)

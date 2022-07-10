@@ -19,8 +19,8 @@ from sections import Rule, RuleSet, SectionBreak, ProcessingMethods, Section
 import logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 logger = logging.getLogger('Two Line SubSection Tests')
-#logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.INFO)
 
 
 # %% Test End On First Item

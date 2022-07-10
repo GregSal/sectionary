@@ -5,6 +5,13 @@ from buffered_iterator import BufferedIterator
 from buffered_iterator import BufferedIteratorValueError
 from buffered_iterator import BufferOverflowWarning
 
+import logging
+logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
+#logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('Test Buffered Iterator')
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+
 
 #%% Test Text
 TEST_LINES = '''Line 0
@@ -200,7 +207,7 @@ class TestBufferedIteratorItemCount(unittest.TestCase):
         '''When backup is called on a BufferedIterator iterator,
         BufferedIterator.item_count should decrease by the corresponding amount.
         '''
-        fwd = random.randint(2, self.num_items)
+        fwd = random.randint(2, self.num_items-1)
         back = random.randint(1, min(fwd-1, self.buffer_size))
         print(f'Moving forward {fwd} steps; backing up {back} steps')
         for i in range(fwd):
@@ -214,7 +221,7 @@ class TestBufferedIteratorItemCount(unittest.TestCase):
         '''When advance is called on a BufferedIterator iterator,
         BufferedIterator.item_count should increase by the corresponding amount.
         '''
-        fwd = random.randint(0, self.num_items-1)
+        fwd = random.randint(0, self.num_items-2)
         adv = random.randint(1, min(self.num_items-fwd, self.buffer_size))
         print(f'Moving forward {fwd} steps; advancing {adv} more steps')
         for i in range(fwd):
@@ -241,46 +248,46 @@ class TestBufferedIterator_goto_item(unittest.TestCase):
         '''BufferedIterator.goto_item(n) should make a call to __next__()
         return the n_th item in the sequence.
         '''
-        fwd = random.randint(1, self.num_items-1)
-        max_adv = fwd + min(self.num_items-fwd, self.buffer_size)
-        item_choices = [i for i in range(fwd, max_adv)]
+        fwd = random.randint(1, self.num_items-2)
+        max_adv = fwd + min(self.num_items-fwd+1, self.buffer_size)
+        item_choices = [i for i in range(fwd+1, max_adv)]
         target_item = random.choice(item_choices)
-        print(f'Moving forward {fwd} steps; going to item {target_item}')
+        logger.debug(f'Moving forward {fwd} steps; going to item {target_item}')
         for i in range(fwd):
             next(self.int_source)
         self.int_source.goto_item(target_item)
-        self.assertEqual(target_item-1, self.int_source.item_count)
-        self.assertEqual(next(self.int_source), self.int_source.item_count)
+        self.assertEqual(target_item, self.int_source.item_count)
+        self.assertEqual(next(self.int_source), self.int_source.item_count-1)
 
     def test_goto_backwards(self):
         '''BufferedIterator.goto_item(n) should make a call to __next__()
         return the n_th item in the sequence.  When moving backwards, n is
         limited to item_count - buffer_size (the items in previous_items).
         '''
-        fwd = random.randint(2, self.num_items)
+        fwd = random.randint(2, self.num_items-1)
         item_idx = fwd - 1
         buffer_len = min(self.buffer_size, fwd)
         max_back = item_idx - buffer_len + 1
         item_choices = [i for i in range(item_idx, max_back, -1)]
         target_item = random.choice(item_choices)
-        print(f'Moving forward {fwd} steps; going to item {target_item}')
+        logger.debug(f'Moving forward {fwd} steps; going to item {target_item}')
         for i in range(fwd):
             next(self.int_source)
         self.int_source.goto_item(target_item)
-        self.assertEqual(target_item-1, self.int_source.item_count)
-        self.assertEqual(next(self.int_source), self.int_source.item_count)
+        self.assertEqual(target_item, self.int_source.item_count)
+        self.assertEqual(next(self.int_source), self.int_source.item_count-1)
 
     def test_goto_beginning(self):
         '''BufferedIterator.goto_item(0) should restart the iterator.
         '''
         # In order to move to the beginning the current location must be less
         # than the buffer size.
-        fwd = random.randint(1, min(self.buffer_size, self.num_items))
-        print(f'Moving forward {fwd} steps; going to item 0')
+        fwd = random.randint(1, min(self.buffer_size, self.num_items-1))
+        logger.debug(f'Moving forward {fwd} steps; going to item 0')
         for i in range(fwd):
             next(self.int_source)
         self.int_source.goto_item(0)
-        self.assertIsNone(self.str_source.item_count)
+        self.assertEqual(self.str_source.item_count, 0)
 
 class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
     '''Test that appropriate error messages are raised with illegal goto_item
@@ -327,7 +334,7 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
         fwd_choices = [i for i in range(1, self.num_items-self.buffer_size-2)]
         fwd = random.choice(fwd_choices)
         min_adv = fwd + self.buffer_size + 1
-        item_choices = [i for i in range(min_adv, self.num_items-1)]
+        item_choices = [i for i in range(min_adv, self.num_items-2)]
         target_item = random.choice(item_choices)
         for i in range(fwd):
             next(self.str_source)
@@ -335,12 +342,10 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
             self.str_source.goto_item(target_item, buffer_overrun=False)
 
     def test_goto_forwards_past_buffer_limit_allowed(self):
-        '''BufferedIterator.goto_item(n) raises an error if the number of steps
-        required to reach 'n' is larger than the buffer size.  (The current item
-        will be lost.)
+        '''If `buffer_overrun=True`, `BufferedIterator.goto_item(n)` does not
+        raise an error if the number of steps required to reach 'n' is larger
+        than the buffer size.  (The current item will still be lost.)
         '''
-        # Do not move forward beyond the point where than there are less
-        # remaining  source items than the size of the buffer.
         fwd_choices = [i for i in range(1, self.num_items-self.buffer_size-2)]
         fwd = random.choice(fwd_choices)
         min_adv = fwd + self.buffer_size + 1
@@ -349,8 +354,8 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
         for i in range(fwd):
             next(self.int_source)
         self.int_source.goto_item(target_item, buffer_overrun=True)
-        self.assertEqual(target_item-1, self.int_source.item_count)
-        self.assertEqual(next(self.int_source), self.int_source.item_count)
+        self.assertEqual(target_item, self.int_source.item_count)
+        self.assertEqual(next(self.int_source), self.int_source.item_count-1)
 
     def test_goto_with_unstarted_iterator(self):
         '''BufferedIterator.goto_item(n) cannot go to an item number beyond

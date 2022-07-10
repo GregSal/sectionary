@@ -27,7 +27,7 @@ logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger('Text Processing')
-# logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
 #%% Type Definitions
