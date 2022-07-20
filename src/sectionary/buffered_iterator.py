@@ -4,6 +4,7 @@
 # pylint: disable=logging-fstring-interpolation
 #%% Imports
 from __future__ import annotations
+from copy import copy
 from collections import deque
 from typing import Sequence, TypeVar, Union
 import logging
@@ -344,27 +345,6 @@ class BufferedIterator():
             self.backup(read_ahead)
         return self.future_items[steps-1]
 
-    def update(self, other: BufferedIterator, include_items=True):
-        '''Copy buffer items from another instance.
-
-        Copy step_back property from other.  Optionally copy previous and
-            future queues from other.  No testing is done before copying.
-
-        Args:
-            other (BufferedIterator): The BufferedIterator instance to copy
-                from.
-            include_items (bool, optional): If True, previous and
-                future queues from other replace this instances queues.
-                Otherwise, just replace the step_back property with the value
-                from other. Defaults to True.
-        Returns:
-            None.
-        '''
-        self._step_back = other._step_back  # pylint: disable=protected-access
-        if include_items:
-            self.previous_items = other.previous_items.copy()
-            self.future_items = other.future_items.copy()
-
     def goto_item(self, item_num: int, buffer_overrun=False):
         '''Move to item number item_num in the sequence.
 
@@ -400,6 +380,31 @@ class BufferedIterator():
                 f'Moving backwards {steps} item(s).')
             self.backup(steps)
 
+    def update(self, other: BufferedIterator):
+        '''Copy buffer items from another instance.
+
+        Copy step_back property from other.  Optionally copy previous and
+            future queues from other.  No testing is done before copying.
+
+        Args:
+            other (BufferedIterator): The BufferedIterator instance to copy
+                from.
+            include_items (bool, optional): If True, previous and
+                future queues from other replace this instances queues.
+                Otherwise, just replace the step_back property with the value
+                from other. Defaults to True.
+        Returns:
+            None.
+        '''
+        self.source_gen = iter(other.source_gen)
+        self._step_back = other._step_back  # pylint: disable=protected-access
+        self._item_count = other._item_count  # pylint: disable=protected-access
+        # clear() and extend() allow for differing buffer sizes
+        self.previous_items.clear()
+        self.previous_items.extend(other.previous_items)
+        self.future_items.clear()
+        self.future_items.extend(other.future_items)
+
     def __repr__(self):
         class_name = self.__class__.__name__
         repr_str = ''.join([
@@ -407,6 +412,7 @@ class BufferedIterator():
             f'buffer_size={self.buffer_size})\n\t',
             f'{class_name}.previous_items = {repr(self.previous_items)}\n\t',
             f'{class_name}.future_items = {repr(self.future_items)}\n\t',
+            f'{class_name}.item_count = {repr(self.item_count)}\n\t',
             f'{class_name}._step_back = {self._step_back}'
             ])
         return repr_str
