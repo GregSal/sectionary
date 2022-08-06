@@ -531,7 +531,7 @@ class TestHysteresis(unittest.TestCase):
             )
         # Clear Hysteresis by running `full_section` without setting `end_section`
         full_section = Section(
-            subsections=self.assertTruesub_section,
+            subsections=self.sub_section,
             keep_partial=False
             )
         a = full_section.read(self.test_text)

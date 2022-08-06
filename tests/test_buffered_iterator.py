@@ -370,6 +370,17 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
             self.str_source.goto_item(self.num_items+1)
 
 
+class TestBufferedIteratorMinimumBufferSize(unittest.TestCase):
+    '''BufferedIterator has a minimum buffer size of 1
+    '''
+    def test_minimum_buffer_size(self):
+        '''Verify that BufferedIterator initialization raises an error if
+        buffer_size < 1 is given.
+        '''
+        with self.assertRaises(BufferedIteratorValueError):
+            test_iter = BufferedIterator(range(5), buffer_size=0)
+
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -1702,6 +1702,7 @@ class Section():
         # In addition, subsections must also be reset.
 
         self.context = None
+        self._original_source = None
         self.source = None
         self._source_index = None
         self.is_first_item = None
@@ -1724,10 +1725,8 @@ class Section():
             'Event'
             ])
         self.context['Current Section'] = self.section_name
-        self.scan_status = 'Not Started'
-        self.source = BufferedIterator([], buffer_size=self.buffer_size)
-        self._source_index = None  # clear the indexing
-        self.is_first_item = None
+        self.context['Status'] = 'Not Started'
+        self.source = None
 
         # Clear any uncompleted breaks
         for break_itm in self.start_section:
@@ -1746,9 +1745,9 @@ class Section():
 
     @property
     def source_item_count(self):
-        if not self._source_index:
-            return 0
-        return self._source_index[-1]
+        if not self.source:
+             return 0
+        return self.source.item_count
 
     @property
     def item_count(self):
@@ -1788,20 +1787,26 @@ class Section():
                 expected by the first of the series of processing methods.
         '''
         if source:
-            # Wrap the source in a BufferedIterator if it is not one already.
-            if not isinstance(source, BufferedIterator):
-                buffered_source = BufferedIterator(
-                    iter(source),
-                    buffer_size=self.buffer_size
-                    )
-            else:
-                buffered_source = source
-            self._source = buffered_source  # Begin iteration
+            self._original_source = source
+            # Wrap the source in a BufferedIterator.
+            buffered_source = BufferedIterator(source,
+                                               buffer_size=self.buffer_size)
+            if isinstance(source, BufferedIterator):
+                buffered_source.link(source)
+            self._source = buffered_source
             self._source_index = []  # initialize the indexing
+            self.is_first_item = None
         else:
             # Reset the source
             self._source = None
             self._source_index = None  # clear the indexing
+            self.is_first_item = None
+
+    def update_original_source(self):
+        if isinstance(self._original_source, BufferedIterator):
+            source_pointer = self.source_item_count
+            logger.debug(f'Moving original source to item #{source_pointer}')
+            self._original_source.goto_item(source_pointer, buffer_overrun=True)
 
     @property
     def start_section(self)->List["SectionBreak"]:
@@ -2030,11 +2035,12 @@ class Section():
         Returns:
             AggregatedItem: The result of reading the subsection.
         '''
-        sub_rdr.reset()
-        sub_rdr.source = self.source
+        #sub_rdr.reset()
+        #sub_rdr.source = self.source
+        buffered_section_iter = BufferedIterator(section_iter)
         logger.debug(f'In {self.section_name}, Source status is:'
                      f' {inspect.getgeneratorstate(section_iter)}.')
-        subsection_read = sub_rdr.read(section_iter, do_reset=False,
+        subsection_read = sub_rdr.read(buffered_section_iter,
                                        context=self.context.copy())
         return subsection_read
 
@@ -2051,6 +2057,7 @@ class Section():
             List[Any]: A list of the aggregate results for all of the
                 subsections in self.subsections.
         '''
+        buffered_section_iter = BufferedIterator(section_iter)
         if 'GEN_CLOSED' in inspect.getgeneratorstate(section_iter):
             # If the source has closed don't try reading subsections.
             return None
@@ -2061,8 +2068,12 @@ class Section():
                     # If the source ends part way through, drop the partial
                     # subsection.
                     return None
-            subsection_read = self.read_subsection(section_iter, sub_rdr)
-            sub_rdr.source = self.source
+            #subsection_read = self.read_subsection(section_iter, sub_rdr)
+            #sub_rdr.source = self.source
+            logger.debug(f'In {self.section_name}, Source status is:'
+                        f' {inspect.getgeneratorstate(section_iter)}.')
+            subsection_read = sub_rdr.read(buffered_section_iter,
+                                           context=self.context.copy())
             complete_subsection.append(subsection_read)
             self.context.update(sub_rdr.context)
         if complete_subsection:
@@ -2084,6 +2095,7 @@ class Section():
         Yields:
             ProcessGenerator: The results of reading each subsection.
         '''
+
         logger.debug(f'Entered sub-section processor for: {self.section_name}')
         while 'GEN_CLOSED' not in inspect.getgeneratorstate(section_iter):
             # Testing the generator state is required because StopIteration
@@ -2182,6 +2194,7 @@ class Section():
         else:
             self.scan_status = 'Scan In Progress'
             # Set First Item status
+            # TODO move First Item status setting to gen (closer to where it is used.)
             if self.is_first_item is None:
                 self.is_first_item = True
             else:
@@ -2210,6 +2223,7 @@ class Section():
             if self.is_boundary(next_item, self.start_section):
                 break
             skipped_lines.append(next_item)
+        # TODO Move this to initialize
         self.context['Skipped Lines'] = skipped_lines
         logger.debug(f'Skipped {len(skipped_lines)} lines.')
         return skipped_lines
@@ -2304,6 +2318,7 @@ class Section():
                 if self.is_boundary(next_item, self.end_section):
                     break  # Break if section boundary reached
             yield next_item
+        #self.update_original_source()
 
 
     def scan(self, source: Source, start_search: bool = None,
@@ -2349,9 +2364,10 @@ class Section():
             except (StopIteration, RuntimeError):
                 done = True
             else:
-                self.source_index.append(self.source.item_count)
+                self._source_index.append(self.source.item_count)
                 yield item_read
             finally:
+                #self.update_original_source()
                 if context:
                     self.context.update(context)
 
@@ -2400,9 +2416,10 @@ class Section():
             except (StopIteration, RuntimeError):
                 done = True
             else:
-                self.source_index.append(self.source.item_count)
+                self._source_index.append(self.source.item_count)
                 yield item_read
             finally:
+                #self.update_original_source()
                 if context:
                     self.context.update(context)  # FIXME This appears to be undoing context changes in process
 
@@ -2453,4 +2470,5 @@ class Section():
 
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_reader, self.context)
+        self.update_original_source()
         return section_aggregate

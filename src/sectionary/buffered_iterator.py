@@ -42,6 +42,8 @@ class BufferedIterator():
     '''Iterate through sequence allowing for backup and look ahead.
     '''
     def __init__(self, source: Sequence[SourceItem], buffer_size=5):
+        if buffer_size < 1:
+            raise BufferedIteratorValueError('Buffer size must be 1 or greater')
         self.buffer_size = buffer_size
         self.source_gen = iter(source)
         self.previous_items = deque(maxlen=buffer_size)
@@ -356,6 +358,8 @@ class BufferedIterator():
             item_num (int): The index number of the item in the sequence it be
                 called next. item_num is zero-based; the first item in the
                 sequence is item "0".
+            buffer_overrun (bool, optional): If True do not check whether
+                items will be lost from the buffer.
         '''
         current_item = self.item_count
         if current_item is None:
@@ -380,30 +384,34 @@ class BufferedIterator():
                 f'Moving backwards {steps} item(s).')
             self.backup(steps)
 
-    def update(self, other: BufferedIterator):
-        '''Copy buffer items from another instance.
+    def link(self, other: BufferedIterator, include_future_items=False):
+        '''Copy certain buffer items from another instance.
 
+        **This methods may be a bad idea since it can easily lead to unexpected
+        results.**  Either remove the method or at least make a copy of the
+        iterator rather than `self.source_gen = iter(other.source_gen)`.
         Copy step_back property from other.  Optionally copy previous and
             future queues from other.  No testing is done before copying.
 
         Args:
             other (BufferedIterator): The BufferedIterator instance to copy
                 from.
-            include_items (bool, optional): If True, previous and
-                future queues from other replace this instances queues.
-                Otherwise, just replace the step_back property with the value
-                from other. Defaults to True.
+            include_future_items (bool, optional): If True, the future items
+            dequeue from other replaces this instances dequeue. Otherwise, just
+            clear the the future items  dequeue. Defaults to false.
         Returns:
             None.
         '''
-        self.source_gen = iter(other.source_gen)
+        #self.source_gen = iter(other.source_gen)
         self._step_back = other._step_back  # pylint: disable=protected-access
         self._item_count = other._item_count  # pylint: disable=protected-access
+
         # clear() and extend() allow for differing buffer sizes
         self.previous_items.clear()
         self.previous_items.extend(other.previous_items)
         self.future_items.clear()
-        self.future_items.extend(other.future_items)
+        if include_future_items:
+            self.future_items.extend(other.future_items)
 
     def __repr__(self):
         class_name = self.__class__.__name__
