@@ -107,6 +107,9 @@ class BufferedIterator():
            it is added to the "previous_items" queue to allow for moving
            backwards through the source.
 
+        Raises:
+            BufferedIteratorEOF:  Indicates that the iterator has closed.
+
         Returns:
             SourceItem: The next item from the source.
         '''
@@ -384,32 +387,36 @@ class BufferedIterator():
                 f'Moving backwards {steps} item(s).')
             self.backup(steps)
 
-    def link(self, other: BufferedIterator, include_future_items=False):
+    def link(self, other: BufferedIterator,
+             include_previous_items=True,
+             include_future_items=False):
         '''Copy certain buffer items from another instance.
 
-        **This methods may be a bad idea since it can easily lead to unexpected
-        results.**  Either remove the method or at least make a copy of the
-        iterator rather than `self.source_gen = iter(other.source_gen)`.
-        Copy step_back property from other.  Optionally copy previous and
-            future queues from other.  No testing is done before copying.
+        Copy _step_back and _item_count properties from other.  Optionally copy
+        previous and future queues from other.
 
         Args:
             other (BufferedIterator): The BufferedIterator instance to copy
-                from.
+                    from.
+            include_previous_items (bool, optional): If True, the previous items
+                    dequeue from other replaces this instance's dequeue.
+                    Otherwise, just clear the the previous items  dequeue.
+                    Defaults to True.
             include_future_items (bool, optional): If True, the future items
-            dequeue from other replaces this instances dequeue. Otherwise, just
-            clear the the future items  dequeue. Defaults to false.
+                    dequeue from other replaces this instance's dequeue.
+                    Otherwise, just clear the the future items  dequeue.
+                    Defaults to False.
         Returns:
             None.
         '''
         #self.source_gen = iter(other.source_gen)
         self._step_back = other._step_back  # pylint: disable=protected-access
         self._item_count = other._item_count  # pylint: disable=protected-access
-
         # clear() and extend() allow for differing buffer sizes
         self.previous_items.clear()
-        self.previous_items.extend(other.previous_items)
         self.future_items.clear()
+        if include_previous_items:
+            self.previous_items.extend(other.previous_items)
         if include_future_items:
             self.future_items.extend(other.future_items)
 

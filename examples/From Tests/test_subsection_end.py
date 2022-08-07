@@ -11,8 +11,8 @@ from sections import SectionBreak, Section
 import logging
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('Text Processing')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('Test Script')
+#logger.setLevel(logging.DEBUG)
 #logger.setLevel(logging.INFO)
 # %%  Check Paths
 #from pathlib import Path
@@ -39,6 +39,86 @@ GENERIC_TEST_TEXT_2 = [
     'EndSection Name:A'
     ]
 
+GENERIC_TEST_TEXT_3 = [
+    'Text to be ignored',
+    'StartSection A',
+    'EndSection A',
+    'More text to be ignored',
+    'StartSection B',
+    'EndSection B',
+    'Even more text to be ignored',
+    ]
+
+GENERIC_TEST_TEXT_4 = [
+    'Text to be ignored',
+    'StartSection A',
+    'EndSection A',
+    'StartSection B',
+    'EndSection B',
+    'StartSection C',
+    'More text to be ignored',   # 'ignored' triggers end of top section
+    'EndSection C',
+    'Even more text to be ignored',
+    ]
+# %% test_two_single_line_subsections_with_unwanted_middle
+start_sub_section = Section(
+    section_name='StartSubSection',
+    start_section=SectionBreak('StartSection', break_offset='Before'),
+    end_section=SectionBreak('EndSection', break_offset='Before')
+    )
+
+
+end_sub_section = Section(
+    section_name='EndSubSection',
+    start_section=SectionBreak('EndSection', break_offset='Before'),
+    end_section=SectionBreak(True, break_offset='Before')
+    )
+
+top_section = Section(
+    section_name='Top Section',
+    end_section=SectionBreak('ignored', break_offset='Before'),
+    subsections=[start_sub_section, end_sub_section]
+    )
+
+pprint(top_section.read(GENERIC_TEST_TEXT_4))
+
+quit()
+# %% Test Combined Start End Single Line Section
+start_sub_section = Section(
+    section_name='StartSubSection',
+    start_section=SectionBreak('StartSection', break_offset='Before'),
+    end_section=SectionBreak('EndSection', break_offset='Before')
+    )
+end_sub_section = Section(
+    section_name='EndSubSection',
+    start_section=SectionBreak('EndSection', break_offset='Before'),
+    end_section=SectionBreak(True, break_offset='Before')
+    )
+full_section = Section(
+    section_name='Full',
+    subsections=[start_sub_section, end_sub_section]
+    )
+
+pprint(full_section.read(GENERIC_TEST_TEXT_3))
+
+quit()
+
+# %% Test Two Line SubSection
+sub_section = Section(
+    section_name='StartSubSection',
+    start_section=SectionBreak('StartSection', break_offset='Before'),
+    end_section=SectionBreak('EndSection', break_offset='After')
+    )
+
+pprint(sub_section.read(GENERIC_TEST_TEXT_3))
+
+full_section = Section(
+    section_name='Full',
+    subsections=sub_section
+    )
+
+pprint(full_section.read(GENERIC_TEST_TEXT_3))
+quit()
 
 
 # %% Aggregate Function to create and print a list
@@ -70,4 +150,3 @@ full_section = Section(
 # %% This call hangs
 
 pprint(full_section.read(GENERIC_TEST_TEXT_1))
-

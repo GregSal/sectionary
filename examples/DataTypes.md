@@ -18,7 +18,7 @@ A single element in the <i>Source</i>, most commonly a string. A <i>SourceItem</
 </td></tr>
 <tr><td>Aggregating the <i>ProcessedItems</i></td>
 <td><b>ProcessedItem</b></td>
-<td><b>AggregatedItem:</b><br>
+<td><b>AggregatedItem, AggregatedItemGroup</b><br>
 </td></tr>
 </tbody>
 </table>
@@ -68,7 +68,11 @@ Context can be used to pass additional parameters to functions.
 <tr><td>Skipped Lines</td><td>The Source lines skipped before the start of the section</td></tr>
 <tr><td>Status</td><td>The Current status of the section processing.<br>  One of:<br>
 <ul>
+<li>"Not Started"</li>
+<li>"At section start"</li>
+<li>"Break Triggered"</li>
 <li>"Scan In Progress"</li>
+<li>"Scan Complete"</li>
 <li>"End of Source"</li>
 <li>"RuntimeError"</li></td></tr>
 <tr><td>Break</td><td>The name of the specific trigger for the start of the section.
