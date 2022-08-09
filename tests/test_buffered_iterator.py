@@ -380,7 +380,75 @@ class TestBufferedIteratorMinimumBufferSize(unittest.TestCase):
         with self.assertRaises(BufferedIteratorValueError):
             test_iter = BufferedIterator(range(5), buffer_size=0)
 
+class TestBufferedIterator_link(unittest.TestCase):
+    '''Verify BufferedIterator link method.'''
+    def setUp(self):
+        self.buffer_size = 5
+        self.num_items = 15
 
+        self.from_iter = BufferedIterator(range(self.num_items),
+                                          buffer_size=self.buffer_size)
+
+        self.to_iter = BufferedIterator(
+            range(self.num_items+1, self.num_items*2),
+            buffer_size=self.buffer_size
+            )
+
+    def test_linked_item_count_match(self):
+        '''After calling link the Item counts should match.
+        '''
+        # Move forward until both buffers are full.
+        for i in range(self.buffer_size+1):
+            next(self.from_iter)
+            next(self.to_iter)
+
+        for i in range(self.buffer_size+1):
+            next(self.from_iter)
+
+        self.to_iter.link(self.from_iter)
+        self.assertEqual(self.to_iter.item_count, self.from_iter.item_count)
+
+    def test_linked_previous_items_match(self):
+        '''After calling link the Item counts should match.
+        '''
+        # Move forward until both buffers are full.
+        for i in range(self.buffer_size+1):
+            next(self.from_iter)
+            next(self.to_iter)
+
+        for i in range(self.buffer_size+1):
+            next(self.from_iter)
+
+        self.to_iter.link(self.from_iter)
+        self.assertListEqual(list(self.to_iter.previous_items),
+                             list(self.from_iter.previous_items))
+
+    def test_linked_future_items_empty(self):
+        '''After calling link the Item counts should match.
+        '''
+        # Move forward and then back until future Item buffers are full.
+        for i in range(self.buffer_size + 1):
+            next(self.from_iter)
+            next(self.to_iter)
+        self.from_iter.backup(self.buffer_size)
+        self.to_iter.backup(self.buffer_size)
+
+        self.to_iter.link(self.from_iter)
+        self.assertEqual(list(self.to_iter.future_items), [])
+
+    def test_linked_future_items_match(self):
+        '''After calling link the Item counts should match.
+        '''
+        # Move forward and then back until future Item buffers are full.
+        for i in range(self.buffer_size + 1):
+            next(self.from_iter)
+            next(self.to_iter)
+        self.from_iter.backup(self.buffer_size)
+        self.to_iter.backup(self.buffer_size)
+
+        self.to_iter.link(self.from_iter, include_future_items=True)
+        self.assertListEqual(list(self.to_iter.future_items),
+                             list(self.from_iter.future_items))
 if __name__ == '__main__':
     unittest.main()
 
