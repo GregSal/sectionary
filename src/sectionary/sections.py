@@ -1420,7 +1420,7 @@ class ProcessingMethods():
                 signature.
         '''
         if not true_iterable(processing_methods):
-            processing_methods = list(processing_methods)
+            processing_methods = [processing_methods]
         cleaned_methods = list()
         for func in processing_methods:
             if isinstance(func, (Rule, RuleSet)):
