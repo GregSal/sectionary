@@ -58,7 +58,7 @@ class TestEndOnFirstItem(unittest.TestCase):
             section_name='Top Section',
             end_section=SectionBreak('More text to be ignored',
                                      break_offset='Before'),
-            subsections=start_sub_section
+            processor=start_sub_section
             )
         read_1 = repeating_section.read(self.test_text)
         self.assertListEqual(
@@ -130,7 +130,7 @@ class TestSingleLineStartSections(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[start_sub_section]
+            processor=[start_sub_section]
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [['StartSection A'], ['StartSection B']])
@@ -302,7 +302,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
     def test_two_single_line_subsections(self):
         full_section = Section(
             section_name='Full',
-            subsections=[self.start_sub_section, self.end_sub_section]
+            processor=[self.start_sub_section, self.end_sub_section]
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -318,7 +318,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section]
+            processor=[self.start_sub_section, self.end_sub_section]
             )
         read_1 = top_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -334,7 +334,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section]
+            processor=[self.start_sub_section, self.end_sub_section]
             )
         read_1 = top_section.read(self.test_text2)
         self.assertListEqual(read_1, [
@@ -361,7 +361,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             ]
         full_section = Section(
             section_name='Full',
-            subsections=[self.start_sub_section, self.end_sub_section]
+            processor=[self.start_sub_section, self.end_sub_section]
             )
         read_1 = full_section.read(test_text)
         self.assertListEqual(read_1, [
@@ -410,7 +410,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section],
+            processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=False
             )
         read_1 = top_section.read(self.test_text2)
@@ -428,7 +428,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section],
+            processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text2)
@@ -442,7 +442,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section],
+            processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text)
@@ -455,7 +455,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.end_sub_section],
+            processor=[self.end_sub_section],
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text)
@@ -480,7 +480,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section],
+            processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
             )
         read_1 = top_section.read(test_text)
@@ -507,7 +507,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=[self.start_sub_section, self.end_sub_section],
+            processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=False
             )
         read_1 = top_section.read(test_text)
@@ -535,7 +535,7 @@ class TestHysteresis(unittest.TestCase):
             )
         # Clear Hysteresis by running `full_section` without setting `end_section`
         full_section = Section(
-            subsections=self.sub_section,
+            processor=self.sub_section,
             keep_partial=False
             )
         a = full_section.read(self.test_text)
@@ -549,7 +549,7 @@ class TestHysteresis(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=self.sub_section
+            processor=self.sub_section
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [['StartSection A', 'EndSection A'],
@@ -582,7 +582,7 @@ class TestHysteresis(unittest.TestCase):
             )
         # Clear Hysteresis by running `full_section` without setting `end_section`
         full_section = Section(
-            subsections=self.sub_section,
+            processor=self.sub_section,
             keep_partial=False
             )
         a = full_section.read(self.test_text)
@@ -596,7 +596,7 @@ class TestHysteresis(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=self.sub_section
+            processor=self.sub_section
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [['StartSection A', 'EndSection A'],
@@ -636,7 +636,7 @@ class TestSourceStatus(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            subsections=sub_section
+            processor=sub_section
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1,
@@ -677,7 +677,7 @@ class TestSubsectionContext(unittest.TestCase):
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before',
                              name='End Section'),
-            subsections=sub_section
+            processor=sub_section
             )
         read_1 = full_section.read(self.test_text, context={'Dummy': 'Blank1'})
         self.assertListEqual(read_1,

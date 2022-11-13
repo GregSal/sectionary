@@ -177,7 +177,7 @@ class TestSectionRead(unittest.TestCase):
             section_name='Test Multi Section',
             start_section=multi_section_start,
             end_section=multi_section_end,
-            subsections=test_section,
+            processor=test_section,
             aggregate=combine_sections
             )
 
@@ -211,5 +211,3 @@ class TestSectionRead(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-

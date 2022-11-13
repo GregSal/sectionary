@@ -77,7 +77,7 @@ end_sub_section = Section(
 top_section = Section(
     section_name='Top Section',
     end_section=SectionBreak('ignored', break_offset='Before'),
-    subsections=[start_sub_section, end_sub_section]
+    processor=[start_sub_section, end_sub_section]
     )
 
 pprint(top_section.read(GENERIC_TEST_TEXT_4))
@@ -96,7 +96,7 @@ end_sub_section = Section(
     )
 full_section = Section(
     section_name='Full',
-    subsections=[start_sub_section, end_sub_section]
+    processor=[start_sub_section, end_sub_section]
     )
 
 pprint(full_section.read(GENERIC_TEST_TEXT_3))
@@ -114,7 +114,7 @@ pprint(sub_section.read(GENERIC_TEST_TEXT_3))
 
 full_section = Section(
     section_name='Full',
-    subsections=sub_section
+    processor=sub_section
     )
 
 pprint(full_section.read(GENERIC_TEST_TEXT_3))
@@ -144,7 +144,7 @@ full_section = Section(
     section_name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='After'),
-    subsections=[end_section]  # Only end_section
+    processor=[end_section]  # Only end_section
     )
 
 # %% This call hangs

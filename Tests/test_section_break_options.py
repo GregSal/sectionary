@@ -47,7 +47,7 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         Results in all lines in one sub-list.
         '''
         sub_section = Section(section_name='SubSection')
-        full_section = Section(section_name='Full', subsections=sub_section)
+        full_section = Section(section_name='Full', processor=sub_section)
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [[
             'Text to be ignored',
@@ -74,7 +74,7 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         '''
         sub_section = Section(section_name='SubSection')
         full_section = Section(
-            section_name='Full', subsections=sub_section,
+            section_name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
@@ -103,13 +103,13 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         '''
         sub_section = Section(section_name='SubSection')
         full_section = Section(
-            section_name='Full', subsections=sub_section,
+            section_name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         multi_section = Section(
             section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -133,13 +133,13 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         '''
         sub_section = Section(section_name='SubSection')
         full_section = Section(
-            section_name='Full', subsections=sub_section,
+            section_name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before'),
             )
         multi_section = Section(
             section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -161,7 +161,7 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         '''
         sub_section = Section(section_name='SubSection')
         full_section = Section(
-            section_name='Full', subsections=sub_section,
+            section_name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before'),
             end_on_first_item=True
@@ -213,10 +213,10 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             end_section=SectionBreak('EndSection', break_offset='After'),
-            subsections=sub_section
+            processor=sub_section
             )
         multi_section = Section(section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -245,10 +245,10 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         full_section = Section(
             section_name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
-            subsections=sub_section
+            processor=sub_section
             )
         multi_section = Section(section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [[
@@ -275,10 +275,10 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
             )
         full_section = Section(
             section_name='Full',
-            subsections=sub_section
+            processor=sub_section
             )
         multi_section = Section(section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [[
@@ -303,7 +303,7 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
             )
         full_section = Section(
             section_name='Full',
-            subsections=sub_section
+            processor=sub_section
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -332,10 +332,10 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
             section_name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After'),
-            subsections=sub_section
+            processor=sub_section
             )
         multi_section = Section(section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -360,10 +360,10 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
             section_name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After'),
-            subsections=sub_section
+            processor=sub_section
             )
         multi_section = Section(section_name='Multi',
-            subsections=full_section
+            processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
         self.assertListEqual(read_1, [

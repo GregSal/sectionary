@@ -91,7 +91,7 @@ class TestSourceTracking(unittest.TestCase):
         source_index = not_started_section.source_index
         source_item_count = not_started_section.source_item_count
         item_count = not_started_section.item_count
-        self.assertEqual(source_index, [])
+        self.assertEqual(source_index, [0])
         self.assertEqual(source_item_count, 0)
         self.assertEqual(item_count, 0)
 

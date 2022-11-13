@@ -43,7 +43,7 @@ sub_section = Section(
 full_section = Section(
     section_name='Full',
     end_section=SectionBreak('ignored', break_offset='Before'),
-    subsections=[sub_section],
+    processor=[sub_section],
     keep_partial=False
     )
 

@@ -255,7 +255,7 @@ plan_info_group = Section(
     section_name='Plan Info Group',
     start_section=plan_info_start,
     end_section=structure_info_start,
-    subsections=plan_info_section,
+    processor=plan_info_section,
     aggregate=to_plan_info_dict
     )
 structure_info_section = Section(
@@ -275,7 +275,7 @@ dvh_data_section = Section(
 dvh_group_section = Section(
     section_name='DVH Groups',
     start_section=structure_info_start,
-    subsections=[structure_info_section, dvh_data_section],
+    processor=[structure_info_section, dvh_data_section],
     aggregate=to_structure_data_tuple
     )
 

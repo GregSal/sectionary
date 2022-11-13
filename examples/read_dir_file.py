@@ -343,7 +343,7 @@ all_folder_section = Section(
     section_name='All Folders',
     start_section=folder_start,
     end_section=summary_start,
-    subsections=[folder_section],
+    processor=[folder_section],
     aggregate=make_files_table
     )
 summary_section = Section(

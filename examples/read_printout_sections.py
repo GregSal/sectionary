@@ -193,13 +193,12 @@ field_section = sec.Section(
 all_fields_section = sec.Section(
     start_section='FIELDS DATA',
     end_section='POINTS LOCATIONS',
-    processor=[tr.clean_ascii_text],
-    subsections=field_section,
+    processor=[tr.clean_ascii_text, field_section],
     aggregate=tr.to_dataframe,
     section_name='Fields')
 
 all_initial_sections = sec.Section(
-    subsections=[plan_section, prescription_section, image_section,
+    processor=[plan_section, prescription_section, image_section,
                  calculation_section, warning_section],
     section_name='PlanCheck')
 

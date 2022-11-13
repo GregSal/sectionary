@@ -269,14 +269,14 @@ class TestSectionGroupRead(unittest.TestCase):
             section_name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
-            subsections=[self.delimiter_section, self.fixed_width_section],
+            processor=[self.delimiter_section, self.fixed_width_section],
             aggregate=make_list
             )
         self.multi_group_section = sections.Section(
             section_name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
-            subsections=[self.delimiter_section, self.fixed_width_section],
+            processor=[self.delimiter_section, self.fixed_width_section],
             aggregate=make_list
             )
 
@@ -324,5 +324,3 @@ class TestSectionGroupRead(unittest.TestCase):
                     self.assertDictEqual(s_output, e_output)
 if __name__ == '__main__':
     unittest.main()
-
-

@@ -50,12 +50,12 @@ full_section = Section(
     section_name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before', name='StartFullSection'),
     end_section=SectionBreak('EndSection', break_offset='After', name='EndFullSection'),
-    subsections=sub_section,
+    processor=sub_section,
     #end_on_first_item=True
     )
 
 multi_section = Section(section_name='Multi',
-    subsections=full_section,
+    processor=full_section,
     #end_on_first_item=True
     )
 
