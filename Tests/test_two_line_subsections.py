@@ -302,52 +302,46 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
     def test_two_single_line_subsections(self):
         full_section = Section(
             section_name='Full',
-            processor=[self.start_sub_section, self.end_sub_section]
+            processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [
-            [
-                ['StartSection A'],
-                ['EndSection A']
-            ], [
-                ['StartSection B'],
-                ['EndSection B']
-            ]])
+            {'StartSubSection': ['StartSection A'],
+             'EndSubSection': ['EndSection A']},
+            {'StartSubSection': ['StartSection B'],
+             'EndSubSection': ['EndSection B']}
+            ])
 
     def test_two_single_line_subsections_with_top_section_break(self):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section]
+            processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = top_section.read(self.test_text)
         self.assertListEqual(read_1, [
-            [
-                ['StartSection A'],
-                ['EndSection A']
-            ], [
-                ['StartSection B'],
-                ['EndSection B']
-            ]])
+            {'StartSubSection': ['StartSection A'],
+            'EndSubSection': ['EndSection A']},
+
+            {'StartSubSection': ['StartSection B'],
+            'EndSubSection': ['EndSection B']}
+            ])
 
     def test_two_single_line_subsections_with_unwanted_middle(self):
         top_section = Section(
             section_name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section]
+            processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = top_section.read(self.test_text2)
         self.assertListEqual(read_1, [
-            [
-                ['StartSection A'],
-                ['EndSection A']
-            ], [
-                ['StartSection B'],
-                ['EndSection B']
-            ], [
-                ['StartSection C'],
-                []  # Top section stops before reaching 'EndSection C'
-            ]])
+            {'StartSubSection': ['StartSection A'],
+             'EndSubSection': ['EndSection A']},
+
+            {'StartSubSection': ['StartSection B'],
+            'EndSubSection': ['EndSection B']},
+            {'StartSubSection': ['StartSection C']}
+            ])
 
     def test_two_single_line_subsections_with_unwanted_between_sections(self):
         test_text = [
@@ -361,17 +355,16 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             ]
         full_section = Section(
             section_name='Full',
-            processor=[self.start_sub_section, self.end_sub_section]
+            processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = full_section.read(test_text)
         self.assertListEqual(read_1, [
-            [
-                ['StartSection A'],
-                ['EndSection A']
-            ], [
-                ['StartSection B'],
-                ['EndSection B']
-            ]])
+            {'StartSubSection': ['StartSection A'],
+             'EndSubSection': ['EndSection A']},
+
+            {'StartSubSection': ['StartSection B'],
+            'EndSubSection': ['EndSection B']}
+            ])
 
 @unittest.skip('Known Failure')
 class TestKeepPartial(unittest.TestCase):
