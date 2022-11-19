@@ -139,63 +139,72 @@ class TestSectionGroupRead(unittest.TestCase):
                 'F1 Content2': 'e',
                 'F1 Content3': 'f'
                 },
-            'Test Group Section': [
-                {'Section Name':'D2',
-                 'D2 Content1': 'm',
-                 'D2 Content2': 'n',
-                 'D2 Content3': 'o'
-                },
-                {
-                 'Section Name':'F2',
-                 'F2 Content1': 'p',
-                 'F2 Content2': 'q',
-                 'F2 Content3': 'r'
-                }],
+            'Test Group Section': {
+                'Delimiter Section':
+                    {'Section Name':'D2',
+                    'D2 Content1': 'm',
+                    'D2 Content2': 'n',
+                    'D2 Content3': 'o'
+                    },
+                'Fixed Width Section':
+                    {'Section Name':'F2',
+                    'F2 Content1': 'p',
+                    'F2 Content2': 'q',
+                    'F2 Content3': 'r'
+                    }},
             'Test Multi Group Section': [
-                [{'Section Name':'D3',
-                  'D3 Content1': 'a',
-                  'D3 Content2': 'b',
-                  'D3 Content3': 'c'
-                 },
-                 {
-                  'Section Name':'F3',
-                  'F3 Content1': 1.0,
-                  'F3 Content2': 2.0,
-                  'F3 Content3': 3.0
-                 }],
-                [{'Section Name':'D4',
-                  'D4 Content1': 'd',
-                  'D4 Content2': 'e',
-                  'D4 Content3': 'f'
-                 },
-                 {
-                  'Section Name':'F4',
-                  'F4 Content1': 4.0,
-                  'F4 Content2': 5.0,
-                  'F4 Content3': 6.0
-                 }],
-                [{'Section Name':'D5',
-                  'D5 Content1': 'g',
-                  'D5 Content2': 'h',
-                  'D5 Content3': 'i'
-                 },
-                 {
-                  'Section Name':'F5',
-                  'F5 Content1': 7.0,
-                  'F5 Content2': 8.0,
-                  'F5 Content3': 9.0
-                 }],
-                [{'Section Name':'D6',
-                  'D6 Content1': 'j',
-                  'D6 Content2': 'k',
-                  'D6 Content3': 'l'
-                 },
-                 {
-                  'Section Name':'F6',
-                  'F6 Content1': 10.0,
-                  'F6 Content2': 11.0,
-                  'F6 Content3': 12.0
-                 }]
+                    {'Delimiter Section':
+                        {'Section Name':'D3',
+                        'D3 Content1': 'a',
+                        'D3 Content2': 'b',
+                        'D3 Content3': 'c'
+                        },
+                     'Fixed Width Section':
+                        {'Section Name':'F3',
+                        'F3 Content1': 1.0,
+                        'F3 Content2': 2.0,
+                        'F3 Content3': 3.0
+                        }
+                    },
+                    {'Delimiter Section':
+                        {'Section Name':'D4',
+                        'D4 Content1': 'd',
+                        'D4 Content2': 'e',
+                        'D4 Content3': 'f'
+                        },
+                    'Fixed Width Section':
+                        {'Section Name':'F4',
+                        'F4 Content1': 4.0,
+                        'F4 Content2': 5.0,
+                        'F4 Content3': 6.0
+                        }
+                    },
+                    {'Delimiter Section':
+                        {'Section Name':'D5',
+                        'D5 Content1': 'g',
+                        'D5 Content2': 'h',
+                        'D5 Content3': 'i'
+                        },
+                    'Fixed Width Section':
+                        {'Section Name':'F5',
+                        'F5 Content1': 7.0,
+                        'F5 Content2': 8.0,
+                        'F5 Content3': 9.0
+                        }
+                    },
+                    {'Delimiter Section':
+                        {'Section Name':'D6',
+                        'D6 Content1': 'j',
+                        'D6 Content2': 'k',
+                        'D6 Content3': 'l'
+                        },
+                    'Fixed Width Section':
+                        {'Section Name':'F6',
+                        'F6 Content1': 10.0,
+                        'F6 Content2': 11.0,
+                        'F6 Content3': 12.0
+                        }
+                    }
                  ]
             }
 
@@ -269,14 +278,14 @@ class TestSectionGroupRead(unittest.TestCase):
             section_name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
-            processor=[self.delimiter_section, self.fixed_width_section],
+            processor=[[self.delimiter_section, self.fixed_width_section]],
             aggregate=make_list
             )
         self.multi_group_section = sections.Section(
             section_name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
-            processor=[self.delimiter_section, self.fixed_width_section],
+            processor=[[self.delimiter_section, self.fixed_width_section]],
             aggregate=make_list
             )
 
@@ -300,10 +309,9 @@ class TestSectionGroupRead(unittest.TestCase):
         test_output = test_section.read(source, start_search=True,
                                         context=self.context)
         expected_output = self.test_result['Test Group Section']
-        for count, output in enumerate(zip(test_output[0], expected_output)):
-            with self.subTest(section=count):
-                section_output = output[0]
-                expected_section_output = output[1]
+        for subsection, section_output in test_output[0].items():
+            with self.subTest(section=subsection):
+                expected_section_output = expected_output[subsection]
                 self.assertDictEqual(section_output,
                                      expected_section_output)
 
@@ -313,14 +321,15 @@ class TestSectionGroupRead(unittest.TestCase):
         test_output = test_section.read(source, start_search=True,
                                         context=self.context)
         expected_output = self.test_result['Test Multi Group Section']
-        for section_count, section_output in enumerate(zip(test_output,
+        for section_count, output in enumerate(zip(test_output,
                                                            expected_output)):
-            for count, output in enumerate(zip(section_output[0],
-                                               section_output[1])):
-                subsection = f'{section_count}.{count}'
-                with self.subTest(subsection=subsection):
-                    s_output = output[0]
-                    e_output = output[1]
-                    self.assertDictEqual(s_output, e_output)
+            with self.subTest(group=section_count):
+                for subsection, section_output in output[0].items():
+                    with self.subTest(section=subsection):
+                        expected_output = output[1]
+                        expected_section_output = expected_output[subsection]
+                self.assertDictEqual(section_output,
+                                     expected_section_output)
+
 if __name__ == '__main__':
     unittest.main()

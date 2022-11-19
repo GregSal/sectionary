@@ -52,8 +52,8 @@ from buffered_iterator import BufferedIteratorEOF
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Sections')
-logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
@@ -1404,7 +1404,7 @@ class ProcessingMethods():
             self.processing_methods = self.clean_methods(processing_methods)
 
     @staticmethod
-    def clean_methods(processing_methods: ProcessMethodOptions)->ProcessMethods:
+    def clean_methods(processing_methods: ProcessMethodOptions)->ProcessFunc:
         '''Convert the supplied functions or action names to a function with
         the expected "Process Function" argument signature.
 
@@ -1433,7 +1433,7 @@ class ProcessingMethods():
         return cleaned_methods
 
     @staticmethod
-    def func_to_iter(source: Source, func: ProcessMethods,
+    def func_to_iter(source: Source, func: ProcessFunc,
                     context: ContextType)->ProcessedItemGen:
         '''Create a iterator that applies func to each item in source.
 
@@ -2010,7 +2010,7 @@ class Section():
         # Look for individual subsections
         if isinstance(processing_def, (self.__class__)):
             read_func = partial(Section.read_subsections, self,
-                                [processing_def])
+                                subsections=[processing_def])
             return read_func
         # Look for subsection groups
         if true_iterable(processing_def):
@@ -2019,7 +2019,8 @@ class Section():
             sec_check = is_sections(processing_def)
             if all(sec_check):
                 cln_func = section_naming(processing_def)
-                read_func = partial(Section.read_subsections, self, cln_func)
+                read_func = partial(Section.read_subsections, self,
+                                    subsections=cln_func)
                 return read_func
             elif any(sec_check):
                 msg = ' '.join(['If an individual processing function is a '
@@ -2091,8 +2092,8 @@ class Section():
                             'ProcessingMethods'])
             raise ValueError(msg) from err
 
-    def read_subsections(self, subsections: Section, source: SectionGen,
-                              context: ContextType)->ProcessOutput:
+    def read_subsections(self, source: SectionGen, context: ContextType,
+                         subsections: List[Section])->ProcessOutput:
         '''Read a single or group of subsections.
 
         This method is used for section instances supplied as processor items to
@@ -2107,9 +2108,9 @@ class Section():
         so that any "Future Items" are not missed.
 
         Arguments:
-            subsections (Section, List[Section]): The subsection(s) to be read.
             source (SectionGen): This section's processor iterator.
             context (ContextType): This section's context.
+            subsections (List[Section]): The subsections to be read.
 
         Yields:
             ProcessOutput:

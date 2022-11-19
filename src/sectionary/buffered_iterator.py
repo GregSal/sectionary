@@ -32,7 +32,7 @@ class BufferedIteratorEOF(BufferedIteratorException, StopIteration):
     '''
 
 class BufferOverflowWarning(BufferedIteratorWarnings):
-    '''Raised when BufferedIterator peak will cause unyielded
+    '''Raised when BufferedIterator peak will cause un-yielded
         lines to be dropped.
     '''
 

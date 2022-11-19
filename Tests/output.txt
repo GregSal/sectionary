@@ -1,0 +1,123 @@
+Sections             - DEBUG: Resetting source for: Top Section.
+Sections             - DEBUG: Starting New Section: Top Section.
+Sections             - DEBUG: Process single sub-section StartSubSection in: Top Section
+Sections             - DEBUG: Resetting source for: StartSubSection.
+Sections             - DEBUG: Advancing to start of StartSubSection.
+Sections             - DEBUG: In:	Top Section	Got item:	Text to be ignored
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 1 in Top Section
+Sections             - DEBUG: Is first item? True
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: In:	StartSubSection	Got item:	Text to be ignored
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: In:	Top Section	Got item:	StartSection A
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 2 in Top Section
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: In:	StartSubSection	Got item:	StartSection A
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: Break triggered by StartSection
+Sections             - DEBUG: Stepping back 1 lines
+Sections             - DEBUG: Section Break Detected
+Sections             - DEBUG: Skipped 1 lines.
+Sections             - DEBUG: Starting New Section: StartSubSection.
+Sections             - DEBUG: In:	StartSubSection	Got item:	StartSection A
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 2 in StartSubSection
+Sections             - DEBUG: Is first item? True
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: This is StartSubSection item number: 0
+Sections             - DEBUG: In:	Top Section	Got item:	EndSection A
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 3 in Top Section
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: In:	StartSubSection	Got item:	EndSection A
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 3 in StartSubSection
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: This is StartSubSection item number: 1
+Sections             - DEBUG: In:	Top Section	Got item:	StartSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 4 in Top Section
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: In:	StartSubSection	Got item:	StartSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 4 in StartSubSection
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: Break triggered by StartSection
+Sections             - DEBUG: Stepping back 1 lines
+Sections             - DEBUG: Section Break Detected
+Sections             - DEBUG: Moving original source to item #3
+Sections             - DEBUG: This is Top Section item number: 0
+Sections             - DEBUG: Resetting source for: StartSubSection.
+Sections             - DEBUG: Advancing to start of StartSubSection.
+Sections             - DEBUG: In:	StartSubSection	Got item:	StartSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: Break triggered by StartSection
+Sections             - DEBUG: Stepping back 1 lines
+Sections             - DEBUG: Section Break Detected
+Sections             - DEBUG: Skipped 0 lines.
+Sections             - DEBUG: Starting New Section: StartSubSection.
+Sections             - DEBUG: In:	StartSubSection	Got item:	StartSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 1 in StartSubSection
+Sections             - DEBUG: Is first item? True
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: This is StartSubSection item number: 0
+Sections             - DEBUG: In:	Top Section	Got item:	EndSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 5 in Top Section
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: In:	StartSubSection	Got item:	EndSection B
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 2 in StartSubSection
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: This is StartSubSection item number: 1
+Sections             - DEBUG: In:	Top Section	Got item:	More text to be ignored
+Sections             - DEBUG: Break Status:	Scan In Progress
+Sections             - DEBUG: This is source item number: 6 in Top Section
+Sections             - DEBUG: Is first item? False
+Sections             - DEBUG: end_on_first_item is  False
+Sections             - DEBUG: Checking for boundary
+Sections             - DEBUG: Checking Trigger: SectionBreak
+Sections             - DEBUG: in section_break.check
+Sections             - DEBUG: Break triggered by More text to be ignored
+Sections             - DEBUG: Stepping back 1 lines
+Sections             - DEBUG: Section Break Detected
+Sections             - DEBUG: Break Status:	End of Source
+Sections             - DEBUG: This is Top Section item number: 1
+Sections             - DEBUG: Moving section source to item #2
