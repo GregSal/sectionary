@@ -158,7 +158,9 @@ def to_structure_data_tuple(structure_data_list):
     '''
     structures_dict = dict()
     dvh_data_list = list()
-    for structure_data, dvh_data in structure_data_list:
+    for structure_data_set in structure_data_list:
+        structure_data = structure_data_set['Structure']
+        dvh_data = structure_data_set['DVH']
         plan_name = structure_data['Plan']
         course_id = structure_data['Course']
         structure_id = structure_data['Structure']
@@ -275,7 +277,7 @@ dvh_data_section = Section(
 dvh_group_section = Section(
     section_name='DVH Groups',
     start_section=structure_info_start,
-    processor=[structure_info_section, dvh_data_section],
+    processor=[[structure_info_section, dvh_data_section]],
     aggregate=to_structure_data_tuple
     )
 
