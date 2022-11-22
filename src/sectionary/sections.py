@@ -166,6 +166,31 @@ def true_iterable(variable)-> bool:
     '''
     return not isinstance(variable, str) and isinstance(variable, Iterable)  # pylint: disable=isinstance-second-argument-not-valid-type
 
+def is_empty(obj: Any)->bool:
+    '''Test whether an object is empty.
+
+    If object is None, it is empty.
+    If object has length 0 it is empty.
+    Otherwise it is not empty.
+
+    Args:
+        obj (Any): The object to be tested
+
+    Returns:
+        bool: Returns true if the object is empty.
+    '''
+    if obj is None:
+        return True
+    try:
+        has_length = len(obj)
+    except TypeError as err:
+            return False
+    else:
+        if has_length == 0:
+            return True
+        else:
+            return False
+
 
 def standard_action(action_name: str, method_type='Process')->SectionCallables:
     '''Convert a Method name to a Standard Function.
@@ -2139,9 +2164,9 @@ class Section():
                 s_context.update(sub_sec.context)
                 if sub_sec.scan_status in ['End of Source']:
                     done_read = True  # Break if end of source reached
-                    if read_itm:  # Don't return empty read results.
+                    if not is_empty(read_itm):  # Don't return empty read results.
                         read_items[sub_sec.section_name] = read_itm
-                    break
+                        break
                 else:
                     # Always store read result is subsection did not close
                     read_items[sub_sec.section_name] = read_itm
