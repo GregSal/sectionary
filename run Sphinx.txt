@@ -3,4 +3,4 @@
 >>> import sections
 
 
-sphinx-apidoc -f -o source ../src/sectionary
+sphinx-apidoc -f -o source ../src

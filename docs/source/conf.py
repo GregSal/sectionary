@@ -13,12 +13,12 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath(r'..\..\src\sectionary'))
+sys.path.insert(0, os.path.abspath(r'..\..\src'))
 sys.path.insert(0, os.path.abspath('../..'))
-sys.path.append(r'src/sectionary')
+sys.path.append(r'src')
 
-sys.path.append(r"C:/Users/Greg/OneDrive - Queen's University/Python/Projects/sectionary package/src/sectionary")
-#C:\Users\Greg\OneDrive - Queen's University\Python\Projects\sectionary package\src\sectionary
+sys.path.append(r"C:/Users/Greg/OneDrive - Queen's University/Python/Projects/sectionary package/src")
+#C:\Users\Greg\OneDrive - Queen's University\Python\Projects\sectionary package\src
 for x in os.walk('../../src'):
   sys.path.insert(0, x[0])
 
