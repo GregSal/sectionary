@@ -351,7 +351,7 @@ def set_method(given_method: RuleMethodOptions,
     generator function.
 
     Arguments:
-        rule_method (RuleMethodOptions): A function, or the name of a
+        given_method (RuleMethodOptions): A function, or the name of a
             standard action.
         method_type (str): The type of action function expected.
             One of ['Process', 'Rule']. Defaults to 'Process'
@@ -389,6 +389,8 @@ def set_method(given_method: RuleMethodOptions,
     return use_function
 
 
+# DONE TO HERE
+# %% Helper Classes
 class ProtectedDict(dict):
     '''Dictionary that will not update specified items.
 

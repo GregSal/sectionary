@@ -20,7 +20,6 @@ logger.setLevel(logging.INFO)
 class BufferedIteratorWarnings(UserWarning):
     '''Base Warning class for BufferedIterator.'''
 
-
 class BufferedIteratorException(Exception):
     '''Base Exception class for BufferedIterator.'''
 
@@ -40,17 +39,79 @@ class BufferOverflowWarning(BufferedIteratorWarnings):
 #%% Classes
 class BufferedIterator():
     '''Iterate through sequence allowing for backup and look ahead.
+
+    BufferedIterator is an iterator tool for any type of Sequence object,
+    providing a means to step in both directions.  It's primary feature are two
+    queues: previous_items and future_items, storing previous visited items.
+    It also contains an internal enumerator, which can be used as an index to
+    move to a particular spot in the sequence.
+
+    Attributes:
+        previous_items (deque): The last n items consumed by the iterator,
+            where n is the iterator's buffer_size attribute. A next() call will
+            append the item returned to the previous_items queue, and if full,
+            drop an item from the other end of the queue.  The backup() and
+            rewind() calls pull items from this queue.
+        future_items (deque): Contains items consumed by the base iterator, but
+            before the current pointer.  Populated by calls such as
+            look_ahead() and advance()
+        buffer_size (int): The size of the previous_items and future_items
+            queues. buffer_size can only be set at instance creation.
+        item_count (int): A read-only attribute indicating the number of items
+            used (position) in the iterator.
+            To match normal python indexing, item_count = 0 represents the
+            beginning of the sequence. (i.e. A next() call will return the
+            first item in the sequence).
+        source_gen (Iterator): The base iterator created at object
+            initialization from the supplied Sequence.  Generally there should
+            be no reason to access this directly.
+
+    Methods:
+        next() and iter(): BufferedIterator supports the standard next()
+            and iter() methods.
+        backup(steps: int = 1): Move the iterator pointer back the given number
+            of steps.
+        skip(steps: int = 1): Ignore the given number of items in the source.
+            The items  in between cannot be retrieved with backup or look_back.
+        advance(steps: int = 1, buffer_overrun=False):  Move the given number
+            of items forward through in source.  The items passed over can be
+            retrieved with backup or look_back.
+        look_back(steps: int = 1)->SourceItem: Return the item the given number
+            of steps back, but do not move the position in the source.
+        look_ahead(steps: int = 1)->SourceItem: Return the item the given number
+            of steps ahead, but do not move the position in the source.
+        goto_item(item_num: int, buffer_overrun=False): Move the position in the
+            source to the given item number.  Do not return the items in
+            between. The items passed over can be retrieved with backup() or
+            look_back().
     '''
     def __init__(self, source: Sequence[SourceItem], buffer_size=5):
+        '''Create a new BufferedIterator, linking it with the supplied Sequence
+            and initialize the forward and reverse buffers.
+
+        Args:
+            source (Sequence[SourceItem]): The sequence to be iterated over.
+            buffer_size (int, optional): The size of the forward and reverse
+                buffers. the size of these buffers dictate how far forward and
+                backwards it is possible to shift the pointer. Defaults to 5.
+
+        Raises:
+            BufferedIteratorValueError: Raised if the supplied buffer_size is
+                less than 1.
+        '''
         if buffer_size < 1:
             raise BufferedIteratorValueError('Buffer size must be 1 or greater')
-        self.buffer_size = buffer_size
+        self._buffer_size = buffer_size
         self.source_gen = iter(source)
         self.previous_items = deque(maxlen=buffer_size)
         self.future_items = deque(maxlen=buffer_size)
         self._step_back = 0
         self._item_count = 0
         return
+
+    @property
+    def buffer_size(self)->int:
+        return self._buffer_size
 
     @property
     def item_count(self) -> int:
@@ -60,9 +121,42 @@ class BufferedIterator():
         '''
         return int(self._item_count)
 
-    def get_next_item(self) -> SourceItem:
+    @property
+    def step_back(self) -> int:
+        '''The number of steps backwards to move the iterator pointer.'''
+        return self._step_back
+
+    @step_back.setter
+    def step_back(self, steps: int):
+        '''Move the iterator pointer back the given number of steps.
+
+        Compares the requested "steps" back against the size of the
+            "previous_items" queue. If the queue has enough items, sets the
+            "step_back" property to "steps". Otherwise raises
+            "BufferedIteratorValueError" exception.  Steps must be a positive
+            integer. Negative values for steps will raise the
+            "BufferedIteratorValueError" exception. A value of zero will be
+            ignored.  Float values will be truncated to integers.
+
+        Args:
+            steps (int): The given number of steps to set for the "step_back"
+               property.
+        Raises:
+            BufferedIteratorValueError: Indicates an invalid "steps" value.
+                Either a larger value than the number of items in the
+                "previous_items" queue, or a negative value.
+        Returns:
+            None.
         '''
-        Get the next item from the source.
+        logger.debug(f'Have {len(self.previous_items)} Previous Items')
+        logger.debug(f'Need {steps} Steps back')
+        steps = self.check_steps(steps)
+        self._step_back = steps
+        self.rewind()
+
+    def get_next_item(self) -> SourceItem:
+        '''Get the next item from the source. Called by skip() and advance().
+        Usually not called directly.
 
         If there are items in the "future_items" queue, return the next item
             from the queue.  Otherwise read from the "source_gen".  If reading
@@ -139,7 +233,7 @@ class BufferedIterator():
         return
 
     def check_steps(self, steps: int, backwards=True, skip=False)->int:
-        '''Check the steps value.
+        '''Check the steps value.  This method is usually not called directly.
 
         Convert number-like "steps" to int.  If conversion fails, raise the
             "BufferedIteratorValueError" exception.
@@ -189,47 +283,14 @@ class BufferedIterator():
                     'Will not be able to retain all skipped items.')
         return steps
 
-    @property
-    def step_back(self) -> int:
-        '''The number of steps backwards to move the iterator pointer.'''
-        return self._step_back
-
-    @step_back.setter
-    def step_back(self, steps: int):
-        '''Move the iterator pointer back the given number of steps.
-
-        Compares the requested "steps" back against the size of the
-            "previous_items" queue. If the queue has enough items, sets the
-            "step_back" property to "steps". Otherwise raises
-            "BufferedIteratorValueError" exception.  Steps must be a positive
-            integer. Negative values for steps will raise the
-            "BufferedIteratorValueError" exception. A value of zero will be
-            ignored.  Float values will be truncated to integers.
-
-        Args:
-            steps (int): The given number of steps to set for the "step_back"
-               property.
-        Raises:
-            BufferedIteratorValueError: Indicates and invalid "steps" value.
-                Either a larger value than the number of items in the
-                "previous_items" queue, or a negative value.
-        Returns:
-            None.
-        '''
-        logger.debug(f'Have {len(self.previous_items)} Previous Items')
-        logger.debug(f'Need {steps} Steps back')
-        steps = self.check_steps(steps)
-        self._step_back = steps
-        self.rewind()
-
     def rewind(self):
         '''
         Move the iterator pointer back the number of steps set in the
-        "step_back" property.
+        "step_back" property.  Usually not called directly().
 
         The appropriate number of items in the "previous_items" queue are
            moved to the "future_items" queue and the "step_back" property is
-           reset to 0.
+           reset to 0. Called by backup()
         Returns:
             None.
         '''
@@ -390,10 +451,12 @@ class BufferedIterator():
     def link(self, other: BufferedIterator,
              include_previous_items=True,
              include_future_items=False):
-        '''Copy certain buffer items from another instance.
+        '''Copy certain buffer items from another instance.  Usually not called
+            directly()
 
         Copy _step_back and _item_count properties from other.  Optionally copy
-        previous and future queues from other.
+        previous and future queues from other. Used by the Section class to
+        manage subsection iteration.
 
         Args:
             other (BufferedIterator): The BufferedIterator instance to copy
@@ -420,7 +483,12 @@ class BufferedIterator():
         if include_future_items:
             self.future_items.extend(other.future_items)
 
-    def __repr__(self):
+    def __repr__(self)->str:
+        '''Generate a string representation of a BufferedIterator instance.
+
+        Returns:
+            str: a string representation of this BufferedIterator instance
+        '''
         class_name = self.__class__.__name__
         repr_str = ''.join([
             f'{class_name}(source={repr(self.source_gen)}, ',
