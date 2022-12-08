@@ -40,6 +40,23 @@ def pairs(source):
         yield tuple([item, next(source)])
 
 
+def n_split(source):
+    '''Extract numbers from stings of comma separated integers.
+
+    Number are extracted by splitting on the commas.  Spaces are ignored.
+
+    Args:
+        source (Sequence[str]): A sequence of stings composed of comma separated
+            integers. e.g. ['0, 1', '2, 3', '4, 5' ...]
+
+    Yields:
+        int: Integer values extracted from the strings.
+    '''
+    for item in source:
+        nums = [int(num_s.strip()) for num_s in item.split(',')]
+        yield from nums
+
+
 def odd_nums(source):
     '''Yield Odd items
     Args:
@@ -64,6 +81,11 @@ class TestSourceTracking(unittest.TestCase):
 
         self.int_source = BufferedIterator(
             (i for i in range(self.num_items)),
+            buffer_size=self.buffer_size)
+
+        self.pairs_source = BufferedIterator(
+            [f'{a}, {b}' for a, b in zip(range(0, self.num_items * 2, 2),
+                                         range(1, self.num_items * 2, 2))],
             buffer_size=self.buffer_size)
 
     def test_before_source_initialized(self):
@@ -123,15 +145,40 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.source_item_count
                 - source.item_count = section.item_count * 2
         '''
-        section_1_1 = Section(section_name='1-to-1 match')
-        for item in section_1_1.process(self.int_source):
+        section_2_1 = Section(section_name='2-to-1 match',
+                              processor=[pairs])
+        for item in section_2_1.process(self.int_source):
             with self.subTest(item=item):
                 source_count = self.int_source.item_count
-                source_item_count = section_1_1.source_item_count
-                item_count = section_1_1.item_count
-                self.assertEqual(item+1, source_count)
+                source_item_count = section_2_1.source_item_count
+                item_count = section_2_1.item_count
+                expected_item = (source_count-2, source_count-1)
+                self.assertEqual(item, expected_item)
                 self.assertEqual(source_count, source_item_count)
-                self.assertEqual(source_count, item_count)
+                self.assertEqual(source_item_count, item_count * 2)
+
+    def test_1_to_2_processor(self):
+        '''1-to-2 match
+        - Numerical pairs as source:
+            `['0, 1', '2, 3', '4, 5'` $\cdots$`]`
+        - processor converts 1 source item into 2 output lines
+        - for each source item:
+            > `nums = [int(num_s.strip()) for num_s in item.split(',')]`<br>
+            > `section item 1 = nums[0]`,<br>
+            > `section item 2 = nums[1]`
+        - source.item_count = (section.item_count + 1) // 2
+        - section.source_item_count = section.source_index[-1]
+        '''
+        section_1_2 = Section(section_name='1-to-2 match',
+                              processor=[n_split])
+        for item in section_1_2.process(self.pairs_source):
+            with self.subTest(item=item):
+                source_count = self.pairs_source.item_count
+                source_item_count = section_1_2.source_item_count
+                item_count = section_1_2.item_count
+                self.assertEqual(item+1, item_count)
+                self.assertEqual(source_count, source_item_count)
+                self.assertEqual(source_count, (item_count+1) //2)
 
     def test_skip_first_item_count(self):
         '''Skip First Source Item

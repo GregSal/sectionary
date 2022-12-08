@@ -389,7 +389,6 @@ def set_method(given_method: RuleMethodOptions,
     return use_function
 
 
-# DONE TO HERE
 # %% Helper Classes
 class ProtectedDict(dict):
     '''Dictionary that will not update specified items.
@@ -421,6 +420,9 @@ class ProtectedDict(dict):
         '''Update the dictionary with the key/value pairs from other,
         overwriting values for existing keys except those in protected_items.
 
+        Calls the built-in dict.update() after removing any supplied items in
+        the object's protected_items list.
+
         Accepts either another dictionary object or an iterable of key/value
         pairs (as tuples or other iterables of length two). If keyword arguments
         are specified, the dictionary is then updated with those key/value
@@ -439,6 +441,11 @@ class ProtectedDict(dict):
 #%% Iteration Tools
 class TriggerEvent(): # pylint: disable=function-redefined
     '''Trigger test result information.
+
+    A helper class to the Trigger Trigger class.  TriggerEvent objects are
+    created by a Trigger class.  Whenever the trigger.evaluate() method returns
+    True, the trigger.event attribute is populated with the related
+    TriggerEvent object.
 
     Attributes:
         trigger_name (str): The name of the trigger the test is associated
@@ -495,7 +502,7 @@ class TriggerEvent(): # pylint: disable=function-redefined
 
     def record_event(self, test_result: TestResult, sentinel: TriggerTypes,
                      trigger_name: str, sentinel_type: str):
-        '''Set the appropriate event values a passed test.
+        '''Set the appropriate event values from a passed test.
 
         The event object and label type depend on sentinel_type:
             sentinel_type        type(test_value)      test_name
@@ -552,7 +559,7 @@ class TriggerEvent(): # pylint: disable=function-redefined
 class Trigger():
     '''Test definition for evaluating a source item.
 
-    A trigger is formed by a conditional definition to be applied to source
+    A trigger is formed from a conditional definition to be applied to source
     items.  The conditional definition is generated from one of the following
     sentinel types:
 
@@ -634,7 +641,6 @@ class Trigger():
         '''Define test(s) that signal a trigger event.
 
         Arguments:
-            name (str, optional): A reference label for the Trigger.
             sentinel (TriggerOptions): Object(s) used to generate the
                 conditional definition.
                 Note: int type sentinel is not yet implemented.
@@ -652,6 +658,8 @@ class Trigger():
                     location == 'START' -> sentinel.match(line),
                     location == 'FULL' -> sentinel.fullmatch(line),
                     location == 'END' -> raise NotImplementedError.
+            name (str, optional): A reference label for the Trigger. Default is
+                'Trigger'.
         '''
         self.sentinel = sentinel
         self.name = name
@@ -740,8 +748,8 @@ class Trigger():
             location (str): Indicates how string and regular expression
                 sentinels will be applied as a test. One of:
                     'IN', 'START', 'END', 'FULL'
-            location is only relevant for String' and 'RE' sentinel types.
-            For all other types it will be ignored.
+                location is only relevant for String' and 'RE' sentinel types.
+                For all other types it will be ignored.
         Returns:
             (Callable[[TriggerTypes, SourceItem, ContextType], TestResult]:
             The test function to apply.
@@ -782,8 +790,8 @@ class Trigger():
 
     @property
     def event(self):
-        '''TriggerEvent: Information on the result of the Trigger test, see the
-        TriggerEvent for details.
+        '''TriggerEvent: Read-only information on the result of the Trigger
+        test. See TriggerEvent for details.
         '''
         return self._event
 
@@ -845,18 +853,16 @@ class SectionBreak(Trigger):  # pylint: disable=function-redefined
         'Before' -> offset = -1 -> The SectionBreak location is just before the
                                    current item (Step back 1 item).
     Attributes:
-        sentinel (None, bool, int,
-                    str or List[str],
-                    re.Pattern or List[re.Pattern],
-                    Callable or List[Callable]):
+        sentinel (None, bool, int, str or List[str],
+                  re.Pattern or List[re.Pattern],
+                  Callable or List[Callable]):
             the object(s) used to generate the conditional definition.
         event (TriggerEvent): Information resulting from applying the test.
-        See Trigger class for more information on the sentinel and event
-        attributes.
-
-        name (str): A text label for the boundary.
+            See Trigger class for more information on the sentinel and event
+            attributes.
         offset (int): Specifies the distance (in number of Source items)
             between the location identified by trigger and the boundary.
+        name (str): A text label for the boundary.
     '''
     def __init__(self, sentinel: TriggerOptions, location: str = None,
                  break_offset: OffsetTypes = 'Before', name='SectionBreak'):
@@ -921,7 +927,6 @@ class SectionBreak(Trigger):  # pylint: disable=function-redefined
                        '"Before" or "After";\t Got {repr(offset)}')
                 raise ValueError(msg) from err
         self._offset = offset_value
-
 
     def check(self, item: SourceItem, source: BufferedIterator,
               context: ContextType = None)->bool:
@@ -1056,11 +1061,6 @@ class Rule(Trigger):
                 is ignored. One of  ['IN', 'START', 'END', 'FULL', None].
                 Default is None, which is treated as 'IN'
 
-            See Trigger class for more information on the sentinel and event
-            arguments.
-
-            name (str, optional): A reference label for the Rule.
-
             pass_method (RuleMethodOptions): A function, or the name of a
                 standard action to be implemented if the test passes on the
                 supplied item.
@@ -1083,8 +1083,12 @@ class Rule(Trigger):
                 'Name': return the self.event.test_name object.
                 'None': return None
                 'Blank': return ''  (an empty string)
-        Both pass_method and fail_method should return the same data type. No
+            name (str, optional): A reference label for the Rule.
+
+        - Both pass_method and fail_method should return the same data type. No
         checking is done to validate this.
+        - See Trigger class for more information on the sentinel and event
+        arguments.
         '''
         super().__init__(sentinel, location, name)
         self.default_method = 'Original'
@@ -1107,7 +1111,8 @@ class Rule(Trigger):
 
         Returns:
             RuleFunc: A function with the standard Rule Method argument
-            signature: rule_method(test_object: SourceItem, event: TriggerEvent, context)
+            signature:
+                rule_method(test_object: SourceItem, event: TriggerEvent, context)
         '''
         if not rule_method:
             use_function = self.default_method
@@ -1168,30 +1173,10 @@ class Rule(Trigger):
 
     def apply_iter(self, test_object: SourceItem,
                  context: ContextType = None)->ProcessedItemGen:
-        '''Rule and Trigger methods only accept a single SourceItem
-        returns a generator function that iterates over the output of a
-        single SourceItem.
+        '''Returns a generator function that iterates over the output of a
+        single SourceItem.  The is necessary because Trigger.evaluate() and the
+        Rule pass and fail methods only accept a single SourceItem.
         '''
-        if not context:
-            context = dict()
-        result = self.apply(test_object, context)
-        if self.use_gen:
-            try:
-                for p_item in result:
-                    yield p_item
-            except StopIteration:
-                return None
-        else:
-            yield result
-        return None
-
-    def __call__(self, test_object: SourceItem,
-                 context: ContextType = None)->ProcessedItemGen:
-        '''Rule and Trigger methods only accept a single SourceItem
-        call returns a generator function that iterates over the output of a
-        single SourceItem.
-        '''
-        logger.debug(f'Calling Rule {self.name}.')
         if not context:
             context = dict()
         result = self.apply(test_object, context)
@@ -1206,16 +1191,19 @@ class Rule(Trigger):
         else:
             yield result
         return None
+    # Set a rule object as a generator function that apples the rule to each
+    # item in the supplied sequence.
+    __call__ = apply_iter
 
 
 class RuleSet():
     '''Combine related Rules to provide multiple choices for actions.
 
     A Rule Set takes A sequence of Rules and a default method. Each Rule in the
-    sequence will be applied to the input until One of the rules triggers. At
-    that point The sequence ends.  If no Rule triggers then the default method
-    is applied.  Each of the Rules (and the default) should expect the same
-    input type and should produce the same output type.
+    sequence will be applied to the input until One of the rules is triggered.
+    At that point The sequence ends.  If no Rule triggers then the default
+    method is applied.  Each of the Rules (and the default) should expect the
+    same input type and should produce the same output type.
 
     The default_method should have one of the following argument signatures:
         rule_method(item: SourceItem)
@@ -1232,9 +1220,9 @@ class RuleSet():
 
     Attributes:
         rule_seq (List[Rule]): The Rules to apply to the supplied object. The
-        result on only one of the Rules will be returned (the first one to
-        pass).  If none of the Rules pass, the output from the default method
-        will be returned.
+            result on only one of the Rules will be returned (the first one to
+            pass).  If none of the Rules pass, the output from the default
+            method will be returned.
 
         default_method (ProcessFunc): The method to apply if none of the Rules
             pass.
@@ -1262,7 +1250,7 @@ class RuleSet():
                 following argument signatures:
                     rule_method(item: SourceItem)
                     rule_method(item: SourceItem, context)
-                Or be the names of a standard action:
+                OR be the names of a standard action:
                     'Original': return the item being.
                     'Event': return the self.event object.
                     'None': return None
@@ -1390,7 +1378,7 @@ class ProcessingMethods():
         func(item, context)
         func(item, [other(s),] ** context)
 
-    Arguments:
+    Attributes:
         processing_methods (ProcessGroup): The sequence of Processes (functions,
             generator functions, Rules, and/or RuleSets) to be applied to a
             source.
@@ -1431,7 +1419,7 @@ class ProcessingMethods():
             self.processing_methods = self.clean_methods(processing_methods)
 
     @staticmethod
-    def clean_methods(processing_methods: ProcessMethodOptions)->ProcessFunc:
+    def clean_methods(processing_methods: ProcessMethodOptions)->ProcessMethodsList:
         '''Convert the supplied functions or action names to a function with
         the expected "Process Function" argument signature.
 
@@ -1440,14 +1428,15 @@ class ProcessingMethods():
 
         In addition to correcting the argument signature, also identify any
         supplied function that are generator functions.
+
         Arguments:
             processing_methods (ProcessMethodOptions): A sequence of action
                 names, functions, generator functions, Rules, and RuleSets to be
                 applied to a source.
 
         Returns:
-            ProcessMethods: The sequence of Processes with the correct argument
-                signature.
+            ProcessMethodsList: The sequence of Processes with the correct
+                argument signature.
         '''
         if not true_iterable(processing_methods):
             processing_methods = [processing_methods]
@@ -1461,7 +1450,7 @@ class ProcessingMethods():
 
     @staticmethod
     def func_to_iter(source: Source, func: ProcessFunc,
-                    context: ContextType)->ProcessedItemGen:
+                    context: ContextType = None)->ProcessedItemGen:
         '''Create a iterator that applies func to each item in source.
 
         If func is a generator function, return the iterator created by calling
@@ -1469,19 +1458,26 @@ class ProcessingMethods():
         iterator that returns the result of calling func on each item in source.
         No type checking is performed.
 
+        context is not explicitly returned, but if supplied, items in context
+        may be modified by func.
+
         Arguments:
             source (Source): An iterator that returns the appropriate data types
                 for func.
             func (ProcessCallableOptions): A function Rule or RuleSet that
                 can be applied to a Source.
+            context (ContextType, optional): Contextual information to be used
+                and / or set by func. Defaults to None.
         Returns:
             ProcessedItemGen: An iterator that returns the result of calling func
                 on each item in source.
         '''
-        def func_gen(source, context):
+        def func_gen(source, context) -> Generator[ProcessedItem, None, None]:
             for item in source:
                 yield from func(item, context)
 
+        if not context:
+            context = dict()
         if isinstance(func, (Rule, RuleSet)):
             return func_gen(source, context)
         # Test whether the function is a generator function as identified
@@ -1492,12 +1488,18 @@ class ProcessingMethods():
 
     def reader(self, source: Source,
                context: ContextType = None)->ProcessedItemGen:
-        '''Applies the ProcessingMethods to a given sequence.
+        '''A generator function that applies the ProcessingMethods to a given
+        sequence.
+
+        context is not explicitly returned, but if supplied, items in context
+        may be modified by func.
 
         Arguments:
             source (Source): A sequence of items with a type matching that
                 expected by the first of the series of processing methods.
-            context (ContextType, optional): [description]. Defaults to None.
+            context (ContextType, optional): Additional information that can be
+                accessed and / or set by the Process functions.
+                Defaults to None.
         Yields:
             ProcessedItemGen: An iterator of the results of applying the
                 process functions to the input source sequence.
@@ -1510,6 +1512,29 @@ class ProcessingMethods():
         final_generator = iter(next_source)
         return final_generator
 
+    def read(self, source: Source, context: ContextType = None)->ProcessedList:
+        '''Iterate through the given sequence, applying the ProcessingMethods
+        to each item in the source.
+
+        Arguments:
+            source (Source): A sequence of items with a type matching that
+                expected by the first of the series of processing methods.
+            context (ContextType, optional): Additional information that can be
+                accessed and / or set by the Process functions.
+                Defaults to None.
+        Returns:
+            ProcessedList: The results of applying the process functions to the
+            input source sequence.
+        '''
+        process_gen = self.reader(source, context)
+        processed_items = list()
+        while True:
+            try:
+                processed_items.append(next(process_gen))
+            except StopIteration:
+                break
+        return processed_items
+
     def process(self, item: SourceItem,
                 context: ContextType = None)->ProcessOutput:
         '''Applies the ProcessingMethods to an individual item.
@@ -1518,11 +1543,15 @@ class ProcessingMethods():
         return the single ProcessedItem, otherwise return a list of the
         resulting ProcessedItems.
 
+        context is not explicitly returned, but if supplied, items in context
+        may be modified by func.
+
         Arguments:
             item (SourceItem): An item with a type matching that expected by the
                 first of the series of processing methods.
             context (ContextType, optional): Additional information that can be
-                accessed by the Process functions. Defaults to None.
+                accessed and / or set by the Process functions.
+                Defaults to None.
         Returns:
             ProcessOutput: The results of applying the process functions to the
             input item.
@@ -1537,27 +1566,8 @@ class ProcessingMethods():
             output = output[0]
         return output
 
-    def read(self, source: Source, context: ContextType = None)->ProcessedList:
-        '''Applies the ProcessingMethods to a given sequence.
 
-        Arguments:
-            source (Source): A sequence of items with a type matching that
-                expected by the first of the series of processing methods.
-            context (ContextType, optional): [description]. Defaults to None.
-        Returns:
-            ProcessedList: The results of applying the process functions to the
-            input source sequence.
-        '''
-        process_gen = self.reader(source, context)
-        processed_items = list()
-        while True:
-            try:
-                processed_items.append(next(process_gen))
-            except StopIteration:
-                break
-        return processed_items
-
-
+# DONE TO HERE
 #%% Section
 class Section():
     '''Defines a continuous portion of a text stream or other iterable.
@@ -1568,7 +1578,7 @@ class Section():
         ○ An aggregation method.
 
     A Section instance is created by defining one or more of these components.
-    Once a section has been defined, it can be applied to an iterator using:
+    Once a section has been defined, it can be applied to an sequence using:
         section.read(source)
         Where
             source is any iterable supplying the text lines to be parsed.
@@ -1592,43 +1602,105 @@ class Section():
             applying the defined processing, but omitting the aggregation.
 
     Attributes:
+        Principal Section definition attributes.  The start_section,
+        end_section, processor, and aggregate attributes are generally set at
+        instance creation.
+
+            start_section (>List["SectionBreak"): The SectionBreaks used
+                to identify the location of the start of the section.
+            end_section >List["SectionBreak"): The SectionBreaks used
+                to identify the location of the end of the section.
+            processor (ProcessingMethods): Instructions for processing the
+                section items.
+            aggregate (AggregateFunc): A function used to collect and format,
+                the processor output into a single object.
             section_name (str): A reference name for the section instance.
-            keep_partial (bool): In the case where the reader is
-                composed of one or more subsections and the main section ends
-                before the subsections end. If keep_partial is true the partial
-                subsection(s) will be returned, otherwise they will be dropped.
-            start_search (bool, optional): Indicates whether to advance through
-                the source until the beginning of the section is found or
-                assume that the section begins at the start of the source.
-                Defaults to True, meaning advance until the start boundary is
-                found.
-            scan_status (str): Indicates section reading progress. It is useful
-                for providing user feedback when the section reading process
-                is lengthy.  scan_status Will contain one of the following
-                text strings:
-                   'Not Started'
-                   'At section start'
-                   'Break Triggered'
-                   'Scan Complete'
-                   'End of Source'
-            context (Dict[str, Any]): Break point information and any
-                additional information to be passed to and from break point,
-                processing and aggregation methods. This is the primary method
-                for different reading stages to pass contextual information.
+
+        Options Settings. start_search and end_on_first_item
+
+            start_search (bool): Indicates whether to advance through the source
+                until the beginning of the section is found or assume that the
+                section begins at the start of the source.
+            end_on_first_item (bool): Indicates whether to test the first item
+                in the sectioned for an end breakpoint. This is useful in cases
+                where the start_section and end_section triggers are the same.
+                In that case, start_section and end_section would trigger on the
+                same line, resulting in an empty section.
+                Setting end_on_first_item to False prevents this.
+
+        Status Indicators.  scan_status and context provide information about
+            the state of the section while and after being applied to a
+            sequence.
+
+            scan_status (str): This read-only attribute indicates section
+                reading progress. It is useful for providing user feedback when
+                the section reading process is lengthy.  scan_status Will
+                contain one of the following text strings:
+                    'Not Started'
+                    'At section start'
+                    'Break Triggered'
+                    'Scan Complete'
+                    'End of Source'
+            context (Dict[str, Any]): The primary mechanism for the processing
+                and aggregation methods to pass contextual information. Break
+                point results are is the most commonly used information and are
+                automatically added to context.
                 When a section boundary is encountered (including sub-sections)
                 two items will be added to the context dictionary:
                     'Break': (str): The name of the Trigger instance that
                         activated the boundary condition.
-
                     'Event' (bool, str, re.match): Information on the
                         boundary condition returned by the Trigger instance.
                             If Trigger always passes, 'Event' will be True.
                             If Trigger matched a string, bool, 'Event' will
                                 be the matching string.
-
                             If Trigger matched a regular expression, 'Event'
                                 will be the resulting re.match object.
+                Additional information can also be stored in context.
+            source (BufferedIterator): The iterable object (with a
+                BufferedIterator wrapper) that the section instance is actively
+                iterating through.  Do not directly advance the iterator as the
+                results will be unpredictable.
+
+        Indexing attributes. item_count, source_item_count, and source_index
+            provide read-only indexing and counting information for the
+            section while and after being applied to a sequence.
+
+            source_item_count (int): The number of items that has been consumed
+                from the source.
+            item_count (int): The number of items that has been generated by
+                the process methods.  If each source item results in a single
+                processed item, then source_item_count and item_count will be
+                identical.  If the processing methods merge, split or skip
+                source items, then then source_item_count and item_count will be
+                different.
+            source_index (list[int]): A list of the source index
+                (source.item_count) after each item is generated. The first item
+                in the list is 0, pointing to the beginning of the source. The
+                length of source_index is one more than the number of section
+                items that have been generated. If each source item results in
+                more than one processed item, then the same source index value
+                will be repeated.
+
+    Methods:
+        read(source, start_search, do_reset, initialize, context): Step through
+            all items from source that are in section, returning the aggregated
+            section.
+
+        process(source, start_search, do_reset, initialize, context): Provide a
+            generator that will step through all items from source that are in
+            section, applying the section processing methods to each item.
+
+        scan(source, start_search, do_reset, initialize, context): Provide a
+            generator that will step through all items from source that are in
+            section, yielding the source item.
   '''
+  # keep_partial Future work Not Implemented.
+    #        keep_partial (bool): In the case where the reader is composed of
+    #            one or more subsections and the main section ends before the
+    #            subsections end. If keep_partial is true the partial
+    #            subsection(s) will be returned, otherwise they will be dropped.
+
     # A SectionBreak that causes the section to start with the first item in
     # the source.  This will normally not be used, because if start_section is
     # not given self.start_search is set to False.  This will only be used if
@@ -1648,10 +1720,9 @@ class Section():
                  start_section: BreakOptions = None,
                  end_section: BreakOptions = None,
                  processor: ProcessorOptions = None,
-                 subsections: SectionOptions = None,
                  aggregate: AggregateCallableOptions = None,
                  section_name: str = 'Section',
-                 keep_partial: bool = False,
+                 #keep_partial: bool = False,
                  end_on_first_item: bool = False,
                  start_search: bool = None):
         '''Creates an Section instance that defines a continuous portion of a
@@ -1693,12 +1764,6 @@ class Section():
                 Defaults to None, which returns a list of the processor output.
             section_name (str, optional): A label to be applied to the section.
                 Defaults to 'Section'.
-            keep_partial (bool, optional): **Not Yet Implemented.**
-                In the case where the reader is
-                composed of one or more subsections and the main section ends
-                before the subsections end. If keep_partial is true the partial
-                subsection(s) will be returned, otherwise they will be dropped.
-                Defaults to False.
             end_on_first_item (bool, optional): If True, the item that triggers
                 the start of a section may also trigger the end of the section.
                 If False, the first item in the section will not be tested for
@@ -1716,7 +1781,7 @@ class Section():
         '''
         # Initialize attributes
         self.section_name = section_name
-        self.keep_partial = keep_partial
+        #self.keep_partial = keep_partial
         self.end_on_first_item = end_on_first_item
         # If start_search is None, This will be modified based on whether .
         # start_section is given
@@ -1739,8 +1804,7 @@ class Section():
 
         # The context, scan_status and source attributes must be reset every
         # time the Section instance is applied to a new source iterable.  The
-        # reset() method set these attributes to the values below.
-        # In addition, subsections must also be reset.
+        # reset() method sets these attributes to the values below.
 
         self.context = None
         self._original_source = None
@@ -1757,7 +1821,6 @@ class Section():
         the section instance can be re-used with a new source.  If subsections
         are defined, the same attributes in the subsections will also be reset.
         '''
-
         self.context = ProtectedDict(protected_items=[
             'Current Section',
             'Skipped Lines',
@@ -1775,17 +1838,12 @@ class Section():
         for break_itm in self.end_section:
             break_itm.reset()
 
-        # Reset subsection attributes
-        # if self.subsections:
-        #     for sub_sec in self.subsections:
-        #         sub_sec.reset()
-
     @property
-    def source_index(self):
+    def source_index(self) -> list[int] | None:
         return self._source_index
 
     @property
-    def source_item_count(self):
+    def source_item_count(self) -> int:
         if not self.source:
              return 0
         if not self._source_index:
@@ -1793,7 +1851,7 @@ class Section():
         return self.source.item_count - self._source_index[0]
 
     @property
-    def item_count(self):
+    def item_count(self) -> int:
         if not self._source_index:
             return 0
         return len(self._source_index) - 1
@@ -1846,6 +1904,8 @@ class Section():
             self.is_first_item = None
 
     def update_original_source(self):
+        '''Update source pointer after reading subsection.
+        '''
         if isinstance(self._original_source, BufferedIterator):
             if len(self.source.future_items) > 0:
                 source_pointer = self.source_index[-1]
@@ -1963,7 +2023,8 @@ class Section():
             List[SectionBreak]: A list of section breaks to be applied to
                 either the start or end boundary of the section.
         '''
-        # TODO Instead of typechecking here try to call SectionBreak and trap resulting any error
+        # TODO Instead of typechecking here try to call SectionBreak and trap
+        # any resulting error
         # If not defined use default
         if not section_break:
             validated_section_break = None
@@ -2443,6 +2504,8 @@ class Section():
                 used as a subsection, then it should inherit properties from
                 the parent section and not be reset. Defaults to True, meaning
                 reset the properties.
+            initialize (bool, optional): Indicate whether to initialize the
+                source.
             context (ContextType): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
@@ -2493,6 +2556,8 @@ class Section():
                 used as a subsection, then it should inherit properties from
                 the parent section and not be reset. Defaults to True, meaning
                 reset the properties.
+            initialize (bool, optional): Indicate whether to initialize the
+                source.
             context (ContextType): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
@@ -2522,8 +2587,8 @@ class Section():
             finally:
                 #self.update_original_source()
                 if context:
-                    self.context.update(context)  # FIXME This appears to be undoing context changes in process
-
+                    # FIXME This appears to be undoing context changes in process
+                    self.context.update(context)
     def read(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->AggregatedItem:
@@ -2554,6 +2619,8 @@ class Section():
                 used as a subsection, then it should inherit properties from
                 the parent section and not be reset. Defaults to True, meaning
                 reset the properties.
+            initialize (bool, optional): Indicate whether to initialize the
+                source.
             context (ContextType, optional): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
@@ -2566,6 +2633,7 @@ class Section():
         if initialize:
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)
+        # Question Why not just call self.process and have it initialize?
         section_processor = self.process(source, initialize=False)
         # Apply the aggregate function
         section_aggregate = self.aggregate(section_processor, self.context)

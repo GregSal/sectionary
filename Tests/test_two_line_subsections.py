@@ -366,7 +366,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             'EndSubSection': ['EndSection B']}
             ])
 
-@unittest.skip('Known Failure')
+@unittest.skip('Not Implemented')
 class TestKeepPartial(unittest.TestCase):
     def setUp(self):
         self.test_text = [
@@ -398,7 +398,7 @@ class TestKeepPartial(unittest.TestCase):
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='Before')
             )
-    @unittest.skip('Known Failure')
+    @unittest.skip('Not Implemented')
     def test_keep_partial_False(self):
         top_section = Section(
             section_name='Top Section',
@@ -416,7 +416,7 @@ class TestKeepPartial(unittest.TestCase):
                 ['EndSection B']
             ]])
 
-    @unittest.skip('Known Failure')
+    @unittest.skip('Not Implemented')
     def test_keep_partial_True(self):
         top_section = Section(
             section_name='Top Section',
@@ -431,6 +431,7 @@ class TestKeepPartial(unittest.TestCase):
             [['StartSection C']]
             ])
 
+    @unittest.skip('Not Implemented')
     def test_keep_partial_True_simpler_text(self):
         top_section = Section(
             section_name='Top Section',
@@ -444,6 +445,7 @@ class TestKeepPartial(unittest.TestCase):
             [['StartSection B'], ['EndSection B']]
             ])
 
+    @unittest.skip('Not Implemented')
     def test_keep_partial_True_only_end_section(self):
         top_section = Section(
             section_name='Top Section',
@@ -454,7 +456,7 @@ class TestKeepPartial(unittest.TestCase):
         read_1 = top_section.read(self.test_text)
         self.assertListEqual(read_1, [['EndSection A'],['EndSection B']])
 
-    @unittest.skip('Known Failure')
+    @unittest.skip('Not Implemented')
     def test_keep_partial_True_missing_end_section(self):
         '''3rd section group should never start because "ignored" top_section
         break line occurs before next "EndSection", so 2nd section never
@@ -482,6 +484,7 @@ class TestKeepPartial(unittest.TestCase):
             [['StartSection B']]
             ])
 
+    @unittest.skip('Not Implemented')
     def test_keep_partial_False_missing_end_section(self):
         '''3rd section group should never start because "ignored" top_section
         break line occurs before next "EndSection", so 2nd section never
@@ -529,7 +532,7 @@ class TestHysteresis(unittest.TestCase):
         # Clear Hysteresis by running `full_section` without setting `end_section`
         full_section = Section(
             processor=self.sub_section,
-            keep_partial=False
+            #keep_partial=False
             )
         a = full_section.read(self.test_text)
         b = full_section.read(self.test_text)
@@ -575,8 +578,7 @@ class TestHysteresis(unittest.TestCase):
             )
         # Clear Hysteresis by running `full_section` without setting `end_section`
         full_section = Section(
-            processor=self.sub_section,
-            keep_partial=False
+            processor=self.sub_section
             )
         a = full_section.read(self.test_text)
         b = full_section.read(self.test_text)

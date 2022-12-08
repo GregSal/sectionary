@@ -44,7 +44,7 @@ full_section = Section(
     section_name='Full',
     end_section=SectionBreak('ignored', break_offset='Before'),
     processor=[sub_section],
-    keep_partial=False
+    #keep_partial=False
     )
 
 # %% Hysteresis Bug  First RUn

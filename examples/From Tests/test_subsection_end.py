@@ -136,7 +136,7 @@ end_section = Section(
     section_name='End',
     start_section=SectionBreak('EndSection', break_offset='Before'),  # Added to use alone
     end_on_first_item=True,
-    keep_partial=True,
+    #keep_partial=True,
     #end_section=SectionBreak(True),  # Single line section
     aggregate=prt_lst
     )
