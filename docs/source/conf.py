@@ -12,16 +12,16 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath(r'..\..\src'))
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.append(r'src')
+#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(r'../src'))
+#sys.path.insert(0, os.path.abspath(r'../..'))
+#sys.path.append(r'src')
 
-sys.path.append(r"C:/Users/Greg/OneDrive - Queen's University/Python/Projects/sectionary package/src")
-#C:\Users\Greg\OneDrive - Queen's University\Python\Projects\sectionary package\src
-for x in os.walk('../../src'):
-  sys.path.insert(0, x[0])
+#for x in os.walk('../../src'):
+#  sys.path.insert(0, x[0])
 
+from pprint import pprint
+#pprint(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = 'Sectionary'
@@ -41,7 +41,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'myst_parser',
-    'sphinx.ext.autosummary'
+    'sphinx.ext.autosummary',
+    'Jupyter-sphinx'
 ]
 
 source_suffix = {
@@ -65,7 +66,7 @@ exclude_patterns = []
 pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = False
+todo_include_todos = True
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -73,7 +74,8 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'traditional'
+#html_theme = 'traditional'
+html_theme = 'basic'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

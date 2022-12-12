@@ -29,11 +29,3 @@ sectionary.text\_reader module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: sectionary
-   :members:
-   :undoc-members:
-   :show-inheritance:

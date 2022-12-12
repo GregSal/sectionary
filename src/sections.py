@@ -2598,12 +2598,11 @@ class Section():
         through all items from source that are in section, applying the section
         processing methods and subsection readers to each item.
 
-                Step through section_iter If only one sub-section is defined in
+        Step through section_iter If only one sub-section is defined in
         self.subsections, yield the aggregate result for that subsection as a
         single item from the generator. If multiple sub-sections are defined in
         self.subsections, yield a list of the aggregate results for
         all of the sub-sections as a single item from the generator.
-
 
         Arguments:
             source (Source): An iterable where some of the content meets the

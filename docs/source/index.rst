@@ -5,16 +5,23 @@
 
 Welcome to Sectionary's documentation!
 ======================================
+.. include:: Introduction.rst
 
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
 
-
+   sectionary
+   Glossary
+   DataTypes
+   reference
+   Triggers and Rules
+   MS_Dir_Output
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
+* :doc:`Glossary`
 * :ref:`search`

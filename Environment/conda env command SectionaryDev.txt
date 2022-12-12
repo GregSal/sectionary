@@ -1,13 +1,13 @@
 ########## Creation command ############
 conda create -y -n sectionaryDev python=3.8
 conda activate sectionaryDev
-conda install -y pandas openpyxl jupyterlab xlwings sphinx spyder jupyterlab nb_conda_kernels pylint black mypy
+conda install -y pandas openpyxl jupyterlab nb_conda_kernels jupyter-book xlwings sphinx myst-parser esbonio spyder pylint black mypy
 
 python -m ipykernel install --user --name sectionaryDev --display-name "Python (sectionaryDev)"
 
 ########## Export command ############
 conda env export > C:\TEMP\sectionaryDev_FULL.yml
-conda env export --from-history > C:\TEMP\sectionaryDev.yml
+conda env export --from-history > C:\TEMP\sectionaryDev.yml
 conda list --explicit > C:\TEMP\sectionaryDev_specfile.txt
 
 
@@ -40,14 +40,16 @@ conda activate sectionary
 
 #### Primary Packages ####
 python >= 3.8
-pandas 
-openpyxl 
-jupyterlab 
-xlwings 
+pandas
+openpyxl
+xlwings
 sphinx
+myst-parser
+esbonio
 spyder
 jupyterlab
 nb_conda_kernels
+jupyter-book
 pylint
 black
 mypy
@@ -71,5 +73,3 @@ C:\ProgramData\Anaconda3\pythonw.exe 'C:\ProgramData\Anaconda3\cwp.py', 'C:\Prog
 call C:\ProgramData\Anaconda3\Scripts\activate.bat C:\ProgramData\Anaconda3
 call conda activate sectionaryDev
 call python C:\Users\gsalomon\.conda\envs\sectionaryDev\Scripts\jupyter-lab-script.py "%USERPROFILE%/"
-
-
