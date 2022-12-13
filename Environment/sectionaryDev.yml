@@ -4,17 +4,18 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8
-  - pylint
-  - jupyterlab
+  - openpyxl
   - xlwings
-  - black
+  - nb_conda_kernels
   - pandas
   - spyder
-  - openpyxl
-  - mypy
-  - nb_conda_kernels
+  - jupyterlab
+  - nbsphinx
   - sphinx
-  - myst-parser
-  - jupyter-book
+  - nbsphinx-link
   - esbonio
+  - myst-parser
+  - mypy
+  - pylint
+  - black
 prefix: C:\Users\smoke\.conda\envs\sectionaryDev

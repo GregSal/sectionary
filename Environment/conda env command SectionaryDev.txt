@@ -1,8 +1,16 @@
 ########## Creation command ############
 conda create -y -n sectionaryDev python=3.8
 conda activate sectionaryDev
-conda install -y pandas openpyxl jupyterlab nb_conda_kernels jupyter-book xlwings sphinx myst-parser esbonio spyder pylint black mypy
+#### Primary Packages ####
+conda install -y pandas openpyxl xlwings
+#### IDE Packages
+conda install -y spyder jupyterlab nb_conda_kernels
+#### Linting Packages
+conda install -y pylint black mypy
+#### Documentation Packages
+conda install -y sphinx myst-parser nbsphinx nbsphinx-link pandoc esbonio
 
+########## Jupyter Kernal install command ############
 python -m ipykernel install --user --name sectionaryDev --display-name "Python (sectionaryDev)"
 
 ########## Export command ############
@@ -43,18 +51,24 @@ python >= 3.8
 pandas
 openpyxl
 xlwings
-sphinx
-myst-parser
-esbonio
+
+#### IDE Packages
 spyder
 jupyterlab
 nb_conda_kernels
-jupyter-book
+
+#### Linting Packages
 pylint
 black
 mypy
 
-
+#### Documentation Packages
+sphinx
+myst-parser
+nbsphinx
+nbsphinx-link
+pandoc
+esbonio
 
 ########### Spyder Launch Shortcut  ##########
 Target

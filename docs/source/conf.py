@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'myst_parser',
     'sphinx.ext.autosummary',
-    'Jupyter-sphinx'
+    'nbsphinx'
 ]
 
 source_suffix = {

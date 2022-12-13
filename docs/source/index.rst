@@ -16,6 +16,7 @@ Welcome to Sectionary's documentation!
    DataTypes
    reference
    Triggers and Rules
+   Sections Tutorial
    MS_Dir_Output
 
 Indices and tables
