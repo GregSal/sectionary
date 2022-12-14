@@ -3,24 +3,36 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Sectionary's documentation!
-======================================
-.. include:: Introduction.rst
+.. include:: Headline.rst
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :maxdepth: 1
+   :numbered:
+   :caption: Getting Started
+   :hidden:
+
+   Introduction
+
+.. toctree::
+   :maxdepth: 1
+   :caption: User Guide
+   :hidden:
+
+   Sections Tutorial
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
+   :hidden:
 
    sectionary
-   Glossary
    DataTypes
    reference
-   Triggers and Rules
-   Sections Tutorial
-   MS_Dir_Output
 
-Indices and tables
-==================
+.. todo:: Add examples
+
+Index and Search
+================
 
 * :ref:`genindex`
 * :ref:`modindex`
