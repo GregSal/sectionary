@@ -22,11 +22,6 @@ sys.path.insert(0, os.path.abspath(r'../src'))
 
 from pprint import pprint
 #pprint(sys.path)
-
-import sections
-import buffered_iterator
-import text_reader
-
 # -- Project information -----------------------------------------------------
 
 project = 'Sectionary'
@@ -47,25 +42,44 @@ extensions = [
     'sphinx.ext.napoleon',
     'myst_parser',
     'sphinx.ext.autosummary',
-    'sphinx.ext.autosectionlabel',
-    'nbsphinx',
     'sphinx.ext.intersphinx',
     "sphinx.ext.todo",
-    'sphinx_copybutton',
-    'sphinx_rtd_theme'
+    'sphinxcontrib.bibtex',  # for bibliographic references  # get "last updated" from Git
+    'sphinx_codeautolink',  # automatic links from code to documentation
+    'nbsphinx'
 ]
-
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'restructuredtext',
-    '.md': 'markdown',
-    }
-
-autosummary_generate = True
+intersphinx_mapping = {
+    'IPython': ('https://ipython.readthedocs.io/en/stable/', None),
+    'matplotlib': ('https://matplotlib.org/', None),
+    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'python': ('https://docs.python.org/3/', None),
+    # 'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    # 'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
+    # 'matplotlib': ('http://matplotlib.sourceforge.net/', None),
+    # 'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
+    # 'IPython': ('http://ipython.org/ipython-doc/stable/', None),
+ }
+intersphinx_aliases = {
+    ("py:class", "dictionary"): ("py:class", "dict"),
+    ("py:class", "PIL.Image"): ("py:class", "PIL.Image.Image"),
+    ("py:class", "nbconvert.preprocessors.base.Preprocessor"): (
+        "py:class",
+        "nbconvert.preprocessors.Preprocessor",
+    ),
+    ("py:class", "nbformat.notebooknode.NotebookNode"): (
+        "py:class",
+        "nbformat.NotebookNode",
+    ),
+    ("py:class", "NotebookNode"): ("py:class", "nbformat.NotebookNode"),
+    ("py:class", "traitlets.config.configurable.Configurable"): (
+        "py:module",
+        "traitlets.config",
+    ),
+}
 
 # Napoleon Docstring settings
-napoleon_google_docstring = True
-napoleon_numpy_docstring = False
+napoleon_numpy_docstring = True
 napoleon_include_private_with_doc = False
 napoleon_include_special_with_doc = False
 napoleon_use_admonition_for_examples = False
@@ -75,33 +89,16 @@ napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'restructuredtext',
+    '.md': 'markdown',
+    '.ipynb": "jupyter_notebook'
+    }
+
+autosummary_generate = True
+
 autoclass_content = "both"
-
-autodoc_default_options = {
-    'members': None,
-    'no-inherited-members': None,
-}
-
-# copybutton conf
-copybutton_prompt_text = r'>>> |\.\.\. '
-copybutton_prompt_is_regexp = True
-
-# intersphinx configuration
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/{.major}'.format(
-        sys.version_info), None),
-    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'pandas': ('https://pandas.pydata.org/docs/', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
-    'matplotlib': ('http://matplotlib.org', None),
-    'IPython': ('https://ipython.readthedocs.io/en/stable/', None),
-}
-intersphinx_aliases = {
-    ("py:class", "dictionary"): ("py:class", "dict"),
-    ("py:class", "PIL.Image"): ("py:class", "PIL.Image.Image"),
-}
-
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -123,7 +120,7 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 #html_theme = 'traditional'
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'basic'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

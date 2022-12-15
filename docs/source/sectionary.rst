@@ -4,14 +4,6 @@ sectionary package
 Submodules
 ----------
 
-sectionary.buffered\_iterator module
-------------------------------------
-
-.. automodule:: sectionary::buffered_iterator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 sectionary.sections module
 --------------------------
 
@@ -21,6 +13,13 @@ sectionary.sections module
    :inherited-members:
    :no-undoc-members:
 
+sectionary.buffered\_iterator module
+------------------------------------
+
+.. automodule:: sectionary::buffered_iterator
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 sectionary.text\_reader module
 ------------------------------
