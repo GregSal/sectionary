@@ -7,18 +7,21 @@
 
 .. toctree::
    :maxdepth: 1
-   :numbered:
    :caption: Getting Started
    :hidden:
 
    Introduction
+
+   Installation
+
+   hello_world
 
 .. toctree::
    :maxdepth: 1
    :caption: User Guide
    :hidden:
 
-   Sections Tutorial
+   iterator_options
 
 .. toctree::
    :maxdepth: 1
@@ -26,8 +29,6 @@
    :hidden:
 
    sectionary
-   DataTypes
-   reference
 
 .. todo:: Add examples
 
@@ -36,5 +37,4 @@ Index and Search
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :doc:`Glossary`
 * :ref:`search`

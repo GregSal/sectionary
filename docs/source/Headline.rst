@@ -6,12 +6,12 @@ A package for **Identifying**, **Processing** and **Combining** "*Sections*" of
 any sequence or input stream.
 
 .. figure:: _static/Identify_Process_Combine.png
-    :width: 60%
+    :width: 40%
     :align: center
     :alt: Identify Process Combine
 
 Features
--------
+--------
 
 Define a section_ of a sequential source with:
 

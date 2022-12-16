@@ -1,6 +1,7 @@
 rem ########## Jupyter Lab Launch ############
 rem Set relevant paths
-set WORKSPACE_FOLDER="%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+rem WORKSPACE_FOLDER="%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+set WORKSPACE_FOLDER="D:\OneDrive - Queen's University\Python\Projects\sectionary package"
 set SOURCE_FOLDER="%WORKSPACE_FOLDER%\src"
 set TEST_FOLDER="%WORKSPACE_FOLDER%\Tests"
 set EXAMPLES_FOLDER="%WORKSPACE_FOLDER%\Tests"
