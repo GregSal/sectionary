@@ -13,7 +13,7 @@ any sequence or input stream.
 Features
 --------
 
-Define a section_ of a sequential source with:
+Define a section of a sequential source with:
 
 1. Optional starting and ending conditions
 2. Functions to be applied to each source element in the section

@@ -17,7 +17,7 @@ python -m ipykernel install --user --name sectionaryDev --display-name "Python (
 conda env export > C:\TEMP\sectionaryDev_FULL.yml
 conda env export --from-history > C:\TEMP\sectionaryDev.yml
 conda list --explicit > C:\TEMP\sectionaryDev_specfile.txt
-
+pip freeze > C:\TEMP\requirements.txt
 
 ########## Install command ############
 conda create --name sectionary --file sectionaryDev_specfile.txt

@@ -4,24 +4,9 @@
    contain the root `toctree` directive.
 
 .. include:: Headline.rst
+.. include:: getting_started.rst
+.. include:: UserGuide.rst
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Getting Started
-   :hidden:
-
-   Introduction
-
-   Installation
-
-   hello_world
-
-.. toctree::
-   :maxdepth: 1
-   :caption: User Guide
-   :hidden:
-
-   iterator_options
 
 .. toctree::
    :maxdepth: 1
@@ -35,6 +20,6 @@
 Index and Search
 ================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

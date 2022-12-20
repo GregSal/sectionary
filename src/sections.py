@@ -41,7 +41,7 @@ import logging
 from inspect import isgeneratorfunction
 from functools import partial
 #from types import NoneType
-from typing import Dict, List, TypeVar
+from typing import Dict, List, NamedTuple, TypeVar
 from typing import Iterable, Any, Callable, Union, Generator
 
 from buffered_iterator import BufferedIterator
@@ -661,13 +661,22 @@ class Trigger():
             name (str, optional): A reference label for the Trigger. Default is
                 'Trigger'.
         '''
-        self.sentinel = sentinel
         self.name = name
         # Private attributes
+        self._sentinel = sentinel
+        self._location = location
         self._is_multi_test = False
         self._sentinel_type = self.set_sentinel_type()
         self._test_func = self.set_test_func(location)
         self._event = TriggerEvent()
+
+    @property
+    def sentinel(self):
+        return self._sentinel
+
+    @property
+    def location(self):
+        return self._location
 
     def set_sentinel_type(self)->str:
         '''Identify the type of sentinel supplied.
@@ -703,7 +712,7 @@ class Trigger():
             test_type = 'RE'
         elif callable(self.sentinel):
             # Convert function to correct Argument signature
-            self.sentinel = sig_match(self.sentinel, sig_type='Process')
+            self._sentinel = sig_match(self.sentinel, sig_type='Process')
             test_type = 'Function'
         elif true_iterable(self.sentinel):
             # Set the indicator that sentinel contains a list of conditions.
@@ -714,7 +723,7 @@ class Trigger():
                 test_type = 'RE'
             elif all(callable(snt) for snt in self.sentinel):
                 # Convert functions to correct Argument signature
-                self.sentinel = [sig_match(snt, sig_type='Process')
+                self._sentinel = [sig_match(snt, sig_type='Process')
                                  for snt in self.sentinel]
                 test_type = 'Function'
         if not test_type:
@@ -836,7 +845,19 @@ class Trigger():
         return test_passed
 
 
-# TODO create a NamedTuple that contains the SectionBreak arguments
+class SectionBreakArgs(NamedTuple):
+    '''The arguments required by SectionBreak.__init__.
+
+    This allows the Section class to accept tuples or lists of tuples as
+    section break definitions.  See SectionBreak for more details on the
+    argument options.
+    '''
+    sentinel: TriggerOptions = None
+    location: str = None
+    break_offset: OffsetTypes = 'Before'
+    name: str = 'SectionBreak'
+
+
 class SectionBreak(Trigger):  # pylint: disable=function-redefined
     '''Defines the method of identifying the start or end of a section.
 
@@ -927,6 +948,17 @@ class SectionBreak(Trigger):  # pylint: disable=function-redefined
                        '"Before" or "After";\t Got {repr(offset)}')
                 raise ValueError(msg) from err
         self._offset = offset_value
+
+    def __repr__(self):
+        repr_str = ''.join([
+            'SectionBreak(',
+            f'sentinel={self.sentinel}, ',
+            f'location={self.location}, ',
+            f'offset={self.offset}, ',
+            f'name={self.name}',
+            ')'
+            ])
+        return repr_str
 
     def check(self, item: SourceItem, source: BufferedIterator,
               context: ContextType = None)->bool:
@@ -1937,17 +1969,12 @@ class Section():
             section_break (BreakOptions, optional): Sentinels that define the
                 section start.  If None (default), use the cls.default_start
                 method.  Can be one of:
-
-                    List[SectionBreak], the start_section type.
-
-                    SectionBreak, which is converted to a single element list.
-
-                    str, which is converted to a single element list containing
-                        a SectionBreak that triggers on the supplied string.
-
-                    List[str], which is converted to a list containing
-                        SectionBreaks that trigger on each of the supplied
-                        strings.
+                    SectionBreak, in which case it is converted to a single
+                        element list and returned.
+                    SectionBreakArgs or Tuple that can be converted to a
+                        SectionBreakArgs object.
+                    TriggerOptions
+                    A list containing any combination of the above.
         '''
         brk = self.set_break(section_break)
         if brk:
@@ -1980,17 +2007,12 @@ class Section():
             section_break (BreakOptions, optional): Sentinels that define the
                 section end.  If None (default), use the cls.default_end
                 method.  Can be one of:
-
-                    List[SectionBreak], the end_section type.
-
-                    SectionBreak, which is converted to a single element list.
-
-                    str, which is converted to a single element list containing
-                        a SectionBreak that triggers on the supplied string.
-
-                    List[str], which is converted to a list containing
-                        SectionBreaks that trigger on each of the supplied
-                        strings.
+                    SectionBreak, in which case it is converted to a single
+                        element list and returned.
+                    SectionBreakArgs or Tuple that can be converted to a
+                        SectionBreakArgs object.
+                    TriggerOptions
+                    A list containing any combination of the above.
         '''
         brk = self.set_break(section_break)
         if brk:
@@ -2003,50 +2025,37 @@ class Section():
 
         Arguments:
             section_break (BreakOptions): The supplied BreakOption can be:
-
-                List[SectionBreak], in which case it is returned unchanged.
-
+                None, in which case the section_break definition is cleared.
                 SectionBreak, in which case it is converted to a single
                     element list and returned.
-
-                str, in which case it is converted to a single
-                    element list containing a SectionBreak that triggers on
-                    the supplied string and returned.
-
-                None, in which case the section_break definition is cleared.
-
-        Raises:
-            TypeError: If section_break is not a SectionBreak instance, a
-                list of SectionBreaks, a string, a list of strings, or None.
+                SectionBreakArgs or Tuple that can be converted to a
+                    SectionBreakArgs object.
+                TriggerOptions
+                A list containing any combination of the above.
 
         Returns:
             List[SectionBreak]: A list of section breaks to be applied to
                 either the start or end boundary of the section.
         '''
-        # TODO Instead of typechecking here try to call SectionBreak and trap
-        # any resulting error
-        # If not defined use default
+        def make_single_break(brk):
+            # Return single Break instance
+            if isinstance(brk, SectionBreak):
+                return brk
+            # Convert a tuple into SectionBreak arguments
+            if isinstance(brk, tuple):
+                return SectionBreak(*SectionBreakArgs(*brk))
+            return SectionBreak(brk)
+
         if not section_break:
             validated_section_break = None
-        # Convert single Break instance into list
-        elif isinstance(section_break, SectionBreak):
-            validated_section_break = [section_break]
-        # convert a supplied string into a section break that triggers on the
-        # supplied string.
-        elif isinstance(section_break, str):
-            validated_section_break = [SectionBreak(section_break)]
         elif isinstance(section_break, list):
-            # Verify that all item is the list are type str
-            validated_section_break = list()
-            for brk in section_break:
-                if isinstance(brk, str):
-                    validated_section_break.append(SectionBreak(brk))
-                else:
-                    raise ValueError('If section_break is a list, the list '
-                                     'items may only be of type str.')
+            # Convert individual items in a list into SectionBreak objects.
+            validated_section_break = [make_single_break(brk)
+                                       for brk in section_break]
         else:
-            raise TypeError('section_break must be one of SectionBreak, a '
-                            'list of SectionBreaks, a string, or None.')
+            # convert section_break into a one-item list containing a
+            # SectionBreak object.
+            validated_section_break = [make_single_break(section_break)]
         return validated_section_break
 
     def set_subsection_reader(self, processing_def: ProcessMethodDef
