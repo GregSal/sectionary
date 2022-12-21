@@ -1422,8 +1422,7 @@ class ProcessingMethods():
         reader(self, buffered_source, context):
         read(self, buffered_source, context):
             a generator function, accepting a source text stream
-                and yielding the processed text. Defaults to None, which sets
-                a basic csv parser.
+                and yielding the processed text.
     '''
     def __init__(self, processing_methods: List[ProcessMethodOptions] = None,
                  name = 'Processor'):
