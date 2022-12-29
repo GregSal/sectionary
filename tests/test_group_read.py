@@ -7,7 +7,7 @@ import sections
 import text_reader as tp
 from buffered_iterator import BufferedIterator
 
-# Aggregate definitions
+# Assemble definitions
 def print_list(parsed_lines):
     '''print items and add then to a list.
     '''
@@ -265,28 +265,28 @@ class TestSectionGroupRead(unittest.TestCase):
             start_section=delimiter_section_start,
             end_section=section_end,
             processor=delimiter_section_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         self.fixed_width_section = sections.Section(
             section_name='Fixed Width Section',
             start_section=fixed_width_section_start,
             end_section=section_end,
             processor=fixed_width_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         self.group_section = sections.Section(
             section_name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
             processor=[[self.delimiter_section, self.fixed_width_section]],
-            aggregate=make_list
+            assemble=make_list
             )
         self.multi_group_section = sections.Section(
             section_name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
             processor=[[self.delimiter_section, self.fixed_width_section]],
-            aggregate=make_list
+            assemble=make_list
             )
 
     def test_delimiter_sub_section_read(self):

@@ -244,41 +244,41 @@ dvh_info_section = Section(
     start_section=None,
     end_section=plan_info_start,
     processor=dvh_info_reader,
-    aggregate=tp.to_dict
+    assemble=tp.to_dict
     )
 plan_info_section = Section(
     section_name='Plan Info',
     start_section=None,
     end_section=plan_info_end,
     processor=plan_info_reader,
-    aggregate=tp.to_dict
+    assemble=tp.to_dict
     )
 plan_info_group = Section(
     section_name='Plan Info Group',
     start_section=plan_info_start,
     end_section=structure_info_start,
     processor=plan_info_section,
-    aggregate=to_plan_info_dict
+    assemble=to_plan_info_dict
     )
 structure_info_section = Section(
     section_name='Structure',
     start_section=structure_info_start,
     end_section=structure_info_end,
     processor=structure_info_reader,
-    aggregate=tp.to_dict
+    assemble=tp.to_dict
     )
 dvh_data_section = Section(
     section_name='DVH',
     start_section=dvh_data_start,
     end_section=structure_info_start,
     processor=dvh_data_reader,
-    aggregate=tp.to_dataframe
+    assemble=tp.to_dataframe
     )
 dvh_group_section = Section(
     section_name='DVH Groups',
     start_section=structure_info_start,
     processor=[[structure_info_section, dvh_data_section]],
-    aggregate=to_structure_data_tuple
+    assemble=to_structure_data_tuple
     )
 
 

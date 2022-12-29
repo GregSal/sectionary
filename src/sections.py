@@ -5,14 +5,14 @@ The principal class is:
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)
-            aggregate: (Callable, Optional)
+            assemble: (Callable, Optional)
             keep_partial: bool = False)
 
     Section defines a continuous portion of a text stream or other iterable.
     A section definition may include:
         ○ Starting and ending break points.
         ○ Processing instructions.
-        ○ An aggregation method.
+        ○ An assembly method.
     A Section instance is created by defining one or more of these components.
     Once a section has been defined, it can be applied to an iterator using:
         section.read(source)
@@ -71,8 +71,8 @@ ProcessedList = List[ProcessedItem]
 ProcessOutput = Union[ProcessedItem, ProcessedList]
 ProcessedItemGen = Generator[ProcessedItem, None, None]
 ProcessedItems = Union[ProcessedItem, ProcessedItemGen]
-# Aggregated section converts a ProcessedItems into a single Aggregated Item.
-AggregatedItem = Any
+# Assembled section converts a ProcessedItems into a single Assembled Item.
+AssembledItem = Any
 #%% Context Type
 # Context Provides a way to pass information between sections.
 # Context can be used to pass additional parameters to functions.
@@ -101,19 +101,19 @@ RuleCallableOptions = Union[
     RuleFunc,
     Callable[[SourceItem, "TriggerEvent"], ProcessedItems],
     ]
-# Aggregate Functions
-# Aggregate function are like Process Functions, except they return a single
+# Assemble Functions
+# Assemble function are like Process Functions, except they return a single
 # item, never a generator.  The function signature must be one of the following:
-#   Callable[[ProcessedItems], AggregatedItem]
-#   Callable[[ProcessedItems, ContextType], AggregatedItem]
-#   Callable[[ProcessedItems, ...], AggregatedItem]
+#   Callable[[ProcessedItems], AssembledItem]
+#   Callable[[ProcessedItems, ContextType], AssembledItem]
+#   Callable[[ProcessedItems, ...], AssembledItem]
 #       Where ... represents keyword arguments
-AggregateFunc = Callable[[ProcessedList, ContextType], AggregatedItem]
-AggregateCallableOptions = Union[AggregateFunc, None,
-                               Callable[[ProcessedList], AggregatedItem],
+AssembleFunc = Callable[[ProcessedList, ContextType], AssembledItem]
+AssembleCallableOptions = Union[AssembleFunc, None,
+                               Callable[[ProcessedList], AssembledItem],
                                Callable[..., ProcessedList]]
 # SectionCallables describe all possible function types: Sentinel, Process, Rule
-# and Aggregate.
+# and Assemble.
 SectionCallables = Union[ProcessFunc, RuleFunc]
 
 #%% Relevant Type definitions for Trigger Class and SubClasses.
@@ -275,7 +275,7 @@ def sig_match(given_method: RuleCallableOptions,
         rule_method(item, context) is not allowed; use:
                 rule_method(item, **context)          or
                 rule_method(item, event, context)     instead.
-        process method also applies to Sentinel and Aggregate methods.
+        process method also applies to Sentinel and Assemble methods.
     Arguments:
         given_method (MethodOptions): A function to be used as a rule
             method or a process method.
@@ -1606,7 +1606,7 @@ class Section():
     A section definition may include:
         ○ Starting and ending break points.
         ○ Processing instructions.
-        ○ An aggregation method.
+        ○ An assembly method.
 
     A Section instance is created by defining one or more of these components.
     Once a section has been defined, it can be applied to an sequence using:
@@ -1620,21 +1620,21 @@ class Section():
         2. Continue to iterate through the text source, applying the defined
             processing rules to each line, while checking for the end of the
             section.
-        3. Apply an aggregating function to the processed text to convert it
+        3. Apply an assembling function to the processed text to convert it
             to the desired output format.
 
     section.scan and section.process are alternate methods.
         section.scan returns a generator that starts at the beginning of the
             section and iterates through to the end of the section without
-            applying any processing or aggregation.
+            applying any processing or assembly.
 
         section.process returns a generator that starts at the beginning of
             the section and iterates through to the end of the section
-            applying the defined processing, but omitting the aggregation.
+            applying the defined processing, but omitting the assembly.
 
     Attributes:
         Principal Section definition attributes.  The start_section,
-        end_section, processor, and aggregate attributes are generally set at
+        end_section, processor, and assemble attributes are generally set at
         instance creation.
 
             start_section (>List["SectionBreak"): The SectionBreaks used
@@ -1643,7 +1643,7 @@ class Section():
                 to identify the location of the end of the section.
             processor (ProcessingMethods): Instructions for processing the
                 section items.
-            aggregate (AggregateFunc): A function used to collect and format,
+            assemble (AssembleFunc): A function used to collect and format,
                 the processor output into a single object.
             section_name (str): A reference name for the section instance.
 
@@ -1673,7 +1673,7 @@ class Section():
                     'Scan Complete'
                     'End of Source'
             context (Dict[str, Any]): The primary mechanism for the processing
-                and aggregation methods to pass contextual information. Break
+                and assembly methods to pass contextual information. Break
                 point results are is the most commonly used information and are
                 automatically added to context.
                 When a section boundary is encountered (including sub-sections)
@@ -1715,7 +1715,7 @@ class Section():
 
     Methods:
         read(source, start_search, do_reset, initialize, context): Step through
-            all items from source that are in section, returning the aggregated
+            all items from source that are in section, returning the assembled
             section.
 
         process(source, start_search, do_reset, initialize, context): Provide a
@@ -1751,7 +1751,7 @@ class Section():
                  start_section: BreakOptions = None,
                  end_section: BreakOptions = None,
                  processor: ProcessorOptions = None,
-                 aggregate: AggregateCallableOptions = None,
+                 assemble: AssembleCallableOptions = None,
                  section_name: str = 'Section',
                  #keep_partial: bool = False,
                  end_on_first_item: bool = False,
@@ -1790,7 +1790,7 @@ class Section():
 
                         Both regular functions and generator functions are
                         accepted.
-            aggregate (AggregateCallableOptions, optional): A function used to
+            assemble (AssembleCallableOptions, optional): A function used to
                 collect and format, the processor output into a single object.
                 Defaults to None, which returns a list of the processor output.
             section_name (str, optional): A label to be applied to the section.
@@ -1827,11 +1827,11 @@ class Section():
         # Initialize the processor and subsections
         self.processor = processor
         #self.subsections = subsections
-        # Set the Aggregate method
-        if aggregate:
-            self.aggregate = set_method(aggregate, 'Process')
+        # Set the Assemble method
+        if assemble:
+            self.assemble = set_method(assemble, 'Process')
         else:
-            self.aggregate = set_method(list, 'Process')
+            self.assemble = set_method(list, 'Process')
 
         # The context, scan_status and source attributes must be reset every
         # time the Section instance is applied to a new source iterable.  The
@@ -2211,7 +2211,7 @@ class Section():
         Yields:
             ProcessOutput:
                 If subsections is a Section instance:
-                    The aggregate result from calling subsections.read()
+                    The assemble result from calling subsections.read()
                 If subsections is a list of Section instances:
                     A dictionary where the keys are the subsection names and the
                     values are the results from calling subsection.read().
@@ -2599,7 +2599,7 @@ class Section():
                     self.context.update(context)
     def read(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
-             context: ContextType = None)->AggregatedItem:
+             context: ContextType = None)->AssembledItem:
         '''The primary outward facing section reader function.
 
         Initialize the source and then provide the generator that will step
@@ -2607,9 +2607,9 @@ class Section():
         processing methods and subsection readers to each item.
 
         Step through section_iter If only one sub-section is defined in
-        self.subsections, yield the aggregate result for that subsection as a
+        self.subsections, yield the assemble result for that subsection as a
         single item from the generator. If multiple sub-sections are defined in
-        self.subsections, yield a list of the aggregate results for
+        self.subsections, yield a list of the assemble results for
         all of the sub-sections as a single item from the generator.
 
         Arguments:
@@ -2632,7 +2632,7 @@ class Section():
                 additional information to be passed to and from the
                 Section instance.
         Returns:
-            AggregatedItem: The result of applying the aggregate function to
+            AssembledItem: The result of applying the assemble function to
                 all processed items from source that are within the section
                 boundaries.
         '''
@@ -2642,8 +2642,8 @@ class Section():
             source = self.initialize(source, start_search, do_reset, context)
         # Question Why not just call self.process and have it initialize?
         section_processor = self.process(source, initialize=False)
-        # Apply the aggregate function
-        section_aggregate = self.aggregate(section_processor, self.context)
+        # Apply the assemble function
+        section_assemble = self.assemble(section_processor, self.context)
         if self.scan_status not in ['Scan Complete', 'End of Source']:
             self.update_original_source()
-        return section_aggregate
+        return section_assemble

@@ -121,7 +121,7 @@ pprint(full_section.read(GENERIC_TEST_TEXT_3))
 quit()
 
 
-# %% Aggregate Function to create and print a list
+# %% Assemble Function to create and print a list
 # For debugging purposes
 def prt_lst(seq):
     itm_lst = list()
@@ -138,7 +138,7 @@ end_section = Section(
     end_on_first_item=True,
     #keep_partial=True,
     #end_section=SectionBreak(True),  # Single line section
-    aggregate=prt_lst
+    assemble=prt_lst
     )
 full_section = Section(
     section_name='Full',

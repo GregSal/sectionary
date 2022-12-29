@@ -330,28 +330,28 @@ header_section = Section(
     start_section=None,
     end_section=folder_start,
     processor=heading_reader,
-    aggregate=print_lines
+    assemble=print_lines
     )
 folder_section = Section(
     section_name='Folder',
     start_section=folder_start,
     end_section=folder_end,
     processor=folder_reader,
-    aggregate=to_folder_dict
+    assemble=to_folder_dict
     )
 all_folder_section = Section(
     section_name='All Folders',
     start_section=folder_start,
     end_section=summary_start,
     processor=[folder_section],
-    aggregate=make_files_table
+    assemble=make_files_table
     )
 summary_section = Section(
     section_name='Summary',
     start_section=summary_start,
     end_section=None,
     processor=summary_reader,
-    aggregate=tp.to_dict
+    assemble=tp.to_dict
     )
 
 

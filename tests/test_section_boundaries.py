@@ -380,7 +380,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             start_section=section_start_after,
             end_section=section_end_before,
             processor=self.test_section_multi_line_reader,
-            aggregate=tp.to_dict
+            assemble=tp.to_dict
             )
         source = BufferedIterator(GENERIC_TEST_TEXT)
         test_output = test_section.read(source, start_search=True)
@@ -404,7 +404,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             start_section=section_start_gap,
             end_section=section_end_skip_line,
             processor=self.test_section_line_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         source = BufferedIterator(GENERIC_TEST_TEXT)
         test_output = test_section.read(source, start_search=True)
@@ -428,7 +428,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             start_section=section_start_reuse,
             end_section=section_end_skip_line,
             processor=self.test_section_line_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         source = BufferedIterator(GENERIC_TEST_TEXT)
 

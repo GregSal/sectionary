@@ -140,7 +140,7 @@ plan_section = sec.Section(
     start_section=None,
     end_section='PRESCRIPTION',
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Plan')
 
 prescription_section = sec.Section(
@@ -148,7 +148,7 @@ prescription_section = sec.Section(
     end_section='IMAGE',
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
                numeric_values],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Prescription')
 
 parse_origin = sec.Rule('User Origin', pass_method=get_origin)
@@ -158,7 +158,7 @@ image_section = sec.Section(
     end_section='CALCULATIONS',
     processor=[tr.clean_ascii_text, image_parse, tr.trim_items,
                numeric_values],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Image')
 
 parse_warning = sec.Rule('WARNING:', pass_method=get_warning)
@@ -168,7 +168,7 @@ calculation_section = sec.Section(
     end_section='WARNINGS',
     processor=[tr.clean_ascii_text, image_parse, tr.trim_items,
                numeric_values],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Calculations')
 
 warning_section = sec.Section(
@@ -176,7 +176,7 @@ warning_section = sec.Section(
     end_section='FIELDS DATA',
     processor=[tr.clean_ascii_text, calculation_parse, tr.trim_items,
                numeric_values],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Warnings')
 
 parse_gantry = sec.Rule('G', pass_method=get_gantry, fail_method='Original')
@@ -187,14 +187,14 @@ field_section = sec.Section(
     end_section=['END FIELD'],
     processor=[tr.clean_ascii_text, field_parse, tr.trim_items,
                numeric_values],
-    aggregate=trim_dict,
+    assemble=trim_dict,
     section_name='Field')
 
 all_fields_section = sec.Section(
     start_section='FIELDS DATA',
     end_section='POINTS LOCATIONS',
     processor=[tr.clean_ascii_text, field_section],
-    aggregate=tr.to_dataframe,
+    assemble=tr.to_dataframe,
     section_name='Fields')
 
 all_initial_sections = sec.Section(
@@ -207,7 +207,7 @@ point_location_section = sec.Section(
     end_section=sec.SectionBreak('FIELD POINTS', break_offset='before'),
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
                numeric_values],
-    aggregate=tr.to_dataframe,
+    assemble=tr.to_dataframe,
     section_name='Point Locations')
 
 point_dose_section = sec.Section(
@@ -215,7 +215,7 @@ point_dose_section = sec.Section(
     end_section=sec.SectionBreak('PlanCheck', break_offset='before'),
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
                numeric_values],
-    aggregate=tr.to_dataframe,
+    assemble=tr.to_dataframe,
     section_name='Point Dose')
 
 

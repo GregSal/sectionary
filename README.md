@@ -19,7 +19,7 @@ The principal class is:
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)
-            aggregate: (Callable, Optional)
+            assemble: (Callable, Optional)
             keep_partial: bool = False)
 
 - Section defines a continuous portion of a text stream or other iterable.
@@ -28,7 +28,7 @@ The principal class is:
 
     - Starting and ending break points.
     - Processing instructions.
-    - An aggregation method.
+    - An assembly method.
 
 - A Section instance is created by defining one or Once a section has been
 - defined, it can be applied to an iterator using:
@@ -66,7 +66,7 @@ A section definition may include:
 
 - Starting and ending break points.
 - Processing instructions.
-- An aggregation method.
+- An assembly method.
 
 A Section instance is created by defining one or more of these components:
 
@@ -74,7 +74,7 @@ A Section instance is created by defining one or more of these components:
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)
-            aggregate: (Callable, Optional)
+            assemble: (Callable, Optional)
             keep_partial: bool = False)`
 
 Once a section has been defined, it can be applied to an iterator using:

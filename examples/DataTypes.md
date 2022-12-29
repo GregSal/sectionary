@@ -16,9 +16,9 @@ A single element in the <i>Source</i>, most commonly a string. A <i>SourceItem</
 <td><b>SourceItem</b>
 <td><b>ProcessedItem:</b><br>
 </td></tr>
-<tr><td>Aggregating the <i>ProcessedItems</i></td>
+<tr><td>Assembling the <i>ProcessedItems</i></td>
 <td><b>ProcessedItem</b></td>
-<td><b>AggregatedItem, AggregatedItemGroup</b><br>
+<td><b>AssembledItem, AssembledItemGroup</b><br>
 </td></tr>
 </tbody>
 </table>
@@ -27,7 +27,7 @@ A single element in the <i>Source</i>, most commonly a string. A <i>SourceItem</
 > ```python
 > SourceItem = TypeVar('SourceItem')
 > ProcessedItem = TypeVar('ProcessedItem')
-> AggregatedItem = TypeVar('AggregatedItem')
+> AssembledItem = TypeVar('AssembledItem')
 > Source = Iterable[SourceItem]
 > ```
 
@@ -49,9 +49,9 @@ ProcessedItemGen = Generator[ProcessedItem, None, None]
 ProcessedItems = Union[ProcessedItem, ProcessedItemGen]
 ```
 
-Aggregated section converts a ProcessedItems into a single Aggregated Item.
+Assembled section converts a ProcessedItems into a single Assembled Item.
 
-`AggregatedItem = TypeVar('AggregatedItem')`
+`AssembledItem = TypeVar('AssembledItem')`
 
 # Context Type
 
@@ -128,25 +128,25 @@ RuleCallableOptions = Union[
     ]
 ```
 
-## Aggregate Functions
+## assemble Functions
 
-Aggregate function are like Process Functions, except they return a single
+assemble function are like Process Functions, except they return a single
 item, never a generator.  The function signature must be one of the following:
 
-- `Callable[[ProcessedItems], AggregatedItem]`
-- `Callable[[ProcessedItems, ContextType], AggregatedItem]`
-- `Callable[[ProcessedItems, ...], AggregatedItem]`<br>
+- `Callable[[ProcessedItems], AssembledItem]`
+- `Callable[[ProcessedItems, ContextType], AssembledItem]`
+- `Callable[[ProcessedItems, ...], AssembledItem]`<br>
     Where ... represents keyword arguments
 
 ```python
-AggregateFunc = Callable[[ProcessedList, ContextType], AggregatedItem]
-AggregateCallableOptions = Union[AggregateFunc,
-                               Callable[[ProcessedList], AggregatedItem],
+AssembleFunc = Callable[[ProcessedList, ContextType], AssembledItem]
+AssembleCallableOptions = Union[AssembleFunc,
+                               Callable[[ProcessedList], AssembledItem],
                                Callable[..., ProcessedList]]
 ```
 ## SectionCallables
 
-describe all possible function types: Sentinel, Process, Rule and Aggregate.<BR>
+describe all possible function types: Sentinel, Process, Rule and assemble.<BR>
 `SectionCallables = Union[ProcessFunc, RuleFunc]`
 
 # Relevant Type definitions for Trigger Class and SubClasses.

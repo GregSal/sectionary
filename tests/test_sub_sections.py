@@ -52,7 +52,7 @@ full_section = sec.Section(
     end_section=sec.SectionBreak('PlanCheck', break_offset='before'),
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
                numeric_values],
-    aggregate=tr.to_dataframe,
+    assemble=tr.to_dataframe,
     section_name='Point Dose')
 
 
@@ -60,7 +60,7 @@ simple_section = sec.Section(
     start_section=None,
     end_section=None,
     processor=None,
-    aggregate=None)
+    assemble=None)
 
 
 test_text = [

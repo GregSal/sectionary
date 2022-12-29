@@ -47,7 +47,7 @@ multi_section_end = sections.SectionBreak(
     )
 
 
-#%% Aggregate methods
+#%% Assemble methods
 def combine_sections(section_dict_list):
     '''Combine section dictionaries into dictionary of dictionaries.
     '''
@@ -156,7 +156,7 @@ class TestSectionRead(unittest.TestCase):
             start_section=section_start,
             end_section=section_end,
             processor=test_section_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         source = BufferedIterator(self.test_source)
 
@@ -171,14 +171,14 @@ class TestSectionRead(unittest.TestCase):
             start_section=section_start,
             end_section=section_end,
             processor=test_section_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
         test_multi_section = sections.Section(
             section_name='Test Multi Section',
             start_section=multi_section_start,
             end_section=multi_section_end,
             processor=test_section,
-            aggregate=combine_sections
+            assemble=combine_sections
             )
 
         source = BufferedIterator(self.test_source)
@@ -200,7 +200,7 @@ class TestSectionRead(unittest.TestCase):
             start_section=multi_section_end,
             end_section=section_end,
             processor=test_section_reader,
-            aggregate=partial(tp.to_dict, default_value=None)
+            assemble=partial(tp.to_dict, default_value=None)
             )
 
         source = BufferedIterator(self.test_source)
