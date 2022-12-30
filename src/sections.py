@@ -2488,7 +2488,6 @@ class Section():
             yield next_item
         #self.update_original_source()
 
-
     def scan(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->SectionGen:
@@ -2527,19 +2526,22 @@ class Section():
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)
         section_iter = self.gen(source)
-        done = False
-        while not done:
-            try:
-                item_read = next(section_iter)
-            except (StopIteration, RuntimeError):
-                done = True
-            else:
-                self._source_index.append(self.source.item_count)
-                yield item_read
-            finally:
-                #self.update_original_source()
-                if context:
-                    self.context.update(context)
+        # Read source until end boundary is found or source ends
+        while True:
+            next_item = self.step_source(source)
+            if self.scan_status in ['Scan Complete', 'End of Source']:
+                break  # Break if end of source reached
+            logger.debug(f'This is source item number: {self.source_item_count} '
+                         f'in {self.section_name}')
+            logger.debug(f'Is first item? {self.is_first_item}')
+            logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
+            if self.end_on_first_item | (not self.is_first_item):
+                logger.debug('Checking for boundary')
+                if self.is_boundary(next_item, self.end_section):
+                    break  # Break if section boundary reached
+            yield next_item
+        if context:
+            self.context.update(context)
 
     def process(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
