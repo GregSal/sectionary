@@ -2459,35 +2459,6 @@ class Section():
         self.is_first_item = None
         return active_source
 
-    def gen(self, source: Source)->SectionGen:
-        '''The internal section generator function.
-
-        Step through all items from source that are in section; starting and
-        stopping at the defined start and end boundaries of the section.
-
-        Arguments:
-            source (Source): An iterable where some of the content meets the
-                section boundary conditions.
-        Yields:
-            SectionGen: An iterator containing all source items within the
-                section.
-        '''
-        # Read source until end boundary is found or source ends
-        while True:
-            next_item = self.step_source(source)
-            if self.scan_status in ['Scan Complete', 'End of Source']:
-                break  # Break if end of source reached
-            logger.debug(f'This is source item number: {self.source_item_count} '
-                         f'in {self.section_name}')
-            logger.debug(f'Is first item? {self.is_first_item}')
-            logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
-            if self.end_on_first_item | (not self.is_first_item):
-                logger.debug('Checking for boundary')
-                if self.is_boundary(next_item, self.end_section):
-                    break  # Break if section boundary reached
-            yield next_item
-        #self.update_original_source()
-
     def scan(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->SectionGen:
@@ -2521,11 +2492,9 @@ class Section():
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
-        # TODO Move initialization to gen method
         if initialize:
             # Initialize the section
             source = self.initialize(source, start_search, do_reset, context)
-        section_iter = self.gen(source)
         # Read source until end boundary is found or source ends
         while True:
             next_item = self.step_source(source)
@@ -2577,11 +2546,9 @@ class Section():
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
-        # TODO Move initialization to gen method
-        if initialize:
-            # Initialize the section
-            source = self.initialize(source, start_search, do_reset, context)
-        section_iter = self.gen(source)
+        section_iter = self.scan(source, start_search=start_search,
+                                 do_reset=do_reset, initialize=initialize,
+                                 context=context)
         read_iter = self.processor.reader(section_iter, self.context)
         done = False
         while not done:
@@ -2594,11 +2561,7 @@ class Section():
             else:
                 self._source_index.append(self.source.item_count)
                 yield item_read
-            finally:
-                #self.update_original_source()
-                if context:
-                    # FIXME This appears to be undoing context changes in process
-                    self.context.update(context)
+
     def read(self, source: Source, start_search: bool = None,
              do_reset: bool = True, initialize: bool = True,
              context: ContextType = None)->AssembledItem:
