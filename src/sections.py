@@ -2390,8 +2390,6 @@ class Section():
             if self.is_boundary(next_item, self.start_section):
                 break
             skipped_lines.append(next_item)
-        # TODO Move this to initialize
-        self.context['Skipped Lines'] = skipped_lines
         logger.debug(f'Skipped {len(skipped_lines)} lines.')
         return skipped_lines
 
@@ -2448,7 +2446,8 @@ class Section():
             start_search = self.start_search
         # If requested, advance through the source to the section start.
         if start_search:
-            self.advance_to_start(active_source)
+            skipped_lines = self.advance_to_start(active_source)
+            self.context['Skipped Lines'] = skipped_lines
         else:
             self.context['Skipped Lines'] = []
 
