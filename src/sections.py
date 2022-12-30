@@ -2643,7 +2643,7 @@ class Section():
         # Question Why not just call self.process and have it initialize?
         section_processor = self.process(source, initialize=False)
         # Apply the assemble function
-        section_assemble = self.assemble(section_processor, self.context)
+        section_assembled = self.assemble(section_processor, self.context)
         if self.scan_status not in ['Scan Complete', 'End of Source']:
             self.update_original_source()
-        return section_assemble
+        return section_assembled
