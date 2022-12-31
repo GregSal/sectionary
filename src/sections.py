@@ -1598,7 +1598,6 @@ class ProcessingMethods():
         return output
 
 
-# DONE TO HERE
 #%% Section
 class Section():
     '''Defines a continuous portion of a text stream or other iterable.
@@ -1819,8 +1818,6 @@ class Section():
         self.start_search = start_search
 
         # Set the start and end section break properties
-        # TODO Accept a Tuple with SectionBreak arguments as valid
-        # start_section or end_section values.
         self.start_section = start_section
         self.end_section = end_section
 
@@ -2361,7 +2358,6 @@ class Section():
         else:
             self.scan_status = 'Scan In Progress'
             # Set First Item status
-            # TODO move First Item status setting to gen (closer to where it is used.)
             if self.is_first_item is None:
                 self.is_first_item = True
             else:
@@ -2601,11 +2597,14 @@ class Section():
                 boundaries.
         '''
         # TODO Move initialization to gen method
-        if initialize:
+        #if initialize:
             # Initialize the section
-            source = self.initialize(source, start_search, do_reset, context)
+            #source = self.initialize(source, start_search, do_reset, context)
         # Question Why not just call self.process and have it initialize?
-        section_processor = self.process(source, initialize=False)
+        #section_processor = self.process(source, initialize=False)
+        section_processor = self.process(source, start_search=start_search,
+                                         do_reset=do_reset, initialize=initialize,
+                                         context=context)
         # Apply the assemble function
         section_assembled = self.assemble(section_processor, self.context)
         if self.scan_status not in ['Scan Complete', 'End of Source']:
