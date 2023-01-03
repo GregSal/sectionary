@@ -94,7 +94,7 @@ class TestSourceTracking(unittest.TestCase):
             - Section.source_item_count is 0
             - Section.item_count is 0
         '''
-        empty_section = Section(section_name='empty')
+        empty_section = Section(name='empty')
         source_index = empty_section.source_index
         source_item_count = empty_section.source_item_count
         item_count = empty_section.item_count
@@ -108,7 +108,7 @@ class TestSourceTracking(unittest.TestCase):
             - Section.source_item_count is 0
             - Section.item_count is 0
         '''
-        not_started_section = Section(section_name='Not Started')
+        not_started_section = Section(name='Not Started')
         not_started_section.source = self.int_source
         source_index = not_started_section.source_index
         source_item_count = not_started_section.source_item_count
@@ -125,7 +125,7 @@ class TestSourceTracking(unittest.TestCase):
             - source.item_count = item = section.source_item_count
             - source.item_count = section.item_count
         '''
-        section_1_1 = Section(section_name='1-to-1 match')
+        section_1_1 = Section(name='1-to-1 match')
         for item in section_1_1.process(self.int_source):
             with self.subTest(item=item):
                 source_count = self.int_source.item_count
@@ -145,7 +145,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.source_item_count
                 - source.item_count = section.item_count * 2
         '''
-        section_2_1 = Section(section_name='2-to-1 match',
+        section_2_1 = Section(name='2-to-1 match',
                               processor=[pairs])
         for item in section_2_1.process(self.int_source):
             with self.subTest(item=item):
@@ -169,7 +169,7 @@ class TestSourceTracking(unittest.TestCase):
         - source.item_count = (section.item_count + 1) // 2
         - section.source_item_count = section.source_index[-1]
         '''
-        section_1_2 = Section(section_name='1-to-2 match',
+        section_1_2 = Section(name='1-to-2 match',
                               processor=[n_split])
         for item in section_1_2.process(self.pairs_source):
             with self.subTest(item=item):
@@ -191,7 +191,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.item_count
         '''
         section_skip_0 = Section(
-            section_name='Skipped First Source Item',
+            name='Skipped First Source Item',
             start_section=SectionBreak('1', break_offset='Before')
             )
         for item in section_skip_0.process(self.str_source):
@@ -214,7 +214,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.item_count + 2
         '''
         section_skip_2 = Section(
-            section_name='Skipped First Source Item',
+            name='Skipped First Source Item',
             start_section=SectionBreak('1', break_offset='After')
             )
         for item in section_skip_2.process(self.str_source):
@@ -236,7 +236,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.item_count * 2
         '''
         section_odd = Section(
-            section_name='Odd Numbers',
+            name='Odd Numbers',
             processor=[odd_nums]
             )
         for item in section_odd.process(self.int_source):
@@ -257,7 +257,7 @@ class TestSourceTracking(unittest.TestCase):
                 - section.source_item_count = section.item_count = n * 2
         '''
         section_odd = Section(
-            section_name='Odd Numbers',
+            name='Odd Numbers',
             processor=[odd_nums]
             )
         section_odd.read(self.int_source)
@@ -279,7 +279,7 @@ class TestSourceTracking(unittest.TestCase):
         start_num = random.randint(1, self.num_items-2)
         end_num = random.randint(start_num + 1, self.num_items)
         part_section = Section(
-            section_name='Partial Source Section',
+            name='Partial Source Section',
             start_section=str(start_num),
             end_section=str(end_num)
             )
@@ -300,7 +300,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.item_count = 2
         '''
         section_end_before = Section(
-            section_name='End Before',
+            name='End Before',
             end_section=SectionBreak('2', break_offset='Before')
             )
 
@@ -323,7 +323,7 @@ class TestSourceTracking(unittest.TestCase):
                 - source.item_count = section.item_count = 3
         '''
         section_end_before = Section(
-            section_name='End Before',
+            name='End Before',
             end_section=SectionBreak('2', break_offset='After')
             )
 

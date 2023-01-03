@@ -46,8 +46,8 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         '''Initial Section and Sub-Section Definitions.
         Results in all lines in one sub-list.
         '''
-        sub_section = Section(section_name='SubSection')
-        full_section = Section(section_name='Full', processor=sub_section)
+        sub_section = Section(name='SubSection')
+        full_section = Section(name='Full', processor=sub_section)
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [[
             'Text to be ignored',
@@ -72,9 +72,9 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         Result includes all three lines of first section in single sub-list.
         - skips the *'Unwanted text between sections'* line.
         '''
-        sub_section = Section(section_name='SubSection')
+        sub_section = Section(name='SubSection')
         full_section = Section(
-            section_name='Full', processor=sub_section,
+            name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
@@ -101,14 +101,14 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         Results in all three lines of each section in its own sub-list.
         - Skips the *'Unwanted text between sections'* line.
         '''
-        sub_section = Section(section_name='SubSection')
+        sub_section = Section(name='SubSection')
         full_section = Section(
-            section_name='Full', processor=sub_section,
+            name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         multi_section = Section(
-            section_name='Multi',
+            name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -131,14 +131,14 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         - Includes *'Even more text to be ignored'* because there are no more
             *'StartSection'* lines to trigger an `end_section` break.
         '''
-        sub_section = Section(section_name='SubSection')
+        sub_section = Section(name='SubSection')
         full_section = Section(
-            section_name='Full', processor=sub_section,
+            name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before'),
             )
         multi_section = Section(
-            section_name='Multi',
+            name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -159,9 +159,9 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
         Results in empty list because it both starts and ends on first
         *'StartSection'*.
         '''
-        sub_section = Section(section_name='SubSection')
+        sub_section = Section(name='SubSection')
         full_section = Section(
-            section_name='Full', processor=sub_section,
+            name='Full', processor=sub_section,
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before'),
             end_on_first_item=True
@@ -207,15 +207,15 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         Result is the same as when start_section was defined in full_section.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             end_section=SectionBreak('EndSection', break_offset='After'),
             processor=sub_section
             )
-        multi_section = Section(section_name='Multi',
+        multi_section = Section(name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -239,15 +239,15 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
             is in its own sub-section.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             processor=sub_section
             )
-        multi_section = Section(section_name='Multi',
+        multi_section = Section(name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -269,15 +269,15 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         the sub-list nesting is different.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             processor=sub_section
             )
-        multi_section = Section(section_name='Multi',
+        multi_section = Section(name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -297,12 +297,12 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         one less sub-list level.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             processor=sub_section
             )
         read_1 = full_section.read(self.test_text)
@@ -324,17 +324,17 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         defined (including list levels).
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After'),
             processor=sub_section
             )
-        multi_section = Section(section_name='Multi',
+        multi_section = Section(name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)
@@ -353,16 +353,16 @@ class ThreeLineSubSectionBreakOptions(unittest.TestCase):
         Result is that StartSection lines are dropped.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='After')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After'),
             processor=sub_section
             )
-        multi_section = Section(section_name='Multi',
+        multi_section = Section(name='Multi',
             processor=full_section
             )
         read_1 = multi_section.read(self.test_text)

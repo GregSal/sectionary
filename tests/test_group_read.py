@@ -261,28 +261,28 @@ class TestSectionGroupRead(unittest.TestCase):
 
         # Section definitions
         self.delimiter_section = sections.Section(
-            section_name='Delimiter Section',
+            name='Delimiter Section',
             start_section=delimiter_section_start,
             end_section=section_end,
             processor=delimiter_section_reader,
             assemble=partial(tp.to_dict, default_value=None)
             )
         self.fixed_width_section = sections.Section(
-            section_name='Fixed Width Section',
+            name='Fixed Width Section',
             start_section=fixed_width_section_start,
             end_section=section_end,
             processor=fixed_width_reader,
             assemble=partial(tp.to_dict, default_value=None)
             )
         self.group_section = sections.Section(
-            section_name='Group Section',
+            name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
             processor=[[self.delimiter_section, self.fixed_width_section]],
             assemble=make_list
             )
         self.multi_group_section = sections.Section(
-            section_name='Group Section',
+            name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
             processor=[[self.delimiter_section, self.fixed_width_section]],

@@ -376,7 +376,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             break_offset='Before'
             )
         test_section = sections.Section(
-            section_name='Test Section',
+            name='Test Section',
             start_section=section_start_after,
             end_section=section_end_before,
             processor=self.test_section_multi_line_reader,
@@ -400,7 +400,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             break_offset=2
             )
         test_section = sections.Section(
-            section_name='Test Section',
+            name='Test Section',
             start_section=section_start_gap,
             end_section=section_end_skip_line,
             processor=self.test_section_line_reader,
@@ -424,7 +424,7 @@ class TestBoundaryOffsets(unittest.TestCase):
             break_offset=-3
             )
         test_section = sections.Section(
-            section_name='Test Section',
+            name='Test Section',
             start_section=section_start_reuse,
             end_section=section_end_skip_line,
             processor=self.test_section_line_reader,

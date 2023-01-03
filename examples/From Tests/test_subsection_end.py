@@ -62,20 +62,20 @@ GENERIC_TEST_TEXT_4 = [
     ]
 # %% test_two_single_line_subsections_with_unwanted_middle
 start_sub_section = Section(
-    section_name='StartSubSection',
+    name='StartSubSection',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='Before')
     )
 
 
 end_sub_section = Section(
-    section_name='EndSubSection',
+    name='EndSubSection',
     start_section=SectionBreak('EndSection', break_offset='Before'),
     end_section=SectionBreak(True, break_offset='Before')
     )
 
 top_section = Section(
-    section_name='Top Section',
+    name='Top Section',
     end_section=SectionBreak('ignored', break_offset='Before'),
     processor=[start_sub_section, end_sub_section]
     )
@@ -85,17 +85,17 @@ pprint(top_section.read(GENERIC_TEST_TEXT_4))
 quit()
 # %% Test Combined Start End Single Line Section
 start_sub_section = Section(
-    section_name='StartSubSection',
+    name='StartSubSection',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='Before')
     )
 end_sub_section = Section(
-    section_name='EndSubSection',
+    name='EndSubSection',
     start_section=SectionBreak('EndSection', break_offset='Before'),
     end_section=SectionBreak(True, break_offset='Before')
     )
 full_section = Section(
-    section_name='Full',
+    name='Full',
     processor=[start_sub_section, end_sub_section]
     )
 
@@ -105,7 +105,7 @@ quit()
 
 # %% Test Two Line SubSection
 sub_section = Section(
-    section_name='StartSubSection',
+    name='StartSubSection',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='After')
     )
@@ -113,7 +113,7 @@ sub_section = Section(
 pprint(sub_section.read(GENERIC_TEST_TEXT_3))
 
 full_section = Section(
-    section_name='Full',
+    name='Full',
     processor=sub_section
     )
 
@@ -133,7 +133,7 @@ def prt_lst(seq):
 
 # %% section Definitions
 end_section = Section(
-    section_name='End',
+    name='End',
     start_section=SectionBreak('EndSection', break_offset='Before'),  # Added to use alone
     end_on_first_item=True,
     #keep_partial=True,
@@ -141,7 +141,7 @@ end_section = Section(
     assemble=prt_lst
     )
 full_section = Section(
-    section_name='Full',
+    name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='After'),
     processor=[end_section]  # Only end_section

@@ -49,7 +49,7 @@ GENERIC_TEST_TEXT2 = [
     ]
 # %%  Define Sections
 sub_section = Section(
-    section_name='SubSection',
+    name='SubSection',
     start_section=SectionBreak('StartSection', break_offset='After', name='Start SubSection')
     #end_on_first_item=True,
     #keep_partial=True,
@@ -57,13 +57,13 @@ sub_section = Section(
     )
 
 full_section = Section(
-    section_name='Full',
+    name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before', name='Start FullSection'),
     end_section=SectionBreak('EndSection', break_offset='After', name='End FullSection'),
     processor=sub_section
     )
 
-multi_section = Section(section_name='Multi',
+multi_section = Section(name='Multi',
     processor=full_section,
     #end_on_first_item=True
     )

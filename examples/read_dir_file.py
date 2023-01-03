@@ -326,28 +326,28 @@ summary_start = SectionBreak(sentinel='Total Files Listed:',
 
 #%% Section definitions
 header_section = Section(
-    section_name='Header',
+    name='Header',
     start_section=None,
     end_section=folder_start,
     processor=heading_reader,
     assemble=print_lines
     )
 folder_section = Section(
-    section_name='Folder',
+    name='Folder',
     start_section=folder_start,
     end_section=folder_end,
     processor=folder_reader,
     assemble=to_folder_dict
     )
 all_folder_section = Section(
-    section_name='All Folders',
+    name='All Folders',
     start_section=folder_start,
     end_section=summary_start,
     processor=[folder_section],
     assemble=make_files_table
     )
 summary_section = Section(
-    section_name='Summary',
+    name='Summary',
     start_section=summary_start,
     end_section=None,
     processor=summary_reader,

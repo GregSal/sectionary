@@ -34,14 +34,14 @@ GENERIC_TEST_TEXT = [
     ]
 # %%  Define Sections
 sub_section = Section(
-    section_name='SubSection',
+    name='SubSection',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('EndSection', break_offset='Before')
     )
 
 
 full_section = Section(
-    section_name='Full',
+    name='Full',
     end_section=SectionBreak('ignored', break_offset='Before'),
     processor=[sub_section],
     #keep_partial=False

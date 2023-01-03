@@ -49,13 +49,13 @@ class TestEndOnFirstItem(unittest.TestCase):
 
     def test_repeating_false_end_on_first_item(self):
         start_sub_section = Section(
-            section_name='StartSubSection',
+            name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before'),
             end_on_first_item=False
             )
         repeating_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('More text to be ignored',
                                      break_offset='Before'),
             processor=start_sub_section
@@ -109,7 +109,7 @@ class TestSingleLineStartSections(unittest.TestCase):
 
     def test_single_line_start_section(self):
         start_sub_section = Section(
-            section_name='StartSubSection',
+            name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='Before')
             )
@@ -123,12 +123,12 @@ class TestSingleLineStartSections(unittest.TestCase):
 
     def test_single_line_start_section(self):
         start_sub_section = Section(
-            section_name='StartSubSection',
+            name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='Before')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[start_sub_section]
             )
@@ -148,7 +148,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_like_start_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak('StartSection', break_offset='Before')
             )
@@ -163,7 +163,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_before_and_after_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After')
             )
@@ -179,7 +179,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_before_and_after_end_on_first_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='After'),
             end_on_first_item=True
@@ -194,7 +194,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_before_end_on_first_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='Before'),
             end_on_first_item=True
@@ -209,7 +209,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_always_break_end_on_first_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='After'),
             end_on_first_item=True
@@ -224,7 +224,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_always_break_no_end_on_first_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='After'),
             end_on_first_item=False
@@ -239,7 +239,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_always_break_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='After')
             )
@@ -253,7 +253,7 @@ class TestSingleLineEndSections(unittest.TestCase):
 
     def test_single_line_end_no_break_section(self):
         end_sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_on_first_item=True,
             )
@@ -289,19 +289,19 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             'Even more text to be ignored',
             ]
         self.start_sub_section = Section(
-            section_name='StartSubSection',
+            name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='Before')
             )
         self.end_sub_section = Section(
-            section_name='EndSubSection',
+            name='EndSubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='Before')
             )
 
     def test_two_single_line_subsections(self):
         full_section = Section(
-            section_name='Full',
+            name='Full',
             processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = full_section.read(self.test_text)
@@ -314,7 +314,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
 
     def test_two_single_line_subsections_with_top_section_break(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[[self.start_sub_section, self.end_sub_section]]
             )
@@ -329,7 +329,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
 
     def test_two_single_line_subsections_with_unwanted_middle(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[[self.start_sub_section, self.end_sub_section]]
             )
@@ -354,7 +354,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             'Even more text to be ignored',
             ]
         full_section = Section(
-            section_name='Full',
+            name='Full',
             processor=[[self.start_sub_section, self.end_sub_section]]
             )
         read_1 = full_section.read(test_text)
@@ -389,19 +389,19 @@ class TestKeepPartial(unittest.TestCase):
             'Even more text to be ignored',
             ]
         self.start_sub_section = Section(
-            section_name='StartSubSection',
+            name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
             end_section=SectionBreak('EndSection', break_offset='Before')
             )
         self.end_sub_section = Section(
-            section_name='EndSubSection',
+            name='EndSubSection',
             start_section=SectionBreak('EndSection', break_offset='Before'),
             end_section=SectionBreak(True, break_offset='Before')
             )
     @unittest.skip('Not Implemented')
     def test_keep_partial_False(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=False
@@ -419,7 +419,7 @@ class TestKeepPartial(unittest.TestCase):
     @unittest.skip('Not Implemented')
     def test_keep_partial_True(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
@@ -434,7 +434,7 @@ class TestKeepPartial(unittest.TestCase):
     @unittest.skip('Not Implemented')
     def test_keep_partial_True_simpler_text(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
@@ -448,7 +448,7 @@ class TestKeepPartial(unittest.TestCase):
     @unittest.skip('Not Implemented')
     def test_keep_partial_True_only_end_section(self):
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.end_sub_section],
             keep_partial=True
@@ -473,7 +473,7 @@ class TestKeepPartial(unittest.TestCase):
             'Even more text to be ignored',
             ]
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=True
@@ -501,7 +501,7 @@ class TestKeepPartial(unittest.TestCase):
             'Even more text to be ignored',
             ]
         top_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=[self.start_sub_section, self.end_sub_section],
             keep_partial=False
@@ -525,7 +525,7 @@ class TestHysteresis(unittest.TestCase):
             'More text to be ignored',
             ]
         self.sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before', name='SubSectionStart'),
             end_section=SectionBreak('EndSection', break_offset='After', name='SubSectionEnd')
             )
@@ -543,7 +543,7 @@ class TestHysteresis(unittest.TestCase):
         '''Verify that repeat calls to read produce the same result.
         '''
         full_section = Section(
-            section_name='Full',
+            name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=self.sub_section
             )
@@ -572,7 +572,7 @@ class TestHysteresis(unittest.TestCase):
             'More text to be ignored',
             ]
         self.sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before', name='SubSectionStart'),
             end_section=SectionBreak('EndSection', break_offset='After', name='SubSectionEnd')
             )
@@ -589,7 +589,7 @@ class TestHysteresis(unittest.TestCase):
         '''Verify that repeat calls to read produce the same result.
         '''
         full_section = Section(
-            section_name='Full',
+            name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=self.sub_section
             )
@@ -622,14 +622,14 @@ class TestSourceStatus(unittest.TestCase):
         '''Verify that repeat calls to read produce the same result.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before',
                                        name='SubSectionStart'),
             end_section=SectionBreak('EndSection', break_offset='After',
                                      name='SubSectionEnd')
             )
         full_section = Section(
-            section_name='Full',
+            name='Full',
             end_section=SectionBreak('ignored', break_offset='Before'),
             processor=sub_section
             )
@@ -662,14 +662,14 @@ class TestSubsectionContext(unittest.TestCase):
         '''Verify that repeat calls to read produce the same result.
         '''
         sub_section = Section(
-            section_name='SubSection',
+            name='SubSection',
             start_section=SectionBreak('StartSection', break_offset='Before',
                                        name='SubSectionStart'),
             end_section=SectionBreak('EndSection', break_offset='After',
                                      name='SubSectionEnd')
             )
         full_section = Section(
-            section_name='Top Section',
+            name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before',
                              name='End Section'),
             processor=sub_section

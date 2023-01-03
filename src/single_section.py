@@ -1,7 +1,7 @@
 '''Define, Identify and Process "sections" of an input stream.
 
 The principal class is:
-    Section(section_name: str = 'Section',
+    Section(name: str = 'Section',
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)
@@ -1645,7 +1645,7 @@ class SingleSection():
                 section items.
             assemble (AssembleFunc): A function used to collect and format,
                 the processor output into a single object.
-            section_name (str): A reference name for the section instance.
+            name (str): A reference name for the section instance.
 
         Options Settings. start_search and end_on_first_item
 
@@ -1752,7 +1752,7 @@ class SingleSection():
                  end_section: BreakOptions = None,
                  processor: ProcessorOptions = None,
                  assemble: AssembleCallableOptions = None,
-                 section_name: str = 'Section',
+                 name: str = 'Section',
                  #keep_partial: bool = False,
                  end_on_first_item: bool = False,
                  start_search: bool = None):
@@ -1793,7 +1793,7 @@ class SingleSection():
             assemble (AssembleCallableOptions, optional): A function used to
                 collect and format, the processor output into a single object.
                 Defaults to None, which returns a list of the processor output.
-            section_name (str, optional): A label to be applied to the section.
+            name (str, optional): A label to be applied to the section.
                 Defaults to 'Section'.
             end_on_first_item (bool, optional): If True, the item that triggers
                 the start of a section may also trigger the end of the section.
@@ -1811,7 +1811,7 @@ class SingleSection():
             New Section.
         '''
         # Initialize attributes
-        self.section_name = section_name
+        self.name = name
         #self.keep_partial = keep_partial
         self.end_on_first_item = end_on_first_item
         # If start_search is None, This will be modified based on whether .
@@ -1857,7 +1857,7 @@ class SingleSection():
             'Break',
             'Event'
             ])
-        self.context['Current Section'] = self.section_name
+        self.context['Current Section'] = self.name
         self.context['Status'] = 'Not Started'
         self.source = None
 
@@ -1940,7 +1940,7 @@ class SingleSection():
                 source_pointer = self.source_index[-1]
                 logger.debug(f'Moving original source to item #{source_pointer}')
                 self._original_source.goto_item(source_pointer, buffer_overrun=True)
-        logger.debug((f'Section:\t{self.section_name}\n'
+        logger.debug((f'Section:\t{self.name}\n'
                       f'item_count: \t{self.item_count}\n'
                       f'source.item_count: \t{self.source.item_count}\n'
                       f'source_item_count: \t{self.source_item_count}\n'
@@ -2199,7 +2199,7 @@ class SingleSection():
                 self.is_first_item = True
             else:
                 self.is_first_item = False
-            logger.debug(f'In:\t{self.section_name}\tGot item:\t{next_item}')
+            logger.debug(f'In:\t{self.name}\tGot item:\t{next_item}')
         finally:
             logger.debug(f'Break Status:\t{self.scan_status}')
         return next_item
@@ -2215,7 +2215,7 @@ class SingleSection():
         '''
         skipped_lines = list()
         self.scan_status = 'Not Started'
-        logger.debug(f'Advancing to start of {self.section_name}.')
+        logger.debug(f'Advancing to start of {self.name}.')
         while True:
             next_item = self.step_source(source)
             if self.scan_status in ['Scan Complete', 'End of Source']:
@@ -2257,16 +2257,16 @@ class SingleSection():
 
         # Initialize and reset source if required.
         if do_reset:
-            logger.debug(f'Resetting source for: {self.section_name}.')
+            logger.debug(f'Resetting source for: {self.name}.')
             self.reset()  # This clears source, context and scan_status.
             self.source = supplied_source  # This initializes the source.
             active_source = self.source  # Gets the initialized source.
         elif not self.source:
-            logger.debug(f'Setting new source for: {self.section_name}.')
+            logger.debug(f'Setting new source for: {self.name}.')
             self.source = supplied_source  # This initializes the source.
             active_source = self.source  # Gets the initialized source.
         else:
-            logger.debug(f'{self.section_name} already contains source.')
+            logger.debug(f'{self.name} already contains source.')
             active_source = supplied_source  # Assumes source is initialized.
 
         # Update context
@@ -2285,8 +2285,8 @@ class SingleSection():
             self.context['Skipped Lines'] = []
 
         # Update Section Status
-        logger.debug(f'Starting New Section: {self.section_name}.')
-        self.context['Current Section'] = self.section_name
+        logger.debug(f'Starting New Section: {self.name}.')
+        self.context['Current Section'] = self.name
         self.scan_status = 'At section start'
         self.is_first_item = None
         return active_source
@@ -2333,7 +2333,7 @@ class SingleSection():
             if self.scan_status in ['Scan Complete', 'End of Source']:
                 break  # Break if end of source reached
             logger.debug(f'This is source item number: {self.source_item_count} '
-                         f'in {self.section_name}')
+                         f'in {self.name}')
             logger.debug(f'Is first item? {self.is_first_item}')
             logger.debug(f'end_on_first_item is  {self.end_on_first_item}')
             if self.end_on_first_item | (not self.is_first_item):
@@ -2381,12 +2381,14 @@ class SingleSection():
         section_iter = self.scan(source, start_search=start_search,
                                  do_reset=do_reset, initialize=initialize,
                                  context=context)
+        if not context:
+            context = self.context
         read_iter = self.processor.reader(section_iter, context)
         done = False
         while not done:
             try:
                 item_read = next(read_iter)
-                logger.debug(f'This is {self.section_name} item number: '
+                logger.debug(f'This is {self.name} item number: '
                              f'{self.item_count}')
             except (StopIteration, RuntimeError):
                 if context:
@@ -2446,8 +2448,9 @@ class SingleSection():
         section_processor = self.process(source, start_search=start_search,
                                          do_reset=do_reset, initialize=initialize,
                                          context=context)
+        if not context:
+            context = self.context
         # Apply the assemble function
-
         section_assembled = self.assemble(section_processor, self.context)
         if context:
             self.context.update(context)

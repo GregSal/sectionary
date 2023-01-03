@@ -15,7 +15,7 @@ The Sections module is used to define, read and process distinct groups of items
 
 The principal class is:
 
-    Section(section_name: str = 'Section',
+    Section(name: str = 'Section',
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)
@@ -70,7 +70,7 @@ A section definition may include:
 
 A Section instance is created by defining one or more of these components:
 
-   `Section(section_name: str = 'Section',
+   `Section(name: str = 'Section',
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)

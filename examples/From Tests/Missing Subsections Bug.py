@@ -40,21 +40,21 @@ GENERIC_TEST_TEXT2 = [
     ]
 # %%  Define Sections
 sub_section = Section(
-    section_name='SubSection',
+    name='SubSection',
     start_section=SectionBreak('StartSection', break_offset='Before', name='StartSubSection'),
     end_section=SectionBreak('EndSection', break_offset='After', name='EndSubSection'),
     #end_section=SectionBreak(True)
     #end_on_first_item=True
     )
 full_section = Section(
-    section_name='Full',
+    name='Full',
     start_section=SectionBreak('StartSection', break_offset='Before', name='StartFullSection'),
     end_section=SectionBreak('EndSection', break_offset='After', name='EndFullSection'),
     processor=sub_section,
     #end_on_first_item=True
     )
 
-multi_section = Section(section_name='Multi',
+multi_section = Section(name='Multi',
     processor=full_section,
     #end_on_first_item=True
     )

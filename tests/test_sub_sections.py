@@ -53,7 +53,7 @@ full_section = sec.Section(
     processor=[tr.clean_ascii_text, dict_parse, tr.trim_items,
                numeric_values],
     assemble=tr.to_dataframe,
-    section_name='Point Dose')
+    name='Point Dose')
 
 
 simple_section = sec.Section(

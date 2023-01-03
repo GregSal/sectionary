@@ -30,14 +30,14 @@ GENERIC_TEST_TEXT = [
     ]
 
 start_sub_section = Section(
-    section_name='StartSubSection',
+    name='StartSubSection',
     start_section=SectionBreak('StartSection', break_offset='Before'),
     end_section=SectionBreak('StartSection', break_offset='Before'),
     end_on_first_item=False
     )
 
 repeating_section = Section(
-    section_name='Top Section',
+    name='Top Section',
     end_section=SectionBreak('More text to be ignored', break_offset='Before'),
     processor=start_sub_section
     )

@@ -11,7 +11,7 @@ There are many good text readers and parsers available for Python (such as *csv*
 
 The principal class is:
 
-    Section(section_name: str = 'Section',
+    Section(name: str = 'Section',
             start_section: (SectionBreak, List[SectionBreak], str, Optional)
             end_section: (SectionBreak, List[SectionBreak], str, Optional)
             processor: (ProcessingMethods, Section, List[Section], Optional)

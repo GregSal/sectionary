@@ -213,7 +213,7 @@ class TestSectionSequencer(unittest.TestCase):
 
     def test_dvh_info_section_sequence(self):
         section = sections.Section(
-            section_name='DVH Info',
+            name='DVH Info',
             start_section=None,
             end_section=read_dvh_file.plan_info_start,
             processor=read_dvh_file.dvh_info_reader,
@@ -226,14 +226,14 @@ class TestSectionSequencer(unittest.TestCase):
 
     def test_plan_info_group_sequence(self):
         plan_info_section = sections.Section(
-            section_name='Plan Info',
+            name='Plan Info',
             start_section=read_dvh_file.plan_info_start,
             end_section=read_dvh_file.plan_info_end,
             processor=read_dvh_file.plan_info_reader,
             assemble=tp.to_dict)
 
         section = sections.Section(
-            section_name='Plan Info Group',
+            name='Plan Info Group',
             start_section=read_dvh_file.plan_info_start,
             end_section=read_dvh_file.structure_info_start,
             processor=plan_info_section,
@@ -247,7 +247,7 @@ class TestSectionSequencer(unittest.TestCase):
     def test_structure_section_sequence(self):
         self.maxDiff = None
         section = sections.Section(
-            section_name='Structure Group',
+            name='Structure Group',
             start_section=read_dvh_file.structure_info_start,
             processor=read_dvh_file.structure_info_section,
             assemble=partial(tp.to_dataframe, header=False)

@@ -54,8 +54,8 @@ def combine_sections(section_dict_list):
     output_dict = dict()
     for section_dict in section_dict_list:
         if section_dict:
-            section_name = section_dict.get('Section Name')
-            output_dict[section_name] = section_dict
+            name = section_dict.get('Section Name')
+            output_dict[name] = section_dict
     return output_dict
 
 
@@ -152,7 +152,7 @@ class TestSectionRead(unittest.TestCase):
 
     def test_section_read(self):
         test_section = sections.Section(
-            section_name='Test Section',
+            name='Test Section',
             start_section=section_start,
             end_section=section_end,
             processor=test_section_reader,
@@ -167,14 +167,14 @@ class TestSectionRead(unittest.TestCase):
 
 
         test_section = sections.Section(
-            section_name='Test Section',
+            name='Test Section',
             start_section=section_start,
             end_section=section_end,
             processor=test_section_reader,
             assemble=partial(tp.to_dict, default_value=None)
             )
         test_multi_section = sections.Section(
-            section_name='Test Multi Section',
+            name='Test Multi Section',
             start_section=multi_section_start,
             end_section=multi_section_end,
             processor=test_section,
@@ -196,7 +196,7 @@ class TestSectionRead(unittest.TestCase):
 
     def test_end_section_read(self):
         test_section = sections.Section(
-            section_name='Test Section E',
+            name='Test Section E',
             start_section=multi_section_end,
             end_section=section_end,
             processor=test_section_reader,
