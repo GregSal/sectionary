@@ -2445,28 +2445,23 @@ class Section():
         # if it exists, self.source is the pre-existing root BufferedIterator.
         # active_source iterates self.source, but adds boundary checking.  This
         # distinction is needed when using sub-sections.
-
         # Initialize and reset source
         logger.debug(f'Resetting source for: {self.name}.')
         self.reset()  # This clears source, context and scan_status.
         self.source = supplied_source  # This initializes the source.
-
         # Update context
         if context:
             self.context.update(context)
-
         # if start_search is not given explicitly use the section's
         # start_search attribute
         if start_search is None:
             start_search = self.start_search
-
         # If requested, advance through the source to the section start.
         if start_search:
             skipped_lines = self.advance_to_start()
             self.context['Skipped Lines'] = skipped_lines
         else:
             self.context['Skipped Lines'] = []
-
         # Update Section Status
         logger.debug(f'Starting New Section: {self.name}.')
         self.context['Current Section'] = self.name
@@ -2498,7 +2493,7 @@ class Section():
                 start and end boundaries of the section.
         '''
         # Initialize the section
-        source = self.initialize(source, start_search)
+        source = self.initialize(source, start_search, context=context)
         # Read source until end boundary is found or source ends
         while True:
             next_item = self.step_source()
@@ -2511,7 +2506,9 @@ class Section():
                 if self.is_boundary(next_item, self.end_section):
                     break  # Break if section boundary reached
             yield next_item
-
+        # Update the supplied context if it exists
+        if context:
+            context.update(self.context)
         # re-align any buffers in the supplied source
         self.update_original_source()
 
@@ -2542,22 +2539,20 @@ class Section():
         '''
         section_iter = self.scan(source, start_search=start_search,
                                  context=context)
-        # For some reason I don't understand I need to set self.context to a
-        # local variable to get it to update with the processing functions.
-        active_context = self.context
-        process_iter = self.processor.reader(section_iter, active_context)
+        process_iter = self.processor.reader(section_iter, self.context)
         while True:
             try:
                 item_read = next(process_iter)
             except (StopIteration, RuntimeError):
-                self.context.update(active_context)
                 break  # loop until iterator ends
             else:
                 # Update the source index so that stepping back uses the
                 # correct step size
-                self.context.update(active_context)
                 self._source_index.append(self.source.item_count)
                 yield item_read
+        # Update the supplied context if it exists
+        if context:
+            context.update(self.context)
 
     def read(self, source: Source, start_search: bool = None,
              context: ContextType = None)->AssembledItem:
@@ -2592,10 +2587,15 @@ class Section():
         # Get the processing generator
         section_processor = self.process(source, start_search=start_search,
                                          context=context)
+
+
         # Send the processing generator to the assemble function
         # For some reason I don't understand I need to set self.context to a
         # local variable to get it to update with the assemble function.
         active_context = self.context
         section_assembled = self.assemble(section_processor, active_context)
         self.context.update(active_context)
+        # Update the supplied context if it exists
+        if context:
+            context.update(self.context)
         return section_assembled

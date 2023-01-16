@@ -65,6 +65,7 @@ class BufferedIterator():
         source_gen (Iterator): The base iterator created at object
             initialization from the supplied Sequence.  Generally there should
             be no reason to access this directly.
+        status (str): One of 'Started', 'Completed'
 
     Methods:
         next() and iter(): BufferedIterator supports the standard next()
@@ -107,6 +108,7 @@ class BufferedIterator():
         self.future_items = deque(maxlen=buffer_size)
         self._step_back = 0
         self._item_count = 0
+        self.status = 'Started'
         return
 
     @property
@@ -187,6 +189,7 @@ class BufferedIterator():
             except (StopIteration, RuntimeError) as eof:
                 # Treat "StopIteration" or "RuntimeError" exceptions as
                 # End-of-File indicators.
+                self.status = 'Completed'
                 raise BufferedIteratorEOF from eof
             else:
                 self._item_count += 1
