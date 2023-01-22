@@ -40,8 +40,9 @@ import inspect
 import logging
 from inspect import isgeneratorfunction
 from functools import partial
-#from types import NoneType
-from typing import Dict, List, NamedTuple, TypeVar
+
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Dict, List, NamedTuple, TypeVar, Tuple
 from typing import Iterable, Any, Callable, Union, Generator
 
 from buffered_iterator import BufferedIterator
@@ -155,6 +156,245 @@ BreakOptions = Union["SectionBreak", List["SectionBreak"], str, None]
 
 # A sub-iterable of Source that only iterates over the Section content of Source.
 SectionGen = Generator[SourceItem, None, None]
+
+
+#%% Section base class
+class SectionBase(ABC):
+    '''Provides an object type reference for section helper classes.
+
+   When sub-sections are used the helper classes, in particular the
+   ProcessingMethods class need to be able to test for instances of Section
+   objects before the Section class is defined.  This base class allows for
+   this type checking.  It also allows for sub-section ProcessingMethods that
+   interact with the sub-section object by defining abstract attributes and
+   methods for the function to reference.
+
+        Abstract Methods:
+            read(self, source: Source, start_search: bool = None,
+             context: ContextType = None)
+    '''
+    @abstractmethod
+    def __init__(self,
+                 start_section: BreakOptions = None,
+                 end_section: BreakOptions = None,
+                 processor: ProcessorOptions = None,
+                 assemble: AssembleCallableOptions = None,
+                 name: str = 'Section',
+                 #keep_partial: bool = False,
+                 end_on_first_item: bool = False,
+                 start_search: bool = None):
+        '''A reference to the __init__ method for the Section class.
+
+        The argument signature matches that of the Section class.
+
+        Arguments:
+            start_section (BreakOptions, optional)
+            end_section (BreakOptions, optional)
+            processor (ProcessorOptions, optional)
+            assemble (AssembleCallableOptions, optional)
+            name (str, optional)
+            end_on_first_item (bool, optional)
+            start_search (bool, optional)
+        '''
+        super().__init__()
+        self.context = None
+        self.name= name
+        self.source = None
+
+    @abstractproperty
+    def source():
+        '''A reference to the source property for the Section class.
+        '''
+        return BufferedIterator()
+
+    @abstractmethod
+    def read(self, source: Source, start_search: bool = None,
+             context: ContextType = None)->AssembledItem:
+        '''A reference to the read method for the Section class.
+
+        The argument signature matches that of the Section.read method.
+
+        Arguments:
+            source (Source)
+            start_search (bool, optional)
+            context (ContextType, optional)
+        Returns:
+            AssembledItem:
+        '''
+        return None
+
+
+#%% General Sub Section functions
+def read_subsection(subsection: 'Section',
+                    source: ProcessedItemGen,
+                    context: ContextType = None
+                    ) -> Generator[AssembledItem, None, None]:
+    '''Iterate through the supplied source returning the assembled subsection.
+
+    This method is used when individual subsections are used as
+    ProcessingMethods.
+
+    Args:
+        subsection ('Section'): The sub-section object
+            ('Section' is a subclass of BaseSection)
+        source (ProcessedItemGen): The iterator resulting from applying
+            zero or more processing functions to the original source.
+        context (ContextType, optional): Break point information and any
+            additional information to be passed to and from the
+            sub-section instance. Defaults to None.
+    Yields:
+        Generator[AssembledItem, None, None]: The result of applying the
+            subsection.read method repeatedly to the supplied source.
+    '''
+    done = False
+    while not done:
+        section_item = subsection.read(source, context=context)
+        yield section_item
+        # Generator exits are captured by the read method.
+        # subsection.scan_status provides an indication of whether the
+        # iterator has been exhausted.
+        if subsection.scan_status in ['Scan Complete', 'End of Source']:
+            done=True
+
+
+def assemble_subsection_group(subsection_group: Tuple['Section'],
+                        source: ProcessedItemGen,
+                        context: ContextType = None
+                        )->SubSectionGroupItem:
+    '''Build the assembled subset group from the supplied source
+
+    Sequentially applies the read() method of each Section object in
+    subsection_group to the supplied source, generating a dictionary where
+    the key is the section name and the value is the AssembledItem returned
+    by the read() method.
+
+    Args:
+        subsection_group (Tuple['Section']): The sequence of Section object
+            to be read from the source. ('Section' is a subclass of
+            BaseSection).
+        source (ProcessedItemGen): The iterator resulting from applying
+            zero or more processing functions to the original source.
+        context (ContextType, optional): Break point information and any
+            additional information to be passed to and from the
+            sub-section instance. Defaults to None.
+
+    Returns:
+        SubSectionGroupItem: _description_
+    '''
+    # Repeat until source is exhausted
+    done = False
+    while not done:
+        section_group = {}
+        for sub_section in subsection_group:
+            sub_section_item = sub_section.read(source, context=context)
+            if sub_section.scan_status in ['Scan Complete',
+                                            'End of Source']:
+                # Generator exits are captured by the read method.
+                # Break if end of source reached
+                done = True
+                if not is_empty(sub_section_item):
+                    # Don't return empty read results.
+                    section_group[sub_section.name] = sub_section_item
+                yield section_group
+            # Always store read result if subsection did not close
+            section_group[sub_section.name] = sub_section_item
+        yield section_group
+
+
+def read_subsection_groups(subsection_group: Tuple['Section'],
+                           source: ProcessedItemGen,
+                           context: ContextType = None
+                           ) -> Generator[SubSectionGroupItem, None, None]:
+    '''Iterate through the supplied source returning the assembled subsections.
+
+    This method is used when a tuple of subsections are supplied as a
+    ProcessingMethod. Each subsection in subsection_group is read from the
+    source, yielding a dictionary with the name of the subsection as the key
+    and the assembled subsection as the value.
+    Note: The subsections in the group must all have unique names.
+
+    Args:
+        subsection_group (Tuple['Section']): The sequence of Section object to
+            be read from the source. ('Section' is a subclass of BaseSection).
+        source (ProcessedItemGen): The iterator resulting from applying
+            zero or more processing functions to the original source.
+        context (ContextType, optional): Break point information and any
+            additional information to be passed to and from the
+            sub-section instance. Defaults to None.
+
+    Yields:
+        Generator[SubSectionGroupItem, None, None]: The dictionary resulting
+            from reading each of the subsections in subsection_group from the
+            supplied source.
+    '''
+    done = False
+    while not done:
+        section_group = assemble_subsection_group(subsection_group, source,
+                                                  context=context)
+        yield section_group
+        # Generator exits are captured by the read method.
+        # subsection.source.status provides an indication of whether the
+        # iterator has been exhausted.
+        if source.status in 'Completed':
+            done=True
+
+
+def section_naming(func):
+    # Give subsections unique names so that the dictionary of section
+    # reads won't loose anything.
+    section_names = [sub_rdr.name for sub_rdr in func]
+    unique_names = set(section_names)
+    if len(unique_names) < len(section_names):
+        renamed = list()
+        for idx, sub_rdr in enumerate(func):
+            name = sub_rdr.name
+            new_name = name + str(idx)
+            sub_rdr.name = new_name
+            renamed.append(sub_rdr)
+    else:
+        renamed = func
+    return renamed
+
+
+def is_sections(func_list):
+    # Tests whether methods in a list are Section objects.
+    is_sec = [isinstance(sub_rdr, SectionBase)
+                for sub_rdr in func_list]
+    return is_sec
+
+
+def is_all_sections(func):
+    sec_check = all(
+        isinstance(sub_rdr, SectionBase)
+        for sub_rdr in func
+        )
+    return sec_check
+
+
+def set_subsection_reader(processing_def):
+    # Look for individual subsections
+    if isinstance(processing_def, SectionBase):
+        read_func = partial(read_subsection, subsection=processing_def)
+        # Indicate that this is a generator function for use by func_to_iter
+        read_func.is_gen = True
+        return read_func
+    # Look for subsection groups
+    if isinstance(processing_def, Tuple):
+        # Tuples inside the list of processing methods should be all
+        # sections.  Check if all item is the Tuple are type Section.
+        if is_all_sections(processing_def):
+            group_list = section_naming(processing_def)
+            read_func = partial(read_subsection_groups,
+                                section_list=group_list)
+           # Indicate that this is a generator function for use by func_to_iter
+            read_func.is_gen = True
+            return read_func
+        else:
+            msg = ' '.join(['If a processing function is a tuple, all items in '
+                            'the tuple must be Section Objects.'])
+            raise ValueError(msg)
+    # If processing_def is not a Section or Tuple of Sections return None
+    return None
 
 
 #%% Functions used to clean supplied functions
