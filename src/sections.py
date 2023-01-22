@@ -73,6 +73,8 @@ ProcessedItemGen = Generator[ProcessedItem, None, None]
 ProcessedItems = Union[ProcessedItem, ProcessedItemGen]
 # Assembled section converts a ProcessedItems into a single Assembled Item.
 AssembledItem = Any
+# Assembled SubSection group
+SubSectionGroupItem = Dict[str, AssembledItem]
 #%% Context Type
 # Context Provides a way to pass information between sections.
 # Context can be used to pass additional parameters to functions.
