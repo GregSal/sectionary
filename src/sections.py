@@ -287,18 +287,21 @@ def assemble_subsection_group(subsection_group: Tuple['Section'],
         section_group = {}
         for sub_section in subsection_group:
             sub_section_item = sub_section.read(source, context=context)
-            if sub_section.scan_status in ['Scan Complete',
-                                            'End of Source']:
-                # Generator exits are captured by the read method.
-                # Break if end of source reached
-                done = True
+            # Generator exits are captured by the read method.
+            if sub_section.scan_status in ['Scan Complete', 'End of Source']:
                 if not is_empty(sub_section_item):
                     # Don't return empty read results.
                     section_group[sub_section.name] = sub_section_item
-                yield section_group
+                # Break if end of source reached
+                done = True
+                break
             # Always store read result if subsection did not close
             section_group[sub_section.name] = sub_section_item
-        yield section_group
+        if is_empty(section_group):
+            # Don't return empty section group.
+            yield None
+        else:
+            yield section_group
 
 
 def read_subsection_groups(subsection_group: Tuple['Section'],
@@ -323,20 +326,19 @@ def read_subsection_groups(subsection_group: Tuple['Section'],
             sub-section instance. Defaults to None.
 
     Yields:
-        Generator[SubSectionGroupItem, None, None]: The dictionary resulting
-            from reading each of the subsections in subsection_group from the
-            supplied source.
+        SubSectionGroupItem: The dictionary resulting from reading each of the
+        subsections in subsection_group from the supplied source.
     '''
     done = False
     while not done:
-        section_group = assemble_subsection_group(subsection_group, source,
-                                                  context=context)
-        yield section_group
-        # Generator exits are captured by the read method.
-        # subsection.source.status provides an indication of whether the
-        # iterator has been exhausted.
-        if source.status in 'Completed':
+        try:
+            section_group = assemble_subsection_group(subsection_group, source,
+                                                      context=context)
+        except StopIteration:
             done=True
+        if not is_empty(section_group):
+            # Don't yield empty section group.
+            yield section_group
 
 
 def section_naming(func):
