@@ -40,9 +40,10 @@ import inspect
 import logging
 from inspect import isgeneratorfunction
 from functools import partial
-
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Dict, List, NamedTuple, TypeVar, Tuple
+from collections import Counter
+
+from typing import Dict, List, NamedTuple, Sequence, TypeVar, Tuple
 from typing import Iterable, Any, Callable, Union, Generator
 
 from buffered_iterator import BufferedIterator
@@ -341,34 +342,56 @@ def read_subsection_groups(subsection_group: Tuple['Section'],
             yield section_group
 
 
-def section_naming(func):
-    # Give subsections unique names so that the dictionary of section
-    # reads won't loose anything.
-    section_names = [sub_rdr.name for sub_rdr in func]
-    unique_names = set(section_names)
-    if len(unique_names) < len(section_names):
+def section_naming(subsection_group: Tuple['Section'])->Tuple['Section']:
+    '''Give sections in a section group unique names.
+
+    Subsections in a section group require unique names so that the resulting
+    dictionary of section read calls will not overwrite earlier results.
+    Only section names that are duplicated are modified.  For each section with
+    a duplicate name, a '_#' is appended to the name where # starts with 1 and
+    increases for each successive section with that name.
+
+    Returns:
+        Tuple['Section']: The supplied section group with each section having
+            a unique name.
+    '''
+
+    section_names = Counter([sg.name for sg in subsection_group])
+    if len(section_names) < len(subsection_group):
         renamed = list()
-        for idx, sub_rdr in enumerate(func):
-            name = sub_rdr.name
-            new_name = name + str(idx)
-            sub_rdr.name = new_name
-            renamed.append(sub_rdr)
-    else:
-        renamed = func
-    return renamed
+        name_count = {name: 0 for name in section_names.keys()}
+        for sub_sec in subsection_group:
+            name = sub_sec.name
+            # Only modify section names that are duplicated
+            if section_names[name] > 1:
+                # get the section name counter for the given name
+                idx = name_count[name] + 1
+                # update the section name counter for the given name
+                name_count[name] = idx
+                # Modify the name with the counter to produce a unique name.
+                new_name = name + '_' + str(idx)
+                sub_sec.name = new_name
+            renamed.append(sub_sec)
+        return tuple(renamed)
+    return subsection_group
 
 
-def is_sections(func_list):
-    # Tests whether methods in a list are Section objects.
-    is_sec = [isinstance(sub_rdr, SectionBase)
-                for sub_rdr in func_list]
-    return is_sec
+def is_all_sections(processing_def: Sequence[Any]) -> bool:
+    '''Test that all items in a sequence are Section objects.
 
+    Returns True if all items in the supplied sequence are Section objects.
+    Otherwise returns False.
 
-def is_all_sections(func):
+    Args:
+        processing_def (Sequence[Any]): The sequence to test.
+
+    Returns:
+        bool: True if all items in the supplied sequence are Section objects.
+            Otherwise False.
+    '''
     sec_check = all(
         isinstance(sub_rdr, SectionBase)
-        for sub_rdr in func
+        for sub_rdr in processing_def
         )
     return sec_check
 
