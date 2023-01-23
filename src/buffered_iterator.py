@@ -6,6 +6,7 @@
 from __future__ import annotations
 from copy import copy
 from collections import deque
+
 from typing import Sequence, TypeVar, Union
 import logging
 SourceItem = TypeVar('SourceItem')
@@ -65,7 +66,10 @@ class BufferedIterator():
         source_gen (Iterator): The base iterator created at object
             initialization from the supplied Sequence.  Generally there should
             be no reason to access this directly.
-        status (str): One of 'Started', 'Completed'
+        status (str): Possible states are:
+            CREATED: Defined, but not started.
+            ACTIVE: Currently open with more items in the underlying sequence.
+            CLOSED: All items in the underlying sequence are exhausted.
 
     Methods:
         next() and iter(): BufferedIterator supports the standard next()
@@ -108,8 +112,18 @@ class BufferedIterator():
         self.future_items = deque(maxlen=buffer_size)
         self._step_back = 0
         self._item_count = 0
-        self.status = 'Started'
+        self._status = 'Created'
         return
+
+    @property
+    def status(self):
+        if self._item_count == 0:
+            return 'CREATED'
+        if len(self.future_items) > 0:
+            return 'ACTIVE'
+        if 'Completed' in self._status:
+            return 'CLOSED'
+        return 'ACTIVE'
 
     @property
     def buffer_size(self)->int:
@@ -189,10 +203,11 @@ class BufferedIterator():
             except (StopIteration, RuntimeError) as eof:
                 # Treat "StopIteration" or "RuntimeError" exceptions as
                 # End-of-File indicators.
-                self.status = 'Completed'
+                self._status = 'Completed'
                 raise BufferedIteratorEOF from eof
             else:
                 self._item_count += 1
+                self._status = 'Started'
                 logger.debug(f'Getting item: {next_item}\t from source')
         return next_item
 
@@ -499,6 +514,6 @@ class BufferedIterator():
             f'{class_name}.previous_items = {repr(self.previous_items)}\n\t',
             f'{class_name}.future_items = {repr(self.future_items)}\n\t',
             f'{class_name}.item_count = {repr(self.item_count)}\n\t',
-            f'{class_name}._step_back = {self._step_back}'
+            f'{class_name}.status = {self.status}'
             ])
         return repr_str
