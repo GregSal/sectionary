@@ -396,7 +396,25 @@ def is_all_sections(processing_def: Sequence[Any]) -> bool:
     return sec_check
 
 
-def set_subsection_reader(processing_def):
+def set_subsection_reader(processing_def: Any) -> ProcessFunc | None:
+    '''Convert Section object(s) to processing function.
+
+    If processing_def is a Section object or a tuple of sections, return a
+    function to read from that section or group of sections. Otherwise return
+    None.
+
+    Args:
+        processing_def (Any): Any processing instruction.
+
+    Raises:
+        ValueError: If processing_def is a tuple that is no composed entirely
+            of Section objects.
+
+    Returns:
+        ProcessFunc | None: A function to read from the supplied section or
+            group of sections, if processing_def is a Section object. Otherwise
+            None.
+    '''
     # Look for individual subsections
     if isinstance(processing_def, SectionBase):
         read_func = partial(read_subsection, subsection=processing_def)
@@ -1740,7 +1758,10 @@ class ProcessingMethods():
             processing_methods = [processing_methods]
         cleaned_methods = list()
         for func in processing_methods:
-            if isinstance(func, (Rule, RuleSet)):
+            section_reader = set_subsection_reader(func)
+            if section_reader:
+               cleaned_methods.append(section_reader)
+            elif isinstance(func, (Rule, RuleSet)):
                 cleaned_methods.append(func)
             else:
                 cleaned_methods.append(set_method(func))
@@ -2337,103 +2358,6 @@ class Section():
             validated_section_break = [make_single_break(section_break)]
         return validated_section_break
 
-    # Initialize and manage processing methods including subsections
-    def set_subsection_reader(self, processing_def: ProcessMethodDef
-                              )->ProcessMethodDef:
-        '''Converts section instances to functions that call the section reader.
-
-        Args:
-            processing_def (ProcessMethodDef): A processing method.
-        Raises:
-            ValueError: For processing instruction items which are lists where
-                the list items are not all Section instances.
-
-        Returns:
-            ProcessMethodDef: If processing_def is a section object, or a list
-            of section objects, return a partial function that calls the
-            section(s) read_subsections method.
-            Otherwise returns processing_def.
-        '''
-        def is_sections(func_list: List[ProcessMethodDef])->List[bool]:
-            '''Test whether items in a list are Section objects.
-
-            Args:
-                func_list (List[ProcessMethodDef]): The list to check.
-
-            Returns:
-                List[bool]: A boolean list of the same size as the supplied
-                    list.  The list item is True if the corresponding item in
-                    the supplied list is a section object.
-            '''
-            #
-            is_sec = [isinstance(sub_rdr, self.__class__)
-                      for sub_rdr in func_list]
-            return is_sec
-
-        def section_naming(func_list: List['Section'])->List['Section']:
-            '''Renames subsections in a list to force unique names.
-
-            Modify the names of section objects in a list so that all section
-            names are unique. If any section names are not unique, then all
-            section names in the list are modified by adding a numerical index
-            (it's position in the list) to the end of the section name.
-
-            This is required because the processing result for a list of
-            subsections is a dictionary, where the key is the name.
-
-            Args:
-                func_list (List['Section']): A list of Section objects to be
-                    used as a subsection group.
-
-            Returns:
-                List['Section']: The supplied list of sections unmodified if all
-                section names are unique.  When non-unique section names are
-                present in the list, The supplied list of sections with all
-                section names ending with a number reflecting it's position in
-                the list.
-            '''
-            # Extract the section names.
-            section_names = [sub_rdr.name for sub_rdr in func_list]
-
-            # If the number of unique names is less that the total number of
-            # names then there must be non-unique names.
-            unique_names = set(section_names)
-            if len(unique_names) < len(section_names):
-                renamed = list()
-                # Add the index number to the end of the section name.
-                for idx, sub_rdr in enumerate(func_list):
-                    name = sub_rdr.name
-                    new_name = name + str(idx)
-                    sub_rdr.name = new_name
-                    renamed.append(sub_rdr)
-            else:
-                renamed = func_list
-            return renamed
-
-        # Look for individual subsections
-        if isinstance(processing_def, (self.__class__)):
-            read_func = processing_def.read
-            return read_func
-
-        # Look for subsection groups  # FIXME subsection groups is not working right now
-        if true_iterable(processing_def):
-            # Lists inside the list of processing methods should be a list of
-            # sections.  Check if all item is the list are type Section.
-            sec_check = is_sections(processing_def)
-            if all(sec_check):
-                cln_func = section_naming(processing_def)
-                read_func = partial(Section.read_subsections, self,
-                                    subsections=cln_func)
-                return read_func
-            elif any(sec_check):
-                msg = ' '.join(['If an individual processing function is a '
-                                'list all items in the list must be of type '
-                                'Section.'])
-                raise ValueError(msg)
-            else:
-                return processing_def
-        return processing_def
-
     @property
     def processor(self)->ProcessingMethods:
         '''(ProcessingMethods):  Instructions for processing the section items
@@ -2494,103 +2418,6 @@ class Section():
             msg = ' '.join(['processor must be a valid input for',
                             'ProcessingMethods'])
             raise ValueError(msg) from err
-
-    def read_subsections(self, source: SectionGen, context: ContextType,
-                         subsections: List[Section])->ProcessOutput:
-        '''Read a single or group of subsections.
-
-        This method is used for section instances supplied as processor items to
-        this section definition. It calls the Section.read method on each
-        subsection.  It isolates this section's source and context from the
-        subsection so that the section iterator's next() is only called when
-        necessary and so the subsection's status does not mix with this
-        section's status.
-
-        This section's context attribute is updated after all subsections have
-        been read and if necessary, this section's source pointer is adjusted
-        so that any "Future Items" are not missed.
-
-        Arguments:
-            source (SectionGen): This section's processor iterator.
-            context (ContextType): This section's context.
-            subsections (List[Section]): The subsections to be read.
-
-        Yields:
-            ProcessOutput:
-                If subsections is a Section instance:
-                    The assemble result from calling subsections.read()
-                If subsections is a list of Section instances:
-                    A dictionary where the keys are the subsection names and the
-                    values are the results from calling subsection.read().
-        '''
-        def read_section(subsections, buf_source, s_context):
-            done_read = False
-            subsection = subsections[0]
-            read_itm = subsection.read(buf_source, context=s_context,
-                                       start_search=True)
-            s_context.update(subsection.context)
-            if subsection.scan_status in ['End of Source']:
-                done_read = True  # Break if end of source reached
-            return read_itm, s_context, done_read
-
-        def read_group(subsections, buf_source, s_context):
-            read_items = dict()
-            done_read = False
-            for sub_sec in subsections:
-                read_itm = sub_sec.read(buf_source, context=s_context,
-                                                start_search=True)
-                s_context.update(sub_sec.context)
-                if sub_sec.scan_status in ['End of Source']:
-                    done_read = True  # Break if end of source reached
-                    if not is_empty(read_itm):  # Don't return empty read results.
-                        read_items[sub_sec.name] = read_itm
-                        break
-                else:
-                    # Always store read result is subsection did not close
-                    read_items[sub_sec.name] = read_itm
-            return read_items, s_context, done_read
-
-        # Prepare for Subsection Read
-        # Test for end of source
-        if self.scan_status in ['Scan Complete', 'End of Source']:
-            return  # Break if end of source reached
-        done_read = False
-
-        # This isolates the subsection context from the section context to
-        # protect the section context items that shouldn't be changed by the
-        # subsection.
-        s_context = context.copy()
-
-        # section_iter is wrapped in a BufferedIterator here so that the
-        # subsection will return the appropriate indexing.
-        buf_source = BufferedIterator(source)
-        buf_source.link(self.source)
-
-        # Select single subsection or subsection group
-        if len(subsections) == 1:
-            # Reading single subsection
-            logger.debug(f'Process single sub-section '
-                         f'{subsections[0].name} in: '
-                         f'{self.name}')
-            sub_reader = read_section
-        else:
-            sub_reader = read_group
-
-        # Subsection Reading
-        while not done_read:
-            read_items, s_context, done_read = sub_reader(subsections,
-                                                          buf_source, s_context)
-            if read_items:  # Don't return empty read results.
-                yield read_items
-
-        # Wrap up after subsection(s) read
-        # This updates the relevant items in the section context
-        self.context.update(s_context)
-
-        # re-align section source with subsection source
-        source_pointer = buf_source.item_count
-        logger.debug(f'Moving section source to item #{source_pointer}')
-        self.source.goto_item(source_pointer, buffer_overrun=True)
 
     def is_boundary(self, line: str, break_triggers: List[SectionBreak])->bool:
         '''Test the current item from the source iterable to see if it triggers
