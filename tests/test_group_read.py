@@ -278,14 +278,14 @@ class TestSectionGroupRead(unittest.TestCase):
             name='Group Section',
             start_section=group_section_start,
             end_section=group_section_end,
-            processor=[[self.delimiter_section, self.fixed_width_section]],
+            processor=[(self.delimiter_section, self.fixed_width_section)],
             assemble=make_list
             )
         self.multi_group_section = sections.Section(
             name='Group Section',
             start_section=multi_group_section_start,
             end_section=group_section_end,
-            processor=[[self.delimiter_section, self.fixed_width_section]],
+            processor=[(self.delimiter_section, self.fixed_width_section)],
             assemble=make_list
             )
 

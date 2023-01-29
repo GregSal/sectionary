@@ -258,16 +258,21 @@ def read_subsection(subsection: 'Section',
             done=True
 
 
-def assemble_subsection_group(subsection_group: Tuple['Section'],
+def read_subsection_groups(subsection_group: Tuple['Section'],
                         source: ProcessedItemGen,
                         context: ContextType = None
                         )->SubSectionGroupItem:
-    '''Build the assembled subset group from the supplied source
+    '''Iterate through the supplied source returning the assembled subsections.
 
     Sequentially applies the read() method of each Section object in
     subsection_group to the supplied source, generating a dictionary where
     the key is the section name and the value is the AssembledItem returned
     by the read() method.
+    This method is used when a tuple of subsections are supplied as a
+    ProcessingMethod. Each subsection in subsection_group is read from the
+    source, yielding a dictionary with the name of the subsection as the key
+    and the assembled subsection as the value.
+    Note: The subsections in the group must all have unique names.
 
     Args:
         subsection_group (Tuple['Section']): The sequence of Section object
@@ -280,7 +285,8 @@ def assemble_subsection_group(subsection_group: Tuple['Section'],
             sub-section instance. Defaults to None.
 
     Returns:
-        SubSectionGroupItem: _description_
+        SubSectionGroupItem: The dictionary resulting from reading each of the
+        subsections in subsection_group from the supplied source.
     '''
     # Repeat until source is exhausted
     done = False
@@ -302,43 +308,6 @@ def assemble_subsection_group(subsection_group: Tuple['Section'],
             # Don't return empty section group.
             yield None
         else:
-            yield section_group
-
-
-def read_subsection_groups(subsection_group: Tuple['Section'],
-                           source: ProcessedItemGen,
-                           context: ContextType = None
-                           ) -> Generator[SubSectionGroupItem, None, None]:
-    '''Iterate through the supplied source returning the assembled subsections.
-
-    This method is used when a tuple of subsections are supplied as a
-    ProcessingMethod. Each subsection in subsection_group is read from the
-    source, yielding a dictionary with the name of the subsection as the key
-    and the assembled subsection as the value.
-    Note: The subsections in the group must all have unique names.
-
-    Args:
-        subsection_group (Tuple['Section']): The sequence of Section object to
-            be read from the source. ('Section' is a subclass of BaseSection).
-        source (ProcessedItemGen): The iterator resulting from applying
-            zero or more processing functions to the original source.
-        context (ContextType, optional): Break point information and any
-            additional information to be passed to and from the
-            sub-section instance. Defaults to None.
-
-    Yields:
-        SubSectionGroupItem: The dictionary resulting from reading each of the
-        subsections in subsection_group from the supplied source.
-    '''
-    done = False
-    while not done:
-        try:
-            section_group = assemble_subsection_group(subsection_group, source,
-                                                      context=context)
-        except StopIteration:
-            done=True
-        if not is_empty(section_group):
-            # Don't yield empty section group.
             yield section_group
 
 
@@ -417,7 +386,7 @@ def set_subsection_reader(processing_def: Any) -> ProcessFunc | None:
     '''
     # Look for individual subsections
     if isinstance(processing_def, SectionBase):
-        read_func = partial(read_subsection, subsection=processing_def)
+        read_func = partial(read_subsection, processing_def)
         # Indicate that this is a generator function for use by func_to_iter
         read_func.is_gen = True
         return read_func
@@ -428,7 +397,7 @@ def set_subsection_reader(processing_def: Any) -> ProcessFunc | None:
         if is_all_sections(processing_def):
             group_list = section_naming(processing_def)
             read_func = partial(read_subsection_groups,
-                                section_list=group_list)
+                                group_list)
            # Indicate that this is a generator function for use by func_to_iter
             read_func.is_gen = True
             return read_func
@@ -1887,7 +1856,7 @@ class ProcessingMethods():
 
 
 #%% Section
-class Section():
+class Section(SectionBase):
     '''Defines a continuous portion of a text stream or other iterable.
 
     A section definition may include:
@@ -2406,14 +2375,9 @@ class Section():
         # Convert a single processing item into a single item list.
         if not true_iterable(processing_def):
             processing_def = [processing_def]
-        # replace Section objects with
-        cleaned_processing_def = list()
-        for func in processing_def:
-            clean_func = self.set_subsection_reader(func)
-            cleaned_processing_def.append(clean_func)
         # convert list of processing methods to a ProcessingMethods object.
         try:
-            self._processor = ProcessingMethods(cleaned_processing_def)
+            self._processor = ProcessingMethods(processing_def)
         except ValueError as err:
             msg = ' '.join(['processor must be a valid input for',
                             'ProcessingMethods'])

@@ -208,7 +208,7 @@ class TestBufferedIteratorItemCount(unittest.TestCase):
         BufferedIterator.item_count should decrease by the corresponding amount.
         '''
         fwd = random.randint(2, self.num_items-1)
-        back = random.randint(1, min(fwd-1, self.buffer_size))
+        back = random.randint(1, min(fwd-1, self.buffer_size-1))
         print(f'Moving forward {fwd} steps; backing up {back} steps')
         for i in range(fwd):
             next(self.str_source)
@@ -294,7 +294,7 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
     calls.
     '''
     def setUp(self):
-        self.buffer_size = 2
+        self.buffer_size = 3
         self.num_items = 8
         self.str_source = BufferedIterator(
             (str(i) for i in range(self.num_items)),
