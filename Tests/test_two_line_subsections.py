@@ -121,7 +121,7 @@ class TestSingleLineStartSections(unittest.TestCase):
         self.assertListEqual(read_2, ['StartSection B'])
         self.assertListEqual(read_3, [])
 
-    def test_single_line_start_section(self):
+    def test_single_line_start_subsection(self):
         start_sub_section = Section(
             name='StartSubSection',
             start_section=SectionBreak('StartSection', break_offset='Before'),
@@ -302,7 +302,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
     def test_two_single_line_subsections(self):
         full_section = Section(
             name='Full',
-            processor=[[self.start_sub_section, self.end_sub_section]]
+            processor=[(self.start_sub_section, self.end_sub_section)]
             )
         read_1 = full_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -316,7 +316,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[[self.start_sub_section, self.end_sub_section]]
+            processor=[(self.start_sub_section, self.end_sub_section)]
             )
         read_1 = top_section.read(self.test_text)
         self.assertListEqual(read_1, [
@@ -331,7 +331,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[[self.start_sub_section, self.end_sub_section]]
+            processor=[(self.start_sub_section, self.end_sub_section)]
             )
         read_1 = top_section.read(self.test_text2)
         self.assertListEqual(read_1, [
@@ -355,7 +355,7 @@ class TestCombinedStartEndSingleLineSection(unittest.TestCase):
             ]
         full_section = Section(
             name='Full',
-            processor=[[self.start_sub_section, self.end_sub_section]]
+            processor=[(self.start_sub_section, self.end_sub_section)]
             )
         read_1 = full_section.read(test_text)
         self.assertListEqual(read_1, [
@@ -403,7 +403,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section],
+            processor=(self.start_sub_section, self.end_sub_section),
             keep_partial=False
             )
         read_1 = top_section.read(self.test_text2)
@@ -421,7 +421,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section],
+            processor=(self.start_sub_section, self.end_sub_section),
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text2)
@@ -436,7 +436,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section],
+            processor=(self.start_sub_section, self.end_sub_section),
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text)
@@ -454,7 +454,7 @@ class TestKeepPartial(unittest.TestCase):
             keep_partial=True
             )
         read_1 = top_section.read(self.test_text)
-        self.assertListEqual(read_1, [['EndSection A'],['EndSection B']])
+        self.assertListEqual(read_1, [('EndSection A'),('EndSection B')])
 
     @unittest.skip('Not Implemented')
     def test_keep_partial_True_missing_end_section(self):
@@ -475,7 +475,7 @@ class TestKeepPartial(unittest.TestCase):
         top_section = Section(
             name='Top Section',
             end_section=SectionBreak('ignored', break_offset='Before'),
-            processor=[self.start_sub_section, self.end_sub_section],
+            processor=(self.start_sub_section, self.end_sub_section),
             keep_partial=True
             )
         read_1 = top_section.read(test_text)

@@ -294,7 +294,7 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
     calls.
     '''
     def setUp(self):
-        self.buffer_size = 3
+        self.buffer_size = 4
         self.num_items = 8
         self.str_source = BufferedIterator(
             (str(i) for i in range(self.num_items)),
@@ -334,7 +334,7 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
         fwd_choices = [i for i in range(1, self.num_items-self.buffer_size-2)]
         fwd = random.choice(fwd_choices)
         min_adv = fwd + self.buffer_size + 1
-        item_choices = [i for i in range(min_adv, self.num_items-2)]
+        item_choices = [i for i in range(min_adv, self.num_items)]
         target_item = random.choice(item_choices)
         for i in range(fwd):
             next(self.str_source)

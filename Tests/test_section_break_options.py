@@ -89,7 +89,7 @@ class ThreeLineSectionBreakOptions(unittest.TestCase):
                                        'EndSection B']])
         self.assertListEqual(read_3, [['StartSection C', 'MiddleSection C',
                                        'EndSection C']])
-        self.assertListEqual(read_4, [])
+        self.assertListEqual(read_4, [[]])
 
     def test_multi_section_definitions(self):
         '''Define Muti-Section to Read Both Sections
