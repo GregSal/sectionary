@@ -2500,10 +2500,6 @@ class Section(SectionBase):
                 additional information to be passed to and from the
                 Section instance.
         '''
-        # if it exists, self.source is the pre-existing root BufferedIterator.
-        # active_source iterates self.source, but adds boundary checking.  This
-        # distinction is needed when using sub-sections.
-        # Initialize and reset source
         logger.debug(f'Resetting source for: {self.name}.')
         self.reset()  # This clears source, context and scan_status.
         self.source = supplied_source  # This initializes the source.
@@ -2551,7 +2547,7 @@ class Section(SectionBase):
                 start and end boundaries of the section.
         '''
         # Initialize the section
-        source = self.initialize(source, start_search, context=context)
+        self.initialize(source, start_search, context=context)
         # Read source until end boundary is found or source ends
         while True:
             next_item = self.step_source()
