@@ -501,6 +501,26 @@ class BufferedIterator():
         if include_future_items:
             self.future_items.extend(other.future_items)
 
+    def update(self, source: 'BufferedIterator', buffer_overrun=True):
+        '''Update the source pointer to match that of the supplied source.
+
+        Adjust the position of the iterator to match the given source. It
+        assumes that the given source is a copy of the current source, but at a
+        different location in the iterator.
+
+        Args:
+            source (BufferedIterator, optional): A matching BufferedIterator,
+                but at a  different location in the iterator
+            buffer_overrun (bool, optional): If True do not check whether items
+                will be lost from the buffer.  Default is True.
+        '''
+        if not isinstance(source, BufferedIterator):
+            raise TypeError('source must be a BufferedIterator')
+        if ('CLOSED' not in self.status) & ('CLOSED' not in source.status):
+            index = source.item_count
+            self.goto_item(index)
+            logger.debug(f'Moving BufferedIterator to item #{index}')
+
     def __repr__(self)->str:
         '''Generate a string representation of a BufferedIterator instance.
 

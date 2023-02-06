@@ -414,12 +414,12 @@ def printout_section_def():
 
     special_items = {
         'Patient Id': patient_id,
-        'Normalization Method': rtd.data_string,
+        'Normalization Method': data_string,
         'User Origin': get_origin,
-        'FieldNormalizationType': rtd.data_string,
+        'FieldNormalizationType': data_string,
         'Norm Method': clean_norm,
         'Gantry': get_gantry,
-        'BolusId': rtd.data_string
+        'BolusId': data_string
         }
     return section_def, special_items
 

@@ -54,8 +54,8 @@ from buffered_iterator import BufferedIteratorEOF
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Sections')
-logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
@@ -209,6 +209,17 @@ class SectionBase(ABC):
         return BufferedIterator()
 
     @abstractmethod
+    def update_source(self, source: BufferedIterator = None):
+        '''A reference to the update_source method for the Section class.
+
+        The argument signature matches that of the Section.update_source method.
+        Args:
+            source (BufferedIterator, optional): The source used by a
+                subsection.
+        '''
+        pass
+
+    @abstractmethod
     def read(self, source: Source, start_search: bool = None,
              context: ContextType = None)->AssembledItem:
         '''A reference to the read method for the Section class.
@@ -226,91 +237,6 @@ class SectionBase(ABC):
 
 
 #%% General Sub Section functions
-def read_subsection(subsection: 'Section',
-                    source: ProcessedItemGen,
-                    context: ContextType = None
-                    ) -> Generator[AssembledItem, None, None]:
-    '''Iterate through the supplied source returning the assembled subsection.
-
-    This method is used when individual subsections are used as
-    ProcessingMethods.
-
-    Args:
-        subsection ('Section'): The sub-section object
-            ('Section' is a subclass of BaseSection)
-        source (ProcessedItemGen): The iterator resulting from applying
-            zero or more processing functions to the original source.
-        context (ContextType, optional): Break point information and any
-            additional information to be passed to and from the
-            sub-section instance. Defaults to None.
-    Yields:
-        Generator[AssembledItem, None, None]: The result of applying the
-            subsection.read method repeatedly to the supplied source.
-    '''
-    done = False
-    while not done:
-        section_item = subsection.read(source, context=context)
-        yield section_item
-        # Generator exits are captured by the read method.
-        # subsection.scan_status provides an indication of whether the
-        # iterator has been exhausted.
-        if subsection.scan_status in ['Scan Complete', 'End of Source']:
-            done=True
-
-
-def read_subsection_groups(subsection_group: Tuple['Section'],
-                        source: ProcessedItemGen,
-                        context: ContextType = None
-                        )->SubSectionGroupItem:
-    '''Iterate through the supplied source returning the assembled subsections.
-
-    Sequentially applies the read() method of each Section object in
-    subsection_group to the supplied source, generating a dictionary where
-    the key is the section name and the value is the AssembledItem returned
-    by the read() method.
-    This method is used when a tuple of subsections are supplied as a
-    ProcessingMethod. Each subsection in subsection_group is read from the
-    source, yielding a dictionary with the name of the subsection as the key
-    and the assembled subsection as the value.
-    Note: The subsections in the group must all have unique names.
-
-    Args:
-        subsection_group (Tuple['Section']): The sequence of Section object
-            to be read from the source. ('Section' is a subclass of
-            BaseSection).
-        source (ProcessedItemGen): The iterator resulting from applying
-            zero or more processing functions to the original source.
-        context (ContextType, optional): Break point information and any
-            additional information to be passed to and from the
-            sub-section instance. Defaults to None.
-
-    Returns:
-        SubSectionGroupItem: The dictionary resulting from reading each of the
-        subsections in subsection_group from the supplied source.
-    '''
-    # Repeat until source is exhausted
-    done = False
-    while not done:
-        section_group = {}
-        for sub_section in subsection_group:
-            sub_section_item = sub_section.read(source, context=context)
-            # Generator exits are captured by the read method.
-            if sub_section.scan_status in ['Scan Complete', 'End of Source']:
-                if not is_empty(sub_section_item):
-                    # Don't return empty read results.
-                    section_group[sub_section.name] = sub_section_item
-                # Break if end of source reached
-                done = True
-                break
-            # Always store read result if subsection did not close
-            section_group[sub_section.name] = sub_section_item
-        if is_empty(section_group):
-            # Don't return empty section group.
-            yield None
-        else:
-            yield section_group
-
-
 def section_naming(subsection_group: Tuple['Section'])->Tuple['Section']:
     '''Give sections in a section group unique names.
 
@@ -365,48 +291,6 @@ def is_all_sections(processing_def: Sequence[Any]) -> bool:
     return sec_check
 
 
-def set_subsection_reader(processing_def: Any) -> ProcessFunc | None:
-    '''Convert Section object(s) to processing function.
-
-    If processing_def is a Section object or a tuple of sections, return a
-    function to read from that section or group of sections. Otherwise return
-    None.
-
-    Args:
-        processing_def (Any): Any processing instruction.
-
-    Raises:
-        ValueError: If processing_def is a tuple that is no composed entirely
-            of Section objects.
-
-    Returns:
-        ProcessFunc | None: A function to read from the supplied section or
-            group of sections, if processing_def is a Section object. Otherwise
-            None.
-    '''
-    # Look for individual subsections
-    if isinstance(processing_def, SectionBase):
-        read_func = partial(read_subsection, processing_def)
-        # Indicate that this is a generator function for use by func_to_iter
-        read_func.is_gen = True
-        return read_func
-    # Look for subsection groups
-    if isinstance(processing_def, Tuple):
-        # Tuples inside the list of processing methods should be all
-        # sections.  Check if all item is the Tuple are type Section.
-        if is_all_sections(processing_def):
-            group_list = section_naming(processing_def)
-            read_func = partial(read_subsection_groups,
-                                group_list)
-           # Indicate that this is a generator function for use by func_to_iter
-            read_func.is_gen = True
-            return read_func
-        else:
-            msg = ' '.join(['If a processing function is a tuple, all items in '
-                            'the tuple must be Section Objects.'])
-            raise ValueError(msg)
-    # If processing_def is not a Section or Tuple of Sections return None
-    return None
 
 
 #%% Functions used to clean supplied functions
@@ -1670,6 +1554,9 @@ class ProcessingMethods():
             source.
         name (str): Reference label for the processing method.
             Defaults to 'Processor'
+        calling_section (SectionBase, optional): The Section object
+                that uses this ProcessingMethods object.  This reference is
+                required for subsection read methods. Defaults to None.
 
     Methods:
         process(self, item, context)->RuleResult:
@@ -1679,7 +1566,8 @@ class ProcessingMethods():
                 and yielding the processed text.
     '''
     def __init__(self, processing_methods: List[ProcessMethodOptions] = None,
-                 name = 'Processor'):
+                 name: str = 'Processor',
+                 calling_section: SectionBase = None):
         '''Applies a series of functions to a supplied sequence of items.
 
         Processing functions should accept one the following argument sets:
@@ -1692,10 +1580,14 @@ class ProcessingMethods():
             processing_methods (ProcessGroup): The sequence of Processes
                 (functions, generator functions, Rules, and/or RuleSets) to be
                 applied to the section source.
-            name (str): Reference label for the processing method.
+            name (str, optional): Reference label for the processing method.
                 Defaults to 'Processor'
+            calling_section (SectionBase, optional): The Section object
+                that uses this ProcessingMethods object.  This reference is
+                required for subsection read methods. Defaults to None.
         '''
         self.name = name
+        self.calling_section = calling_section
         if not processing_methods:
             return_item = lambda item, context: item
             return_item.is_gen = False
@@ -1703,8 +1595,8 @@ class ProcessingMethods():
         else:
             self.processing_methods = self.clean_methods(processing_methods)
 
-    @staticmethod
-    def clean_methods(processing_methods: ProcessMethodOptions)->ProcessMethodsList:
+    def clean_methods(self, processing_methods: ProcessMethodOptions
+                      )->ProcessMethodsList:
         '''Convert the supplied functions or action names to a function with
         the expected "Process Function" argument signature.
 
@@ -1727,7 +1619,7 @@ class ProcessingMethods():
             processing_methods = [processing_methods]
         cleaned_methods = list()
         for func in processing_methods:
-            section_reader = set_subsection_reader(func)
+            section_reader = self.set_subsection_reader(func)
             if section_reader:
                cleaned_methods.append(section_reader)
             elif isinstance(func, (Rule, RuleSet)):
@@ -1774,8 +1666,145 @@ class ProcessingMethods():
             return func(iter(source), context)
         return (func(item, context) for item in source)
 
-    def reader(self, source: Source,
-               context: ContextType = None)->ProcessedItemGen:
+    def read_subsection(self,
+                        subsection: 'Section', source: ProcessedItemGen,
+                        context: ContextType = None
+                        ) -> Generator[AssembledItem, None, None]:
+        '''Iterate through the supplied source returning the assembled subsection.
+
+        This method is used when individual subsections are used as
+        ProcessingMethods.
+
+        Args:
+            subsection ('Section'): The sub-section object
+                ('Section' is a subclass of BaseSection)
+            source (ProcessedItemGen): The iterator resulting from applying
+                zero or more processing functions to the original source.
+            context (ContextType, optional): Break point information and any
+                additional information to be passed to and from the
+                sub-section instance. Defaults to None.
+        Yields:
+            Generator[AssembledItem, None, None]: The result of applying the
+                subsection.read method repeatedly to the supplied source.
+        '''
+        done = False
+        while not done:
+            section_item = subsection.read(source, context=context)
+            # The calling source needs to be updated after every read call
+            # because the calling section may close without this loop exiting.
+            self.calling_section.update_source(subsection.source)
+            yield section_item
+            # Generator exits are captured by the read method.
+            # subsection.scan_status provides an indication of whether the
+            # iterator has been exhausted.
+            if subsection.scan_status in ['Scan Complete', 'End of Source']:
+                done=True
+
+    def read_subsection_groups(self,
+                               subsection_group: Tuple['Section'],
+                               source: ProcessedItemGen,
+                               context: ContextType = None
+                               )->SubSectionGroupItem:
+        '''Iterate through the supplied source returning the assembled subsections.
+
+        Sequentially applies the read() method of each Section object in
+        subsection_group to the supplied source, generating a dictionary where
+        the key is the section name and the value is the AssembledItem returned
+        by the read() method.
+        This method is used when a tuple of subsections are supplied as a
+        ProcessingMethod. Each subsection in subsection_group is read from the
+        source, yielding a dictionary with the name of the subsection as the key
+        and the assembled subsection as the value.
+        Note: The subsections in the group must all have unique names.
+
+        Args:
+            subsection_group (Tuple['Section']): The sequence of Section object
+                to be read from the source. ('Section' is a subclass of
+                BaseSection).
+            source (ProcessedItemGen): The iterator resulting from applying
+                zero or more processing functions to the original source.
+            context (ContextType, optional): Break point information and any
+                additional information to be passed to and from the
+                sub-section instance. Defaults to None.
+
+        Returns:
+            SubSectionGroupItem: The dictionary resulting from reading each of the
+            subsections in subsection_group from the supplied source.
+        '''
+        # Isolate the supplied source to improve transitions between sections
+        # in the group.
+        active_source = BufferedIterator(source)
+        # Repeat until source is exhausted
+        done = False
+        while not done:
+            section_group = {}
+            for subsection in subsection_group:
+                subsection_item = subsection.read(active_source,
+                                                  context=context)
+                # Generator exits are captured by the read method.
+                if subsection.scan_status in ['Scan Complete', 'End of Source']:
+                    if not is_empty(subsection_item):
+                        # Don't return empty read results.
+                        section_group[subsection.name] = subsection_item
+                    # Break if end of source reached
+                    done = True
+                    break
+                # Always store read result if subsection did not close
+                section_group[subsection.name] = subsection_item
+            if is_empty(section_group):
+                # Don't return empty section group.
+                section_group = None
+
+            # The calling source needs to be updated after every group read
+            # because the calling section may close without this loop exiting.
+            self.calling_section.update_source(subsection.source)
+            yield section_group
+
+    def set_subsection_reader(self, processing_def: Any) -> ProcessFunc | None:
+        '''Convert Section object(s) to processing function.
+
+        If processing_def is a Section object or a tuple of sections, return a
+        function to read from that section or group of sections. Otherwise return
+        None.
+
+        Args:
+            processing_def (Any): Any processing instruction.
+
+        Raises:
+            ValueError: If processing_def is a tuple that is no composed entirely
+                of Section objects.
+
+        Returns:
+            ProcessFunc | None: A function to read from the supplied section or
+                group of sections, if processing_def is a Section object. Otherwise
+                None.
+        '''
+        # Look for individual subsections
+        if isinstance(processing_def, SectionBase):
+            read_func = partial(self.read_subsection, processing_def)
+            # Indicate that this is a generator function for use by func_to_iter
+            read_func.is_gen = True
+            return read_func
+        # Look for subsection groups
+        if isinstance(processing_def, Tuple):
+            # Tuples inside the list of processing methods should be all
+            # sections.  Check if all item is the Tuple are type Section.
+            if is_all_sections(processing_def):
+                group_list = section_naming(processing_def)
+                read_func = partial(self.read_subsection_groups,
+                                    group_list)
+            # Indicate that this is a generator function for use by func_to_iter
+                read_func.is_gen = True
+                return read_func
+            else:
+                msg = ' '.join(['If a processing function is a tuple, all items in '
+                                'the tuple must be Section Objects.'])
+                raise ValueError(msg)
+        # If processing_def is not a Section or Tuple of Sections return None
+        return None
+
+    def reader(self, source: Source, context: ContextType = None,
+            calling_section: SectionBase = None)->ProcessedItemGen:
         '''A generator function that applies the ProcessingMethods to a given
         sequence.
 
@@ -1788,10 +1817,15 @@ class ProcessingMethods():
             context (ContextType, optional): Additional information that can be
                 accessed and / or set by the Process functions.
                 Defaults to None.
+            calling_section (SectionBase, optional): The Section object
+                that is calling this method.  This reference is
+                required for subsection read methods. Defaults to None.
         Yields:
             ProcessedItemGen: An iterator of the results of applying the
                 process functions to the input source sequence.
         '''
+        if calling_section:
+            self.calling_section = calling_section
         if not context:
             context = dict()
         next_source = source
@@ -1800,7 +1834,9 @@ class ProcessingMethods():
         final_generator = iter(next_source)
         return final_generator
 
-    def read(self, source: Source, context: ContextType = None)->ProcessedList:
+
+    def read(self, source: Source, context: ContextType = None,
+             calling_section: SectionBase = None)->ProcessedList:
         '''Iterate through the given sequence, applying the ProcessingMethods
         to each item in the source.
 
@@ -1810,11 +1846,14 @@ class ProcessingMethods():
             context (ContextType, optional): Additional information that can be
                 accessed and / or set by the Process functions.
                 Defaults to None.
+            calling_section (SectionBase, optional): The Section object
+                that is calling this method.  This reference is
+                required for subsection read methods. Defaults to None.
         Returns:
             ProcessedList: The results of applying the process functions to the
             input source sequence.
         '''
-        process_gen = self.reader(source, context)
+        process_gen = self.reader(source, context, calling_section)
         processed_items = list()
         while True:
             try:
@@ -1823,8 +1862,8 @@ class ProcessingMethods():
                 break
         return processed_items
 
-    def process(self, item: SourceItem,
-                context: ContextType = None)->ProcessOutput:
+    def process(self, item: SourceItem, context: ContextType = None,
+                calling_section: SectionBase = None)->ProcessOutput:
         '''Applies the ProcessingMethods to an individual item.
 
         If the process methods return a 1 SourceItem → 1 ProcessedItem result,
@@ -1840,10 +1879,15 @@ class ProcessingMethods():
             context (ContextType, optional): Additional information that can be
                 accessed and / or set by the Process functions.
                 Defaults to None.
+            calling_section (SectionBase, optional): The Section object
+                that is calling this method.  This reference is
+                required for subsection read methods. Defaults to None.
         Returns:
             ProcessOutput: The results of applying the process functions to the
             input item.
         '''
+        if calling_section:
+            self.calling_section = calling_section
         if not context:
             context = dict()
         result = [item]
@@ -2193,8 +2237,8 @@ class Section(SectionBase):
             self._source_index = None  # clear the indexing
             self.is_first_item = None
 
-    def update_original_source(self):
-        '''Update source pointer after reading subsection.
+    def update_supplied_source(self):
+        '''Update the supplied source pointer.
 
         When the section is supplied with BufferedIterator as a source, and the
         generator has not closed at the end of the section iteration (reached
@@ -2205,18 +2249,32 @@ class Section(SectionBase):
         '''
         # If the generator has not closed
         if self.scan_status not in ['Scan Complete', 'End of Source']:
-            # Update
+            # Update the original source
             if isinstance(self._original_source, BufferedIterator):
                 if len(self.source.future_items) > 0:
                     source_pointer = self.source_index[-1]
                     logger.debug(f'Moving original source to item #{source_pointer}')
                     self._original_source.goto_item(source_pointer,
                                                     buffer_overrun=True)
-        logger.debug((f'Section:\t{self.name}\n'
-                      f'item_count: \t{self.item_count}\n'
-                      f'source.item_count: \t{self.source.item_count}\n'
-                      f'source_item_count: \t{self.source_item_count}\n'
-                      f'source_index: \t{self.source_index}\n\n'))
+
+    def update_source(self, source: BufferedIterator):
+        '''Update the source pointer to match that of the supplied source.
+
+        Adjust the position of the source iterator to match the given source. It
+        assumes that the given source is a copy of the current source, but at a
+        different location in the iterator.
+
+        Args:
+            source (BufferedIterator, optional): A matching BufferedIterator,
+                but at a  different location in the iterator
+        '''
+        # The number of steps back done in the given source.
+        steps_back = len(source.future_items)
+        if steps_back > 0:
+            # Convert the number of steps back in the given source to the
+            # number of steps back in this source.
+            offset = self.source_index[-steps_back]
+            self.source.goto_item(offset)
 
     # Initialize and manage section_breaks
     @property
@@ -2564,7 +2622,7 @@ class Section(SectionBase):
         if context:
             context.update(self.context)
         # re-align any buffers in the supplied source
-        self.update_original_source()
+        self.update_supplied_source()
 
     def process(self, source: Source, start_search: bool = None,
                 context: Dict[str, Any] = None)->ProcessedItemGen:
@@ -2593,7 +2651,7 @@ class Section(SectionBase):
         '''
         section_iter = self.scan(source, start_search=start_search,
                                  context=context)
-        process_iter = self.processor.reader(section_iter, self.context)
+        process_iter = self.processor.reader(section_iter, self.context, self)
         while True:
             try:
                 item_read = next(process_iter)
@@ -2608,7 +2666,7 @@ class Section(SectionBase):
         if context:
             context.update(self.context)
         # re-align any buffers in the supplied source
-        self.update_original_source()
+        self.update_supplied_source()
 
     def read(self, source: Source, start_search: bool = None,
              context: ContextType = None)->AssembledItem:
