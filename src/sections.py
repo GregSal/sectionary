@@ -55,8 +55,8 @@ from buffered_iterator import BufferedIteratorEOF
 logging.basicConfig(format='%(name)-20s - %(levelname)s: %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Sections')
-logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 #%% Input and output Type Definitions
@@ -439,7 +439,8 @@ class SectionGroup():
         done = False
         while not done:
             assembled_item = self.read(buffered_source, context=context)
-            yield assembled_item
+            if not is_empty(assembled_item):
+                yield assembled_item
             # Generator exits are captured by the read method.
             # scan_status provides an indication of whether the
             # source has been exhausted.
@@ -1781,7 +1782,7 @@ class ProcessingMethods():
             ProcessMethodsList: The sequence of Processes with the correct
                 argument signature.
         '''
-        if not true_iterable(processing_methods):
+        if not isinstance(processing_methods, list):
             processing_methods = [processing_methods]
         cleaned_methods = list()
         for func in processing_methods:
@@ -1831,69 +1832,6 @@ class ProcessingMethods():
         if func.is_gen:
             return func(iter(source), context)
         return (func(item, context) for item in source)
-
-    def read_subsection_groups(self,
-                               subsection_group: Tuple['Section'],
-                               source: ProcessedItemGen,
-                               context: ContextType = None
-                               )->SubSectionGroupItem:
-        '''Iterate through the supplied source returning the assembled subsections.
-
-        Sequentially applies the read() method of each Section object in
-        subsection_group to the supplied source, generating a dictionary where
-        the key is the section name and the value is the AssembledItem returned
-        by the read() method.
-        This method is used when a tuple of subsections are supplied as a
-        ProcessingMethod. Each subsection in subsection_group is read from the
-        source, yielding a dictionary with the name of the subsection as the key
-        and the assembled subsection as the value.
-        Note: The subsections in the group must all have unique names.
-
-        Args:
-            subsection_group (Tuple['Section']): The sequence of Section object
-                to be read from the source. ('Section' is a subclass of
-                BaseSection).
-            source (ProcessedItemGen): The iterator resulting from applying
-                zero or more processing functions to the original source.
-            context (ContextType, optional): Break point information and any
-                additional information to be passed to and from the
-                sub-section instance. Defaults to None.
-
-        Returns:
-            SubSectionGroupItem: The dictionary resulting from reading each of the
-            subsections in subsection_group from the supplied source.
-        '''
-        # Isolate the supplied source to improve transitions between sections
-        # in the group.
-        # FIXME This is lost because nothing is dome with active source after
-        active_source = BufferedIterator(source)
-        # Repeat until source is exhausted
-        done = False
-        while not done:
-            section_group = {}
-            for subsection in subsection_group:
-                subsection_item = subsection.read(active_source,
-                                                  context=context)
-                # Generator exits are captured by the read method.
-                if subsection.scan_status in ['Scan Complete', 'End of Source']:
-                    if not is_empty(subsection_item):
-                        # Don't return empty read results.
-                        section_group[subsection.name] = subsection_item
-                    # Break if end of source reached
-                    done = True
-                    break
-                # Always store read result if subsection did not close
-                section_group[subsection.name] = subsection_item
-            if is_empty(section_group):
-                # Don't return empty section group.
-                section_group = None
-
-            # FIXME I think this is the wrong place to call the update because
-            # there may be other non 1 to 1 processing functions involved.
-            # The calling source needs to be updated after every group read
-            # because the calling section may close without this loop exiting.
-            self.calling_section.update_source(subsection.source)
-            yield section_group
 
     def set_subsection_reader(self, processing_def: Any) -> ProcessFunc | None:
         '''Convert Section object(s) to processing function.
@@ -2718,6 +2656,9 @@ class Section(SectionBase):
                 additional information to be passed to and from the
                 Section instance.
         '''
+        # Update the source index so that stepping back uses the
+        # correct step size
+        self._source_index.append(self.source.item_count)
         # Update the supplied context if it exists
         if context:
             context.update(self.context)
@@ -2869,7 +2810,8 @@ class Section(SectionBase):
         done = False
         while not done:
             assembled_item = self.read(buffered_source, context=context)
-            yield assembled_item
+            if not is_empty(assembled_item):
+                yield assembled_item
             # Generator exits are captured by the read method.
             # scan_status provides an indication of whether the
             # source has been exhausted.
