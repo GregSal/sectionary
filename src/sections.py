@@ -2689,7 +2689,15 @@ class Section(SectionBase):
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
-        # Initialize the section
+        # Update context
+        # self.context is reset when the assemble function begins, so a local
+        # copy needs to be created.
+        # Merge supplied context and self.context.  This allows self.context
+        # items to be passed to self.processor.reader
+        if not context:
+            context = {}
+        context.update(self.context)
+
         self.initialize(source, start_search, context=context)
         # Read source until end boundary is found or source ends
         while True:
@@ -2730,9 +2738,21 @@ class Section(SectionBase):
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
-        section_iter = self.scan(source, start_search=start_search,
+        # Update context
+        # self.context is reset when the assemble function begins, so a local
+        # copy needs to be created.
+        # Merge supplied context and self.context.  This allows self.context
+        # items to be passed to self.processor.reader
+        if not context:
+            context = {}
+        context.update(self.context)
+
+        section_iter = self.scan(source=source,
+                                 start_search=start_search,
                                  context=context)
-        process_iter = self.processor.reader(section_iter, self.context, self)
+        process_iter = self.processor.reader(source=section_iter,
+                                             context=context,
+                                             calling_section=self)
         while True:
             try:
                 item_read = next(process_iter)
@@ -2775,16 +2795,21 @@ class Section(SectionBase):
                 all processed items from source that are within the section
                 boundaries.
         '''
+        # Update context
+        # self.context is reset when the assemble function begins, so a local
+        # copy needs to be created.
+        # Merge supplied context and self.context.  This allows self.context
+        # items to be passed to self.process
+        if not context:
+            context = {}
+        context.update(self.context)
+
         # Get the processing generator
         section_processor = self.process(source, start_search=start_search,
                                          context=context)
 
-
-        # Send the processing generator to the assemble function
-        # For some reason I don't understand I need to set self.context to a
-        # local variable to get it to update with the assemble function.
-        active_context = self.context
-        section_assembled = self.assemble(section_processor, active_context)
+        # Send the processing generator to the assemble function.
+        section_assembled = self.assemble(section_processor, context)
         self.wrap_up(context)
         return section_assembled
 
@@ -2808,6 +2833,16 @@ class Section(SectionBase):
         # future items between calls to read.
         buffered_source = BufferedIterator(source, buffer_size=self.buffer_size)
         done = False
+
+        # Update context
+        # self.context is reset when the assemble function begins, so a local
+        # copy needs to be created.
+        # Merge supplied context and self.context.  This allows self.context
+        # items to be passed to self.read
+        if not context:
+            context = {}
+        context.update(self.context)
+
         while not done:
             assembled_item = self.read(buffered_source, context=context)
             if not is_empty(assembled_item):
