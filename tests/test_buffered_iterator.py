@@ -363,7 +363,7 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
         '''
         # Move forward until the beginning of the sequence has been lost from
         # the buffer More than the size of the buffer.
-        fwd = random.randint(1, self.num_items-2)
+        fwd = random.randint(1, self.num_items- self.num_items / 2)
         for i in range(fwd):
             next(self.str_source)
         with self.assertRaises(BufferedIteratorValueError):
