@@ -336,6 +336,7 @@ class FixedWidthParser():
     '''Converts a text line into a sequence of text items with predefined
     spacing.
     '''
+    # TODO Add conversion / drop options to parser
     def __init__(self, widths: Integers = None, number: int = 1,
                  locations: List[int] = None):
         '''Define a parser that will convert a single text line into parsed
