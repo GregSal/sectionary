@@ -45,25 +45,43 @@ def make_approved_status_rule() -> Rule:
     def approved_status_parse(line, event) -> tp.ProcessedList:
         '''If Treatment Approved, Split "Plan Status" into 3 lines:
 
-        Return three rows for a line containing "Treatment Approved"
-            Prescribed dose [unit]: dose
+        Accepts a supplied line like:
+        `Plan Status: Treatment Approved Thursday, January 02, 2020 12:55:56 by gsal`,
+        Extracts and user.
+        The approval date is the text between event.test_value and ' by'.
+        The user is the text after ' by'.
+        Yields three two-item lists.
+        A supplied line like:
+        `Plan Status: Treatment Approved Thursday, January 02, 2020 12:55:56 by gsal`,
         Gives:
             [['Plan Status', 'Treatment Approved'],
-             ['Approved on', date],
-             ['Approved by', person]
+             ['Approved on', Thursday, January 02, 2020 12:55:56],
+             ['Approved by', gsal]
         '''
-        idx1 = line.find(event.test_value)
-        idx2 = idx1 + len(event.test_value)
-        idx3 = line.find(' by')
-        idx4 = idx3 + 4
+        # event.test_value is the string found in the line that triggered the
+        # call to this function
+        approval_text = event.test_value
+        # ' by' is the text separator between the approval data and the user.
+        by_text = ' by'
+
+        idx1 = line.find(approval_text)       # Beginning of approval text
+        idx2 = idx1 + len(approval_text) + 1  # End of approval text
+        idx3 = line.find(by_text)             # Beginning of ' by' text
+        idx4 = idx3 + len(by_text)+ 1         # End of ' by' text
+
+        # extracting text sub-strings
+        approval_date = line[idx2:idx3]
+        approved_by = line[idx4:]
+        # List of 3 two-item lists
         parsed_lines = [
-            ['Plan Status', line[idx1:idx2]],
-            ['Approved on', line[idx2+1:idx3]],
-            ['Approved by', line[idx4:]]
+            ['Plan Status', approval_text],
+            ['Approved on', approval_date],
+            ['Approved by', approved_by]
             ]
+        # one-by-one yield each two-item list as if each one were a separate
+        # source line.
         for line in parsed_lines:
             yield line
-
     approved_status_rule = Rule('Treatment Approved', location='IN',
                                    pass_method=approved_status_parse,
                                    fail_method='None',
