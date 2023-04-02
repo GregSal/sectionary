@@ -2039,10 +2039,23 @@ class Section(SectionBase):
                     'Break Triggered'
                     'Scan Complete'
                     'End of Source'
-            context (Dict[str, Any]): The primary mechanism for the processing
-                and assembly methods to pass contextual information. Break
-                point results are is the most commonly used information and are
-                automatically added to context.
+            context (ProtectedDict[str, Any]): The primary mechanism for
+                processing and assembly functions to pass contextual information.
+                Break point results are is the most commonly used information
+                and are automatically added to context.
+
+                The ProtectedDict class is a sub-class of the built-in dict
+                class, where the update(method is prevented from modifying
+                certain items.  For context, those protected items are:
+                    'Current Section',
+                    'Skipped Lines',
+                    'Status',
+                    'Break',
+                    'Event'
+                These items are automatically added to context, and are
+                protected from accidental modification by processing or assembly
+                functions.
+
                 When a section boundary is encountered (including sub-sections)
                 two items will be added to the context dictionary:
                     'Break': (str): The name of the Trigger instance that
@@ -2630,7 +2643,7 @@ class Section(SectionBase):
         self.reset()  # This clears source, context and scan_status.
         self.source = supplied_source  # This initializes the source.
         # Update context
-        if context:
+        if context is not None:
             self.context.update(context)
         # if start_search is not given explicitly use the section's
         # start_search attribute
@@ -2648,20 +2661,54 @@ class Section(SectionBase):
         self.scan_status = 'At section start'
         self.is_first_item = None
 
+    def set_local_context(self, context: Dict[str, Any] = None):
+        '''Merge supplied context with self.context
+
+        self.context is reset by self.initialize, which does not run until the
+        generator is is applied (the first item is retuned from the generator).
+        The reset is required to clear the status items from self.context.
+        To protect the pointer of the supplied context a local copy is created
+        by merging the contents of the supplied context and self.context.  The
+        contents of the local copy (except for the status items) are placed in
+        self.context at the end of the self.initialize call. When the generator
+        is finished, the contents of self.context is restored to the pointer of
+        the supplied context.
+
+        Args:
+            context (Dict[str, Any]): Supplied context
+
+        Returns:
+            (Dict[str, Any]: Merged context from the supplied context and
+                self.context
+        '''
+        local_context = {}
+        if context is not None:
+            local_context.update(context)
+        local_context.update(self.context)
+        return local_context
+
     def wrap_up(self, context: ContextType = None):
         '''Perform update tasks at the end of a section.
 
+        Two tasks are required:
+            1. Synchronize context and self.context
+            2. Synchronize source indexing and buffers
+
         Args:
-            context (ContextType): Break point information and any
-                additional information to be passed to and from the
-                Section instance.
+            context (ContextType): External context dictionary passed to scan,
+                process or read.
         '''
+        # synchronize all items on context and self.context, except protected
+        # items
+        if context:
+            # Update self.context from context, except protected items.
+            self.context.update(context)
+        if context is not None:
+            context.update(self.context)
+
         # Update the source index so that stepping back uses the
         # correct step size
         self._source_index.append(self.source.item_count)
-        # Update the supplied context if it exists
-        if context:
-            context.update(self.context)
         # re-align any buffers in the supplied source
         self.update_supplied_source()
 
@@ -2689,15 +2736,8 @@ class Section(SectionBase):
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
-        # Update context
-        # self.context is reset when the assemble function begins, so a local
-        # copy needs to be created.
-        # Merge supplied context and self.context.  This allows self.context
-        # items to be passed to self.processor.reader
-        if not context:
+        if context is None:
             context = {}
-        context.update(self.context)
-
         self.initialize(source, start_search, context=context)
         # Read source until end boundary is found or source ends
         while True:
@@ -2738,15 +2778,8 @@ class Section(SectionBase):
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
-        # Update context
-        # self.context is reset when the assemble function begins, so a local
-        # copy needs to be created.
-        # Merge supplied context and self.context.  This allows self.context
-        # items to be passed to self.processor.reader
-        if not context:
+        if context is None:
             context = {}
-        context.update(self.context)
-
         section_iter = self.scan(source=source,
                                  start_search=start_search,
                                  context=context)
@@ -2795,21 +2828,14 @@ class Section(SectionBase):
                 all processed items from source that are within the section
                 boundaries.
         '''
-        # Update context
-        # self.context is reset when the assemble function begins, so a local
-        # copy needs to be created.
-        # Merge supplied context and self.context.  This allows self.context
-        # items to be passed to self.process
-        if not context:
+        if context is None:
             context = {}
-        context.update(self.context)
-
         # Get the processing generator
         section_processor = self.process(source, start_search=start_search,
                                          context=context)
-
         # Send the processing generator to the assemble function.
         section_assembled = self.assemble(section_processor, context)
+        #self.wrap_up(local_context, context)
         self.wrap_up(context)
         return section_assembled
 
@@ -2833,16 +2859,8 @@ class Section(SectionBase):
         # future items between calls to read.
         buffered_source = BufferedIterator(source, buffer_size=self.buffer_size)
         done = False
-
-        # Update context
-        # self.context is reset when the assemble function begins, so a local
-        # copy needs to be created.
-        # Merge supplied context and self.context.  This allows self.context
-        # items to be passed to self.read
-        if not context:
+        if context is None:
             context = {}
-        context.update(self.context)
-
         while not done:
             assembled_item = self.read(buffered_source, context=context)
             if not is_empty(assembled_item):
@@ -2853,3 +2871,5 @@ class Section(SectionBase):
             if self.scan_status in ['Scan Complete', 'End of Source']:
                 done=True
         self.wrap_up(context)
+
+# %%
