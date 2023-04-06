@@ -6,7 +6,7 @@
 '''
 
 #%% Imports
-from typing import Callable, List, Any, Dict
+from typing import Callable, List, Any, Dict, List, Tuple
 from pathlib import Path
 import re
 from functools import partial
@@ -15,7 +15,9 @@ import logging
 
 import numpy as np
 import pandas as pd
+
 import text_reader as tp
+from buffered_iterator import BufferedIterator
 from sections import Rule, RuleSet, SectionBreak, Section, ProcessingMethods
 
 
@@ -42,8 +44,11 @@ def plan_split(line: str)->List[str]:
     parts = line.split(sep=':', maxsplit=1)
     # Remove leading and trailing spaces from each part
     clean_parts = [s.strip() for s in parts]
+    # If the line is blank return an empty list
+    if max(len(part) for part in clean_parts) == 0:
+        clean_parts = []
     # Force clean_parts to be a length of 2
-    if len(clean_parts) == 1:
+    elif len(clean_parts) == 1:
         clean_parts.append('')
     return clean_parts
 
@@ -81,7 +86,7 @@ def make_approved_status_rule() -> Rule:
         r'Treatment Approved'  # Literal text 'Treatment Approved'
         r')'                   # End of approval capture group
         r'\s*'                 # Possible whitespace
-        r'(?P<date>.*)'        # Text containing approval date
+        r'(?P<date>.*?)'        # Text containing approval date
         r'\s*'                 # Possible whitespace
         r'by'                  # Literal text 'by'
         r'\s*'                 # Possible whitespace
@@ -165,7 +170,7 @@ def make_prescribed_isodose_rule() -> Rule:
         isodose = float(isodose_text)
         parsed_line = ['Prescription Isodose', isodose]
         return parsed_line
-    prescribed_isodose_rule = Rule('% for dose (%)', location='IN',
+    prescribed_isodose_rule = Rule(r'% for dose (%)', location='IN',
                                    pass_method=parse_isodose,
                                    fail_method='None',
                                    name='make_prescribed_isodose_rule')
@@ -191,6 +196,118 @@ def make_plan_sum_rule() -> Rule:
     return plan_sum_rule
 
 
+def plan_lookup(plan_sections: List[Dict[str, Any]],
+                context: Dict[str, Any])->Dict[str, Dict[str, Any]]:
+    '''Build a dictionary of plan information and add it to context.
+    '''
+    all_plans = pd.DataFrame(plan for plan in plan_sections if plan)
+    all_plans.set_index(['Course', 'Plan'], inplace=True)
+    context['PlanLookup'] = all_plans
+    return all_plans
+
+# Prescribed Dose Rule
+def make_dose_data_rule() -> Rule:
+    '''return a Rule to Parse all Structure Dose lines.
+
+    Split dose parameter into label, value and unit if they exists, otherwise
+    split on the first ':'.
+
+    The line:
+        Volume [cm³]: 38.3
+    Results in:
+        ['Volume', 38.3],
+        ['Volume unit', 'cm³']
+
+    The line:
+        Approval Status: Approved
+    Results in:
+        ['Approval Status', 'Approved']
+
+    The line:
+        Paddick CI:
+    Results in:
+        ['Paddick CI', '']
+
+    Returns (Rule): A sectionary Rule that will parse all Structure Dose lines.
+    '''
+    def parse_dose_data(line, event) -> tp.ProcessedList:
+        match_results = event.test_value.groupdict()
+        # Convert numerical value to float
+        match_results['value'] = float(match_results['value'])
+        value_label = match_results['label'].strip()
+        unit_label = value_label + ' unit'
+        parsed_lines = [
+            [value_label, match_results['value']],
+            [unit_label, match_results['unit']]
+            ]
+        for line in parsed_lines:
+            yield line
+
+    structure_dose_pattern = (
+        r'^(?P<label>[^[]+)'   # Initial parameter label
+        r'\['                  # Unit start delimiter '['
+        r'(?P<unit>[^\]]+)'    # unit group: text surrounded by []
+        r'\]'                  # Unit end delimiter ']'
+        r'\s*:\s*'             # Value delimiter with possible whitespace
+        r'(?P<value>[0-9.]+)'  # value group Number
+        r'\s*'                 # drop trailing whitespace
+        r'$'                   # end of string
+        )
+    re_pattern = re.compile(structure_dose_pattern)
+    dose_rule = Rule(name='make_dose_data_rule',
+                     sentinel=re_pattern,
+                     pass_method=parse_dose_data,
+                     fail_method=plan_split)
+    return dose_rule
+
+
+def header_parse(line: str) -> List[Tuple[str]]:
+    '''Split each column header into label and unit.
+
+    Accepts a string containing column labels and units.
+    Returns a list of two-item tuples. The first item is the label
+    and the second is the units.
+    A supplied line like:
+    `Dose [cGy]   Relative dose [%] Ratio of Total Structure Volume [%]`,
+    Gives:
+        [('Dose', 'cGy'),
+         ('Relative dose', '%'),
+         ('Ratio of Total Structure Volume', '%')
+         ]
+
+    Args:
+        line (str): Header line for DVH Curve
+
+    Returns:
+        List[Tuple[str]]: A list of two-item tuples. The first item is
+        the label and the second is the units.
+    '''
+    header_pattern = (
+        r'\s*'               # Initial spaces
+        r'(?P<Label>'        # Beginning of label capture group
+        r'[A-Za-z /]*'       # Label text (can include spaced and '/')
+        r')'                 # End of label capture group
+        r'\s*'               # Possible whitespace
+        r'\['                # Units start delimiter
+        r'(?P<Units>[^]]*)'  # Text containing units (all text until ']'
+        r'\]'                # Units end delimiter
+        )
+    re_pattern = re.compile(header_pattern)
+    label_list = []
+    for match in re_pattern.finditer(line):
+        match_results = match.groupdict()
+        header = (match_results['Label'], match_results['Units'])
+        label_list.append(header)
+    return label_list
+
+
+def is_blank(line: str):
+    return len(line) == 0
+
+
+def split_data_points(line: str)->List[float]:
+    return [float(num) for num in line.split()]
+
 
 plan_rule_set = RuleSet([make_approved_status_rule(),
                          make_prescribed_dose_rule(),
@@ -201,15 +318,6 @@ plan_rule_set = RuleSet([make_approved_status_rule(),
 info_split = partial(str.split, sep=':', maxsplit=1)
 
 
-def plan_lookup(plan_sections: List[Dict[str, Any]],
-                context: Dict[str, Any])->Dict[str, Dict[str, Any]]:
-    '''Build a dictionary of plan information.
-    '''
-    all_plans = pd.DataFrame(plan for plan in plan_sections if plan)
-    all_plans.set_index(['Course', 'Plan'], inplace=True)
-    context['PlanLookup'] = all_plans
-    pprint(context)
-    return all_plans
 
 #%% Section definitions
 dvh_info_section = Section(
@@ -238,6 +346,37 @@ all_plans = Section(
     assemble=plan_lookup
     )
 
+dose_info_section = Section(
+    name='Structure',
+    start_section=('Structure:', 'START', 'Before'),
+    end_section=(is_blank, None, 'Before'),
+    processor=[make_dose_data_rule()],
+    assemble=tp.to_dict
+    )
+
+dose_header_section = Section(
+    name='Header',
+    start_section=('Dose [', 'IN', 'Before'),
+    end_section=True,
+    processor=header_parse
+    )
+
+dose_curve_section = Section(
+    name='DVH Curve',
+    start_search=False,
+    end_section=('Structure:', 'START', 'Before'),
+    processor=split_data_points
+    )
+
+dvh_dose = Section(
+    name='DVH Dose',
+    start_search=('Structure:', 'START', 'Before'),
+    processor=[(dose_info_section,
+                dose_header_section,
+                dose_curve_section)]
+    )
+
+
 #%% Main Iteration
 def main():
     demo_dvh_folder = Path.cwd() / r'./References/Text Files/DVH files'
@@ -264,6 +403,7 @@ def main():
     print('\nall_plans.context')
     pprint(all_plans.context)
 
-
+    print('\nStructure DVH Section')
+    pprint(dvh_dose.read(demo_dvh_text)[0])
 if __name__ == '__main__':
     main()
