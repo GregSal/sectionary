@@ -1,19 +1,19 @@
 ########## Creation command ############
 conda create -n sectionary python=3.8
-conda activate sectionary 
-conda install pandas openpyxl jupyterlab xlwings sphinx
+conda activate sectionary
+conda install pandas openpyxl jupyterlab xlwings sphinx matplotlib
 python -m ipykernel install --user --name sectionary --display-name "Python (sectionary)"
 
 ########## Export command ############
 conda env export > sectionary_FULL.yml
-conda env export --from-history > C:\TEMP\sectionary.yml
-conda list --explicit > C:\TEMP\sectionary_specfile.txt
-
+conda env export --from-history > sectionary.yml
+conda list --explicit > sectionary_specfile.txt
+pip freeze > requirements.txt
 
 ########## Install command ############
 conda create --name sectionary --file sectionary_specfile.txt
 
-conda env create --name sectionary --file=C:\TEMP\sectionary_FULL.yml
+conda env create --name sectionary --file=sectionary_FULL.yml
 
 ########### Related Commands  ##########
 conda config --append channels conda-forge
@@ -23,10 +23,11 @@ conda activate sectionary
 
 #### Primary Packages ####
 python >= 3.8
-pandas 
-openpyxl 
-jupyterlab 
-xlwings 
+matplotlib
+pandas
+openpyxl
+jupyterlab
+xlwings
 sphinx
 
 ########### Jupyter Notebook Shortcut  ##########

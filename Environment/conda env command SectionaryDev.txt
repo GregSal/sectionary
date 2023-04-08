@@ -14,10 +14,10 @@ conda install -y sphinx myst-parser nbsphinx nbsphinx-link sphinx-copybutton sph
 python -m ipykernel install --user --name sectionaryDev --display-name "Python (sectionaryDev)"
 
 ########## Export command ############
-conda env export > C:\TEMP\sectionaryDev_FULL.yml
-conda env export --from-history > C:\TEMP\sectionaryDev.yml
-conda list --explicit > C:\TEMP\sectionaryDev_specfile.txt
-pip freeze > C:\TEMP\requirements.txt
+conda env export > sectionaryDev_FULL.yml
+conda env export --from-history > sectionaryDev.yml
+conda list --explicit > sectionaryDev_specfile.txt
+pip freeze > requirements.txt
 
 ########## Install command ############
 conda create --name sectionary --file sectionaryDev_specfile.txt
@@ -43,7 +43,7 @@ C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py %USERPROFIL
 ########### Related Commands  ##########
 conda config --append channels conda-forge
 
-conda activate sectionary
+conda activate sectionaryDev
 
 
 #### Primary Packages ####

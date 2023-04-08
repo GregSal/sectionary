@@ -21,4 +21,5 @@ dependencies:
   - pandoc
   - sphinx-copybutton
   - sphinx_rtd_theme
+  - matplotlib
 prefix: C:\Users\smoke\.conda\envs\sectionaryDev
