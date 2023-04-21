@@ -510,14 +510,22 @@ def merge_continued_rows(parsed_lines: Source,
 
 
 def drop_blanks(lines: Source) -> Source:
-    '''Return all non-empty strings. or non-empty lists
+    '''Return all non-empty strings. or non-empty lists.
+
+    Caution, This function only works with lists (or other iterables) of text,
+    or with lists-of-lists of text.  For example, If a list of numbers is
+    supplied it will treat `0` items as blanks and if a lists-of-lists of
+    numbers is supplied it will raise a TypeError.
     '''
     for line in lines:
+        # if the line is empty ignore it.
         if line:
             if true_iterable(line):
+                # If any item in the list is not empty, yield the line.
                 if any(len(text) for text in line) > 0:
                     yield line
             else:
+                # If line is a string, yield the line.
                 yield line
 
 #%% output converters
