@@ -1954,8 +1954,8 @@ class ProcessingMethods():
         '''
         if calling_section:
             self.calling_section = calling_section
-        if not context:
-            context = dict()
+        if context is None:
+            context = {}
         result = [item]
         for func in self.processing_methods:
             result = self.func_to_iter(iter(result), func, context)
