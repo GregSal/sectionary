@@ -1496,7 +1496,7 @@ class Rule(Trigger):
             ProcessedItems: The result of applying the relevant rule_method to
                 the supplied test_object.
         '''
-        if not context:
+        if context is None:
             context = dict()
         is_match = self.evaluate(test_object, context)
         if is_match:
@@ -1514,7 +1514,7 @@ class Rule(Trigger):
         single SourceItem.  The is necessary because Trigger.evaluate() and the
         Rule pass and fail methods only accept a single SourceItem.
         '''
-        if not context:
+        if context is None:
             context = dict()
         result = self.apply(test_object, context)
         logger.debug(f'Passed?  {self.event.test_passed}')
@@ -1627,7 +1627,7 @@ class RuleSet():
                 the supplied test_object.
 
         '''
-        if not context:
+        if context is None:
             context = dict()
         for rule in self.rule_seq:
             result = rule.apply(test_object, context)
@@ -1662,7 +1662,7 @@ class RuleSet():
             ProcessedItemGen: A generator supplying result of applying the
                 RuleSet to the supplied test_object.
         '''
-        if not context:
+        if context is None:
             context = dict()
         result = self.apply(test_object, context)
         if result is None:
@@ -1823,7 +1823,7 @@ class ProcessingMethods():
             for item in source:
                 yield from func(item, context)
 
-        if not context:
+        if context is None:
             context = dict()
         if isinstance(func, (Rule, RuleSet)):
             return func_gen(source, context)
@@ -1892,7 +1892,7 @@ class ProcessingMethods():
         '''
         if calling_section:
             self.calling_section = calling_section
-        if not context:
+        if context is None:
             context = dict()
         next_source = source
         for func in self.processing_methods:
