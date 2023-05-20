@@ -249,7 +249,7 @@ class TestBufferedIterator_goto_item(unittest.TestCase):
         return the n_th item in the sequence.
         '''
         fwd = random.randint(1, self.num_items-2)
-        max_adv = fwd + min(self.num_items-fwd+1, self.buffer_size)
+        max_adv = fwd + min(self.num_items-fwd, self.buffer_size)
         item_choices = [i for i in range(fwd+1, max_adv)]
         target_item = random.choice(item_choices)
         logger.debug(f'Moving forward {fwd} steps; going to item {target_item}')

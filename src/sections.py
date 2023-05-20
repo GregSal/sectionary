@@ -2735,7 +2735,7 @@ class Section(SectionBase):
         self.update_supplied_source()
 
     def scan(self, source: Source, start_search: bool = None,
-             context: ContextType = None)->SectionGen:
+             context: ContextType = None, *, _direct_call=True)->SectionGen:
         '''The primary outward facing section generator function.
 
         Initialize the source and then provide the generator that will step
@@ -2773,10 +2773,11 @@ class Section(SectionBase):
                 if self.is_boundary(next_item, self.end_section):
                     break  # Break if section boundary reached
             yield next_item
-        self.wrap_up(context)
+        if _direct_call:
+            self.wrap_up(context)
 
     def process(self, source: Source, start_search: bool = None,
-                context: Dict[str, Any] = None)->ProcessedItemGen:
+                context: ContextType = None, *, _direct_call=True)->ProcessedItemGen:
         '''The primary outward facing section processor function.
 
         Initialize the source and then provide the generator that will step
@@ -2804,7 +2805,7 @@ class Section(SectionBase):
             context = {}
         section_iter = self.scan(source=source,
                                  start_search=start_search,
-                                 context=context)
+                                 context=context, _direct_call=False)
         process_iter = self.processor.reader(source=section_iter,
                                              context=context,
                                              calling_section=self)
@@ -2819,10 +2820,11 @@ class Section(SectionBase):
                 logger.debug(f'Adding {self.source.item_count} to source_index')
                 self._source_index.append(self.source.item_count)
                 yield item_read
-        self.wrap_up(context)
+        if _direct_call:
+            self.wrap_up(context)
 
     def read(self, source: Source, start_search: bool = None,
-             context: ContextType = None)->AssembledItem:
+             context: ContextType = None, *, _direct_call=True)->AssembledItem:
         '''The primary outward facing section reader function.
 
         Initialize the source and then provide the generator that will step
@@ -2855,11 +2857,12 @@ class Section(SectionBase):
             context = {}
         # Get the processing generator
         section_processor = self.process(source, start_search=start_search,
-                                         context=context)
+                                         context=context, _direct_call=False)
         # Send the processing generator to the assemble function.
         section_assembled = self.assemble(section_processor, context)
         #self.wrap_up(local_context, context)
-        self.wrap_up(context)
+        if _direct_call:
+            self.wrap_up(context)
         return section_assembled
 
     def __iter__(self, source: Source, context: ContextType = None)->AssembledItem:
