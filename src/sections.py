@@ -2247,6 +2247,28 @@ class Section(SectionBase):
     # Source indexing properties
     @property
     def source_index(self) -> list[int] | None:
+        '''A list of pointers to the "next item" in the source following each
+        item in the section.
+
+        This list is important for stepping back through a section when section
+        items are not one-to-one matched with source items. For example, if the
+        section reader returns every other item in the source, stepping back one
+        section item involves stepping back two source items. source_index
+        tracks the location in the source where each section item is completed.
+
+        The first item in this list will be the index to the next item in the
+        source when the section is first called. If the section reading method
+        (scan process or read) is directly called with a normal sequence, the
+        first item in the list will always be 0 (referring to the beginning of
+        the source).  If the section is called as a sub-section (a process
+        item) or if the source is a BufferedIterator then the  first item in the
+        list may be greater than 0.  If source reading has not started the index
+        will not have been initialized and this call returns None
+
+        Returns:
+            list[int] | None: A list of pointers to the source, or None if the
+                source reading has not started.
+        '''
         return self._source_index
 
     @property
@@ -2708,7 +2730,7 @@ class Section(SectionBase):
 
         # Update the source index so that stepping back uses the
         # correct step size
-        self._source_index.append(self.source.item_count)
+        #self._source_index.append(self.source.item_count)
         # re-align any buffers in the supplied source
         self.update_supplied_source()
 
@@ -2794,6 +2816,7 @@ class Section(SectionBase):
             else:
                 # Update the source index so that stepping back uses the
                 # correct step size
+                logger.debug(f'Adding {self.source.item_count} to source_index')
                 self._source_index.append(self.source.item_count)
                 yield item_read
         self.wrap_up(context)

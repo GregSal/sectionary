@@ -69,6 +69,19 @@ def odd_nums(source):
         if int(item)%2 == 1:
             yield item
 
+
+def even_nums(source):
+    '''Yield even items
+    Args:
+        source (Sequence[int]): A sequence of integers
+
+    Yields:
+        int: odd integers from the source
+    '''
+    for item in source:
+        if int(item)%2 == 0:
+            yield item
+
 # %% Test Source Tracking
 class TestSourceTracking(unittest.TestCase):
     def setUp(self):
@@ -260,10 +273,29 @@ class TestSourceTracking(unittest.TestCase):
             name='Odd Numbers',
             processor=[odd_nums]
             )
-        section_odd.read(self.int_source)
+        items_read = section_odd.read(self.int_source)
         source_count = self.int_source.item_count
         source_item_count = section_odd.source_item_count
         item_count = section_odd.item_count
+        self.assertEqual(source_count, source_item_count)
+        self.assertEqual(source_count, item_count * 2)
+
+    def test_completed_even_section_item_count(self):
+        '''Completed Section Item Count
+            - (str(i) for i in range(n)) as source
+            - processor drops even items and yields even items
+            - after section.read(source):
+                - source.item_count = section.source_item_count
+                - section.source_item_count = section.item_count = n * 2
+        '''
+        section_even = Section(
+            name='Even Numbers',
+            processor=[even_nums]
+            )
+        items_read = section_even.read(self.int_source)
+        source_count = self.int_source.item_count
+        source_item_count = section_even.source_item_count
+        item_count = section_even.item_count
         self.assertEqual(source_count, source_item_count)
         self.assertEqual(source_count, item_count * 2)
 
