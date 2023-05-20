@@ -1,12 +1,130 @@
 import unittest
 from pathlib import Path
+from functools import partial
+import re
 import csv
 import text_reader as tp
 from buffered_iterator import BufferedIterator
-from sections import sig_match, RuleSet, ProcessingMethods
-import read_dvh_file
+from sections import sig_match, Rule, RuleSet, ProcessingMethods
+
+import numpy as np
 import pandas as pd
 
+# %% Odl DVH processing functions
+def make_date_parse_rule() -> Rule:
+    def date_parse(line: str) -> tp.ProcessedList:
+        '''If Date,don't split beyond first :.'''
+        parsed_line = line.split(':', maxsplit=1)
+        return parsed_line
+
+    date_rule = Rule('Date', location='START', name='date_rule',
+                        pass_method=date_parse, fail_method='None')
+    return date_rule
+
+
+info_split = partial(str.split, sep=':', maxsplit=1)
+
+
+# Prescribed Dose Rule
+def make_prescribed_dose_rule() -> Rule:
+    '''Split Dose into dose vale and dose unit.
+    For a line containing:
+        Total dose [unit]: dose  OR
+        Prescribed dose [unit]: dose
+    The line:
+        Prescribed dose [cGy]: 5000.0
+    Results in:
+        ['Prescribed dose', '5000.0'],
+        ['Prescribed dose unit', 'cGy']
+    The line:
+        Total dose [cGy]: not defined
+    Results in:
+        ['Prescribed dose', nan],
+        ['Prescribed dose unit', '']
+    '''
+    def parse_prescribed_dose(line, event) -> tp.ProcessedList:
+        match_results = event.test_value.groupdict()
+        # Convert numerical dose value to float and
+        # 'not defined' dose value to np.nan
+        if match_results['dose'] == 'not defined':
+            match_results['dose'] = np.nan
+            match_results['unit'] = ''
+        else:
+            match_results['dose'] = float(match_results['dose'])
+
+        parsed_lines = [
+            ['Prescribed dose', match_results['dose']],
+            ['Prescribed dose unit', match_results['unit']]
+            ]
+        for line in parsed_lines:
+            yield line
+
+    prescribed_dose_pattern = (
+        r'^(Total|Prescribed)'  # Begins with 'Total' OR 'Prescribed'
+        r'\s*dose\s*'           # Literal text 'dose' surrounded by whitespace
+        r'\['                   # Unit start delimiter '['
+        r'(?P<unit>[A-Za-z]+)'  # unit group: text surrounded by []
+        r'\]'                   # Unit end delimiter ']'
+        r'\s*:\s*'              # Dose delimiter with possible whitespace
+        r'(?P<dose>[0-9.]+'     # dose group Number
+        r'|not defined)'        #"not defined" alternative
+        r'[\s\r\n]*'            # drop trailing whitespace
+        r'$'                    # end of string
+        )
+    re_pattern = re.compile(prescribed_dose_pattern)
+    dose_rule = Rule(sentinel=re_pattern, name='prescribed_dose_rule',
+                        pass_method= parse_prescribed_dose, fail_method='None')
+    return dose_rule
+
+def make_approved_status_rule() -> Rule:
+    '''If Treatment Approved, Split "Plan Status" into 3 lines.
+
+    Accepts a supplied line like:
+    `Plan Status: Treatment Approved Thursday, January 02, 2020 12:55:56 by gsal`,
+    Extracts and user.
+    The approval date is the text between event.test_value and ' by'.
+    The user is the text after ' by'.
+    Yields three two-item lists.
+    A supplied line like:
+    `Plan Status: Treatment Approved Thursday, January 02, 2020 12:55:56 by gsal`,
+    Gives:
+        [['Plan Status', 'Treatment Approved'],
+            ['Approved on', Thursday, January 02, 2020 12:55:56],
+            ['Approved by', gsal]
+    '''
+    def approved_status_parse(line, event) -> tp.ProcessedList:
+        match_results = event.test_value.groupdict()
+        parsed_lines = [
+            ['Plan Status', match_results['approval']],
+            ['Approved on', match_results['date']],
+            ['Approved by', match_results['user']]
+            ]
+        for line in parsed_lines:
+            yield line
+
+    approval_pattern = (
+        r'.*'                  # Initial text
+        r'(?P<approval>'       # Beginning of approval capture group
+        r'Treatment Approved'  # Literal text 'Treatment Approved'
+        r')'                   # End of approval capture group
+        r'\s*'                 # Possible whitespace
+        r'(?P<date>.*?)'        # Text containing approval date
+        r'\s*'                 # Possible whitespace
+        r'by'                  # Literal text 'by'
+        r'\s*'                 # Possible whitespace
+        r'(?P<user>.*?)'       # Text containing user (non-greedy)
+        r'\s*'                 # Possible trailing whitespace
+        r'$'                   # end of string
+        )
+    re_pattern = re.compile(approval_pattern)
+    approved_status_rule = Rule(name='approved_status_rule',
+                                sentinel=re_pattern,
+                                pass_method= approved_status_parse,
+                                fail_method='None')
+    return approved_status_rule
+
+
+# %% Tests
 class TestProcessing(unittest.TestCase):
     def setUp(self):
         self.test_text = [
@@ -286,7 +404,7 @@ class TestParsers(unittest.TestCase):
             delimiter=':',
             skipinitialspace=True))
         self.dvh_info_reader = ProcessingMethods([RuleSet(
-            [read_dvh_file.make_date_parse_rule()],
+            [make_date_parse_rule()],
             default=tp.define_csv_parser('dvh_info', delimiter=':',
                                          skipinitialspace=True))])
 
@@ -393,7 +511,7 @@ class TestSections(unittest.TestCase):
             'Plan Info 1': {
                     'Plan sum': 'Plan Sum',
                     'Course': 'PLAN SUM',
-                    'Prescribed dose': '',
+                    'Prescribed dose': np.nan,
                     'Prescribed dose unit': '',
                     '% for dose (%)': 'not defined'
                     },
@@ -446,7 +564,7 @@ class TestSections(unittest.TestCase):
     def test_dvh_info_reader(self):
         dvh_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
-            RuleSet([read_dvh_file.make_date_parse_rule()],
+            RuleSet([make_date_parse_rule()],
                        default=self.default_parser),
             tp.trim_items,
             tp.drop_blanks,
@@ -461,8 +579,8 @@ class TestSections(unittest.TestCase):
     def test_plan_info1_read(self):
         plan_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
-            RuleSet([read_dvh_file.make_prescribed_dose_rule(),
-                     read_dvh_file.make_approved_status_rule()],
+            RuleSet([make_prescribed_dose_rule(),
+                     make_approved_status_rule()],
                        default=self.default_parser),
             tp.trim_items,
             tp.drop_blanks,
@@ -478,8 +596,8 @@ class TestSections(unittest.TestCase):
     def test_plan_info2_read(self):
         plan_info_reader = ProcessingMethods([
             tp.clean_ascii_text,
-            RuleSet([read_dvh_file.make_prescribed_dose_rule(),
-                     read_dvh_file.make_approved_status_rule()],
+            RuleSet([make_prescribed_dose_rule(),
+                     make_approved_status_rule()],
                        default=self.default_parser),
             tp.trim_items,
             tp.drop_blanks,
