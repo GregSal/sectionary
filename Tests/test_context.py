@@ -383,7 +383,6 @@ class TestContextKeywords(unittest.TestCase):
         self.assertEqual(context['test_item'], 'dummy')
         self.assertEqual(context['Item1'], 1)
 
-    @unittest.skip('Section Iterator not working yet')
     def test_iter_keywords_without_context(self):
         '''Verify that extra keyword arguments to section iterator will be
         added to context.
@@ -394,7 +393,6 @@ class TestContextKeywords(unittest.TestCase):
         [t for t in iter(basic_section(self.test_text, test_item='dummy'))]
         self.assertEqual(basic_section.context['test_item'], 'dummy')
 
-    @unittest.skip('Section Iterator not working yet')
     def test_iter_keywords_with_context(self):
         '''Verify that extra keyword arguments to section iterator will be
         added to supplied context.

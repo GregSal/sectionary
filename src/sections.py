@@ -237,7 +237,7 @@ class SectionBase(ABC):
         return None
 
     @abstractmethod
-    def __iter__(self, source: Source, start_search: bool = None,
+    def __call__(self, source: Source, start_search: bool = None,
                  context: ContextType = None)->AssembledItem:
         '''A reference to the __iter__ method for the Section class.
 
@@ -417,7 +417,7 @@ class SectionGroup():
             section_group[subsection.name] = subsection_item
         return section_group
 
-    def __iter__(self, source: Source, context: ContextType = None
+    def __call__(self, source: Source, context: ContextType = None
                  )->Generator[SubSectionGroupItem, None, None]:
         '''Iterate through the supplied source returning assembled
         subsection results.
@@ -1854,7 +1854,7 @@ class ProcessingMethods():
         '''
         # Look for individual subsections
         if isinstance(processing_def, SectionBase):
-            read_func = gen_func(processing_def.__iter__)
+            read_func = gen_func(processing_def.__call__)
             # gen_func indicates that this is a generator function for use by
             # func_to_iter.
             return read_func
@@ -1863,7 +1863,7 @@ class ProcessingMethods():
             try:
                 # gen_func indicates that this is a generator function for use
                 # by func_to_iter.
-                read_func = gen_func(SectionGroup(processing_def).__iter__)
+                read_func = gen_func(SectionGroup(processing_def).__call__)
             except (TypeError, ValueError) as err:
                 raise err
             return read_func
@@ -2896,7 +2896,7 @@ class Section(SectionBase):
         self.wrap_up(context)
         return section_assembled
 
-    def __iter__(self, source: Source, context: ContextType = None,
+    def __call__(self, source: Source, context: ContextType = None,
                  **context_items)->AssembledItem:
         '''Iterate through the supplied source returning assembled results.
 

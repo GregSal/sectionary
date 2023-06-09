@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from buffered_iterator import BufferedIterator
-
+import read_dvh_file_old
 
 @ unittest.skip('Tests need to be updated to new Read DVH example')
 class TestSectionGroups(unittest.TestCase):

@@ -295,7 +295,7 @@ dvh_data_section = Section(
 dvh_group_section = Section(
     name='DVH Groups',
     start_section=structure_info_start,
-    processor=[[structure_info_section, dvh_data_section]],
+    processor=[(structure_info_section, dvh_data_section)],
     assemble=to_structure_data_tuple
     )
 
