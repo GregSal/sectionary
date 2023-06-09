@@ -2735,7 +2735,8 @@ class Section(SectionBase):
         self.update_supplied_source()
 
     def scan(self, source: Source, start_search: bool = None,
-             context: ContextType = None, *, _direct_call=True)->SectionGen:
+             context: ContextType = None, *, _direct_call=True,
+             **context_items)->SectionGen:
         '''The primary outward facing section generator function.
 
         Initialize the source and then provide the generator that will step
@@ -2753,13 +2754,21 @@ class Section(SectionBase):
             context (ContextType): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
+            _direct_call (bool, optional): Internal argument to control wrap-up
+                processes.
+            **context_items: Any additional keyword arguments will be added to
+                the section.context dictionary.
         Returns:
             SectionGen: A generator that will step through all items from
                 source that are in section; starting and stopping at the defined
                 start and end boundaries of the section.
         '''
+        # Initialize context
         if context is None:
             context = {}
+        if context_items:
+            context.update(context_items)
+
         self.initialize(source, start_search, context=context)
         # Read source until end boundary is found or source ends
         while True:
@@ -2773,11 +2782,15 @@ class Section(SectionBase):
                 if self.is_boundary(next_item, self.end_section):
                     break  # Break if section boundary reached
             yield next_item
+
+        # If scan was not called by section.process, clean up source and context
+        # before exiting, otherwise leave the wrap up task for section.process.
         if _direct_call:
             self.wrap_up(context)
 
     def process(self, source: Source, start_search: bool = None,
-                context: ContextType = None, *, _direct_call=True)->ProcessedItemGen:
+                context: ContextType = None, *, _direct_call=True,
+                **context_items)->ProcessedItemGen:
         '''The primary outward facing section processor function.
 
         Initialize the source and then provide the generator that will step
@@ -2795,17 +2808,27 @@ class Section(SectionBase):
             context (ContextType): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
+            _direct_call (bool, optional): Internal argument to control wrap-up
+                processes.
+            **context_items: Any additional keyword arguments will be added to
+                the section.context dictionary.
         Yields:
             ProcessedItemGen: A generator that will step through all items from
                 source that are within the section boundaries; returning the
                 results of applying the SectionProcessor Rules to each item in
                 the section.
         '''
+        # Initialize context
         if context is None:
             context = {}
+        if context_items:
+            context.update(context_items)
+
+        # Iterator through all source items belonging to the section
         section_iter = self.scan(source=source,
                                  start_search=start_search,
                                  context=context, _direct_call=False)
+        # Iterator that processes all source items from section_iter
         process_iter = self.processor.reader(source=section_iter,
                                              context=context,
                                              calling_section=self)
@@ -2820,11 +2843,14 @@ class Section(SectionBase):
                 logger.debug(f'Adding {self.source.item_count} to source_index')
                 self._source_index.append(self.source.item_count)
                 yield item_read
+
+        # If process was not called by section.read, clean up source and context
+        # before exiting, otherwise leave the wrap up task for section.read.
         if _direct_call:
             self.wrap_up(context)
 
     def read(self, source: Source, start_search: bool = None,
-             context: ContextType = None, *, _direct_call=True)->AssembledItem:
+             context: ContextType = None, **context_items)->AssembledItem:
         '''The primary outward facing section reader function.
 
         Initialize the source and then provide the generator that will step
@@ -2848,24 +2874,30 @@ class Section(SectionBase):
             context (ContextType, optional): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
+            **context_items: Any additional keyword arguments will be added to
+                the section.context dictionary.
         Returns:
             AssembledItem: The result of applying the assemble function to
                 all processed items from source that are within the section
                 boundaries.
         '''
+        # Initialize context
         if context is None:
             context = {}
+        if context_items:
+            context.update(context_items)
+
         # Get the processing generator
         section_processor = self.process(source, start_search=start_search,
                                          context=context, _direct_call=False)
         # Send the processing generator to the assemble function.
         section_assembled = self.assemble(section_processor, context)
-        #self.wrap_up(local_context, context)
-        if _direct_call:
-            self.wrap_up(context)
+
+        self.wrap_up(context)
         return section_assembled
 
-    def __iter__(self, source: Source, context: ContextType = None)->AssembledItem:
+    def __iter__(self, source: Source, context: ContextType = None,
+                 **context_items)->AssembledItem:
         '''Iterate through the supplied source returning assembled results.
 
         Repeatedly calls the read() method on the source, yielding the
@@ -2877,16 +2909,25 @@ class Section(SectionBase):
             context (ContextType, optional): Break point information and any
                 additional information to be passed to and from the
                 Section instance.
+            **context_items: Any additional keyword arguments will be added to
+                the section.context dictionary.
         Yields:
             Generator[AssembledItem, None, None]: The result of applying the
                 read method repeatedly to the supplied source.
         '''
+        # Initialize context
+        if context is None:
+            context = {}
+        if context_items:
+            context.update(context_items)
+
         # Wrap the supplied source in a BufferedIterator so that it will retain
         # future items between calls to read.
         buffered_source = BufferedIterator(source, buffer_size=self.buffer_size)
+
+        # Iterate through the source calling section.read repeatedly until the
+        # source is exhausted.
         done = False
-        if context is None:
-            context = {}
         while not done:
             assembled_item = self.read(buffered_source, context=context)
             if not is_empty(assembled_item):
@@ -2896,6 +2937,7 @@ class Section(SectionBase):
             # source has been exhausted.
             if self.scan_status in ['Scan Complete', 'End of Source']:
                 done=True
+
         self.wrap_up(context)
 
 # %%

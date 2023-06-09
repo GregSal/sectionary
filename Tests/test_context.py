@@ -308,5 +308,107 @@ class TestContextUpdate(unittest.TestCase):
             })
 
 
+# %%  Context from keywords
+class TestContextKeywords(unittest.TestCase):
+    '''Test the use of keyword arguments with context.
+
+    1. Verify that extra keyword arguments to read, process and scan are added
+        to context.
+    2. Verify that section_break, processor and assemble functions can use
+        context items as keyword arguments.
+    '''
+    def setUp(self):
+        self.test_text = [
+            'StartSection A',
+            'EndSection A'
+            ]
+
+    def test_read_keywords_without_context(self):
+        '''Verify that extra keyword arguments to read will be added to context.
+        '''
+        basic_section = Section()
+        basic_section.read(self.test_text, test_item='dummy')
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+
+    def test_read_keywords_with_context(self):
+        '''Verify that extra keyword arguments to read will be added to
+        supplied context.
+        '''
+        basic_section = Section()
+        context = {'Item1': 1}
+        basic_section.read(self.test_text, context=context, test_item='dummy')
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+        self.assertEqual(basic_section.context['Item1'], 1)
+        self.assertEqual(context['test_item'], 'dummy')
+        self.assertEqual(context['Item1'], 1)
+
+    def test_process_keywords_without_context(self):
+        '''Verify that extra keyword arguments to process will be added to
+        context.
+        '''
+        basic_section = Section()
+        [t for t in basic_section.process(self.test_text, test_item='dummy')]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+
+    def test_process_keywords_with_context(self):
+        '''Verify that extra keyword arguments to process will be added to
+        supplied context.
+        '''
+        basic_section = Section()
+        context = {'Item1': 1}
+        [t for t in basic_section.process(self.test_text,
+                                       context=context, test_item='dummy')]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+        self.assertEqual(basic_section.context['Item1'], 1)
+        self.assertEqual(context['test_item'], 'dummy')
+        self.assertEqual(context['Item1'], 1)
+
+    def test_scan_keywords_without_context(self):
+        '''Verify that extra keyword arguments to scan will be added to context.
+        '''
+        basic_section = Section()
+        [t for t in basic_section.scan(self.test_text, test_item='dummy')]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+
+    def test_scan_keywords_with_context(self):
+        '''Verify that extra keyword arguments to scan will be added to
+        supplied context.
+        '''
+        basic_section = Section()
+        context = {'Item1': 1}
+        [t for t in basic_section.scan(self.test_text,
+                                       context=context, test_item='dummy')]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+        self.assertEqual(basic_section.context['Item1'], 1)
+        self.assertEqual(context['test_item'], 'dummy')
+        self.assertEqual(context['Item1'], 1)
+
+    @unittest.skip('Section Iterator not working yet')
+    def test_iter_keywords_without_context(self):
+        '''Verify that extra keyword arguments to section iterator will be
+        added to context.
+        '''
+        # single item section
+        basic_section = Section(end_section=True)
+        # run section iterator
+        [t for t in iter(basic_section(self.test_text, test_item='dummy'))]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+
+    @unittest.skip('Section Iterator not working yet')
+    def test_iter_keywords_with_context(self):
+        '''Verify that extra keyword arguments to section iterator will be
+        added to supplied context.
+        '''
+        # single item section
+        basic_section = Section(end_section=True)
+        context = {'Item1': 1}
+        [t for t in basic_section(self.test_text, context=context,
+                                  test_item='dummy')]
+        self.assertEqual(basic_section.context['test_item'], 'dummy')
+        self.assertEqual(basic_section.context['Item1'], 1)
+        self.assertEqual(context['test_item'], 'dummy')
+        self.assertEqual(context['Item1'], 1)
+
+
 if __name__ == '__main__':
     unittest.main()
