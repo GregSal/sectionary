@@ -374,7 +374,7 @@ class TestFixedWidthParser(unittest.TestCase):
 
 
 class TestDataFrameOutput(unittest.TestCase):
-    def test_single_header_dataframe(self):
+    def test_single_header_df(self):
         test_text = [
             ['A', 'B', 'C'],
             [1, 2, 3],
