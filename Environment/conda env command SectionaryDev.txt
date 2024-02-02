@@ -1,5 +1,5 @@
 ########## Creation command ############
-conda create -y -n sectionaryDev python=3.8
+conda create -y -n sectionaryDev python=3.12
 conda activate sectionaryDev
 #### Primary Packages ####
 conda install -y pandas openpyxl xlwings
@@ -22,21 +22,21 @@ pip freeze > requirements.txt
 ########## Install command ############
 conda create --name sectionary --file sectionaryDev_specfile.txt
 
-conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev_FULL.yml
-conda env create --name variandb_relations --file=C:\TEMP\sectionaryDev.yml
+conda env create --name variandb_relations --file=sectionaryDev_FULL.yml
+conda env create --name variandb_relations --file=sectionaryDev.yml
 ########## Spyder Launch command ############
 ### Target
-C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py %USERPROFILE%\.conda\envs\sectionaryDev %USERPROFILE%\.conda\envs\sectionaryDev\pythonw.exe %USERPROFILE%\.conda\envs\sectionaryDev\Scripts\spyder-script.py
+"D:\anaconda3\python.exe" D:\anaconda3\cwp.py D:\.conda\envs\sectionaryDev D:\.conda\envs\sectionaryDev\pythonw.exe "D:\.conda\envs\sectionaryDev\Scripts\spyder-script.py"
 
 ### Start in
-"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+D:\OneDrive - Queen's University\Python\Projects\sectionary package"
 
 ### Icon
-%USERPROFILE%\.conda\envs\variandb_relations\Scripts\spyder.ico
+D:\.conda\envs\sectionaryDev\Scripts\spyder.ico
 
 ### Alternate Start in
-"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package\src\sectionary
-"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package\examples
+D:\OneDrive - Queen's University\Python\Projects\sectionary package\src\sectionary
+D:\OneDrive - Queen's University\Python\Projects\sectionary package\examples
 
 
 
@@ -47,7 +47,7 @@ conda activate sectionaryDev
 
 
 #### Primary Packages ####
-python >= 3.8
+python=3.12
 pandas
 openpyxl
 xlwings
@@ -72,18 +72,18 @@ esbonio
 
 ########### Spyder Launch Shortcut  ##########
 Target
-C:\ProgramData\Anaconda3\pythonw.exe C:\ProgramData\Anaconda3\cwp.py C:\ProgramData\\Anaconda3\envs\sectionaryDev C:\ProgramData\Anaconda3\envs\sectionaryDev\pythonw.exe C:\ProgramData\Anaconda3\envs\sectionaryDev\Scripts\spyder-script.py
+"D:\anaconda3\python.exe" D:\anaconda3\cwp.py D:\.conda\envs\sectionaryDev D:\.conda\envs\sectionaryDev\pythonw.exe  D:\.conda\envs\sectionaryDev\Scripts\spyder-script.py
 
 Start In
-"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+D:\OneDrive - Queen's University\Python\Projects\sectionary package"
 Icon
-C:\ProgramData\Anaconda3\Scripts\spyder.ico
+D:\.conda\envs\sectionaryDev\Scripts\spyder.ico
 ########### Jupyter Launch Shortcut  ##########
-C:\ProgramData\Anaconda3\pythonw.exe 'C:\ProgramData\Anaconda3\cwp.py', 'C:\ProgramData\\Anaconda3\envs\sectionaryDev', 'C:\ProgramData\Anaconda3\envs\sectionaryDev\pythonw.exe', 'C:\ProgramData\Anaconda3\envs\sectionaryDev\Scripts\jupyter-lab-script.py "%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+"D:\anaconda3\python.exe" D:\anaconda3\cwp.py D:\.conda\envs\sectionaryDev D:\.conda\envs\sectionaryDev\pythonw.exe "D:\.conda\envs\sectionaryDev\Scripts\jupyter-lab-script.py" "D:\OneDrive - Queen's University\Python\Projects\sectionary package"
 
-"%HOMEPATH%\OneDrive - Queen's University\Python\Projects\sectionary package"
+"D:\OneDrive - Queen's University\Python\Projects\sectionary package"
 
 ########### Jupyter Launch Batch File  ##########
-call C:\ProgramData\Anaconda3\Scripts\activate.bat C:\ProgramData\Anaconda3
+call D:\anaconda3\Scripts\activate.bat D:\anaconda3
 call conda activate sectionaryDev
-call python C:\Users\gsalomon\.conda\envs\sectionaryDev\Scripts\jupyter-lab-script.py "%USERPROFILE%/"
+call python D:\anaconda3\envs\sectionaryDev\Scripts\jupyter-lab-script.py "D:/"
