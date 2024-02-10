@@ -362,11 +362,12 @@ class TestBufferedIterator_goto_item_Errors(unittest.TestCase):
         the size of the sequence.
         '''
         # Move forward until the beginning of the sequence has been lost from
-        # the buffer More than the size of the buffer.
-        fwd = random.randint(1, self.num_items- self.num_items / 2)
+        # the buffer.
+        fwd = random.randint(self.buffer_size + 1, self.num_items - 1)
         for i in range(fwd):
             next(self.str_source)
-        with self.assertRaises(BufferedIteratorValueError):
+        # Try to move to a point beyond the end.
+        with self.assertRaises(BufferOverflowWarning):
             self.str_source.goto_item(self.num_items+1)
 
 
