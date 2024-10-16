@@ -226,7 +226,7 @@ def drop_units(text: str) -> float:
 
     Args:
         text (str): A string that begins with a number (after any initial
-            whitespace) followed by characters represneting the units of the
+            whitespace) followed by characters representing the units of the
             number.
     Returns:
         float: The numeric portion of the supplied string
@@ -239,6 +239,9 @@ def drop_units(text: str) -> float:
         r'\d+'              # float value before decimal
         r'[.]?'             # decimal Place
         r'\d*'              # float value after decimal
+        r'[Ee]?'            # optional exponential indicator
+        r'[-+]?'            # optional exponential sign
+        r'\d*'              # optional exponential value
         r')'                # end of value string group
         r'\s*'              # skip whitespace
         r'(?P<unit>'        # beginning of value integer group
